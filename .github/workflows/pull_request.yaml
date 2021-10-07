@@ -1,0 +1,59 @@
+# This workflow will install Python dependencies, run tests and lint with a variety of Python versions
+# For more information see: https://help.github.com/actions/language-and-framework-guides/using-python-with-github-actions
+# based on https://github.com/actions/starter-workflows/blob/d9236ebe5585b1efd5732a29ea126807279ccd56/ci/python-package.yml
+
+name: Python package
+
+on:
+  push:
+    branches:
+      - '**'
+      - '!main'
+
+jobs:
+  build:
+    if: "contains(github.event.head_commit.message, 'Trigger CI')"
+
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        python-version: [ 3.8, 3.7 ]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Upgrade pip and build dependencies
+        run: |
+          python3 -m pip install --upgrade pip setuptools wheel
+      - name: Install package
+        run: |
+          python -m pip install .[test]
+      - name: Lint with flake8
+        run: |
+          flake8 src tests
+      - name: Check typing with mypy
+        run: |
+          mypy --install-types --non-interactive src tests
+      - name: Test with pytest
+        run: |
+          py.test tests
+
+  tests_completed:
+    # cf. https://github.com/pykeen/pykeen/blob/d79fe39f83bc2831137f22be6421b37568694cf4/.github/workflows/tests.yml#L112-L126
+    if: "!contains(github.event.head_commit.message, 'Trigger CI')"
+    runs-on: ubuntu-latest
+    steps:
+      - name: Step 1
+        id: PR-check
+        run: echo ::set-output name=status::pending
+        continue-on-error: true
+      - name: Dump steps context
+        env:
+          STEPS_CONTEXT: ${{ toJson(steps) }}
+        run: echo "$STEPS_CONTEXT"
+      - name: Check on failures
+        if: steps.PR-check.outputs.status == 'pending'
+        run: exit 1
