@@ -1,4 +1,3 @@
-from _pytest import capture
 import pytest
 
 from schnapsen.fizzbuzz import fizzbuzz
@@ -13,10 +12,7 @@ from schnapsen.fizzbuzz import fizzbuzz
         (20, 'Buzz'),
     ]
 )
-
-
 def test_fizzbuzz(capsys, number, word):
     fizzbuzz(number)
     captured = capsys.readouterr()
     assert captured.out == f"{word}\n"
-
