@@ -2,7 +2,7 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from enum import Enum, auto
 import inspect
-from typing import Dict, Type
+from typing import Dict, Iterable, List, Type
 import functools
 
 
@@ -31,15 +31,74 @@ class Rank(Enum):
     KING = auto()
 
 
-# TODO: decide whether to also make this an Enum
-# TODO make sure values cannot be changed externally
-class Card:
-    def __init__(self, rank: Rank, suit: Suit) -> None:
-        pass
+class Card(Enum):
+    ACE_HEARTS = (Rank.ACE, Suit.HEARTS, "🂱")
+    TWO_HEARTS = (Rank.TWO, Suit.HEARTS, "🂲")
+    THREE_HEARTS = (Rank.THREE, Suit.HEARTS, "🂳")
+    FOUR_HEARTS = (Rank.FOUR, Suit.HEARTS, "🂴")
+    FIVE_HEARTS = (Rank.FIVE, Suit.HEARTS, "🂵")
+    SIX_HEARTS = (Rank.SIX, Suit.HEARTS, "🂶")
+    SEVEN_HEARTS = (Rank.SEVEN, Suit.HEARTS, "🂷")
+    EIGHT_HEARTS = (Rank.EIGHT, Suit.HEARTS, "🂸")
+    NINE_HEARTS = (Rank.NINE, Suit.HEARTS, "🂹")
+    TEN_HEARTS = (Rank.TEN, Suit.HEARTS, "🂺")
+    JACK_HEARTS = (Rank.JACK, Suit.HEARTS, "🂻")
+    QUEEN_HEARTS = (Rank.QUEEN, Suit.HEARTS, "🂽")
+    KING_HEARTS = (Rank.KING, Suit.HEARTS, "🂾")
+
+    ACE_CLUBS = (Rank.ACE, Suit.CLUBS, "🃑")
+    TWO_CLUBS = (Rank.TWO, Suit.CLUBS, "🃒")
+    THREE_CLUBS = (Rank.THREE, Suit.CLUBS, "🃓")
+    FOUR_CLUBS = (Rank.FOUR, Suit.CLUBS, "🃔")
+    FIVE_CLUBS = (Rank.FIVE, Suit.CLUBS, "🃕")
+    SIX_CLUBS = (Rank.SIX, Suit.CLUBS, "🃖")
+    SEVEN_CLUBS = (Rank.SEVEN, Suit.CLUBS, "🃗")
+    EIGHT_CLUBS = (Rank.EIGHT, Suit.CLUBS, "🃘")
+    NINE_CLUBS = (Rank.NINE, Suit.CLUBS, "🃙")
+    TEN_CLUBS = (Rank.TEN, Suit.CLUBS, "🃚")
+    JACK_CLUBS = (Rank.JACK, Suit.CLUBS, "🃛")
+    QUEEN_CLUBS = (Rank.QUEEN, Suit.CLUBS, "🃝")
+    KING_CLUBS = (Rank.KING, Suit.CLUBS, "🃞")
+
+    ACE_SPADES = (Rank.ACE, Suit.SPADES, "🂡")
+    TWO_SPADES = (Rank.TWO, Suit.SPADES, "🂢")
+    THREE_SPADES = (Rank.THREE, Suit.SPADES, "🂣")
+    FOUR_SPADES = (Rank.FOUR, Suit.SPADES, "🂤")
+    FIVE_SPADES = (Rank.FIVE, Suit.SPADES, "🂥")
+    SIX_SPADES = (Rank.SIX, Suit.SPADES, "🂦")
+    SEVEN_SPADES = (Rank.SEVEN, Suit.SPADES, "🂧")
+    EIGHT_SPADES = (Rank.EIGHT, Suit.SPADES, "🂨")
+    NINE_SPADES = (Rank.NINE, Suit.SPADES, "🂩")
+    TEN_SPADES = (Rank.TEN, Suit.SPADES, "🂪")
+    JACK_SPADES = (Rank.JACK, Suit.SPADES, "🂫")
+    QUEEN_SPADES = (Rank.QUEEN, Suit.SPADES, "🂭")
+    KING_SPADES = (Rank.KING, Suit.SPADES, "🂮")
+
+    ACE_DIAMONDS = (Rank.ACE, Suit.DIAMONDS, "🃁")
+    TWO_DIAMONDS = (Rank.TWO, Suit.DIAMONDS, "🃂")
+    THREE_DIAMONDS = (Rank.THREE, Suit.DIAMONDS, "🃃")
+    FOUR_DIAMONDS = (Rank.FOUR, Suit.DIAMONDS, "🃄")
+    FIVE_DIAMONDS = (Rank.FIVE, Suit.DIAMONDS, "🃅")
+    SIX_DIAMONDS = (Rank.SIX, Suit.DIAMONDS, "🃆")
+    SEVEN_DIAMONDS = (Rank.SEVEN, Suit.DIAMONDS, "🃇")
+    EIGHT_DIAMONDS = (Rank.EIGHT, Suit.DIAMONDS, "🃈")
+    NINE_DIAMONDS = (Rank.NINE, Suit.DIAMONDS, "🃉")
+    TEN_DIAMONDS = (Rank.TEN, Suit.DIAMONDS, "🃊")
+    JACK_DIAMONDS = (Rank.JACK, Suit.DIAMONDS, "🃋")
+    QUEEN_DIAMONDS = (Rank.QUEEN, Suit.DIAMONDS, "🃍")
+    KING_DIAMONDS = (Rank.KING, Suit.DIAMONDS, "🃎")
+
+    def is_suit(self, suit: Suit):
+        return self.value[2] == suit
 
 
 class CardCollection:
-    pass
+    def __init__(self) -> None:
+        self._cards: List[Card] = []
+
+    def filter(self, suit: Suit) -> Iterable[Card]:
+        """Returns an Iterable with in it all cards which have the provided suit"""
+        return filter(lambda x: x.is_suit(suit), self._cards)
 
 
 class Hand (CardCollection):
