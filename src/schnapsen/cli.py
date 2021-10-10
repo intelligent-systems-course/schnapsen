@@ -1,3 +1,4 @@
+import importlib
 import click
 import schnapsen.fizzbuzz
 
@@ -6,10 +7,10 @@ import schnapsen.fizzbuzz
 def main():
     """The main entry point."""
 
+
 @main.group()
 def fuzzers():
     "Commands for fuzzing stuff"
-
 
 
 @fuzzers.command(name="fizzbuzz", help="Run FizzBuzz")
@@ -18,3 +19,10 @@ def fuzzers():
 def fizzbuzz(start: int, end: int):
     for i in range(start, end + 1):
         schnapsen.fizzbuzz.fizzbuzz(i)
+
+
+@main.command()
+@click.option("--module-name", default=".")
+def load_schnapsen_bot(module_name: str):
+    # importing the module also registers it with the BOT_REGISTRY
+    importlib.import_module(module_name)
