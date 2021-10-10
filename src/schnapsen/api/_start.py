@@ -2,7 +2,7 @@ from abc import abstractmethod
 from dataclasses import dataclass
 from enum import Enum, auto
 import inspect
-from typing import Dict, Mapping, Type
+from typing import Dict, Type
 import functools
 
 
