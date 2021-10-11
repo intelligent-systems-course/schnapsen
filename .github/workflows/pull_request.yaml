@@ -41,7 +41,7 @@ jobs:
         run: |
           py.test tests
 
-  tests_completed:
+  skipping_tests:
     # cf. https://github.com/pykeen/pykeen/blob/d79fe39f83bc2831137f22be6421b37568694cf4/.github/workflows/tests.yml#L112-L126
     if: "!contains(github.event.head_commit.message, 'Trigger CI')"
     runs-on: ubuntu-latest
