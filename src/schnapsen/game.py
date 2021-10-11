@@ -161,6 +161,24 @@ class Score:
         return Score(direct_points=self.direct_points, pending_points=self.pending_points)
 
 
+# TODO move to a more logical palce
+class Bot:
+    """A bot with its implementation and current state in a game"""
+
+    implementation: Callable[['GameState'], Move]
+    hand: Hand
+    score: Score
+
+    def get_move(self, state: 'PlayerGameState') -> Move:
+        move = self.implementation.get_move(state)
+        assert self.hand.has_cards(move.cards()), \
+            f"Tried to play a move for which the player does not have the cards. Played {move.cards}, but has {self.hand}"
+        return move
+
+    def copy(self) -> 'Bot':
+        new_bot = Bot(implementation=self.implementation, hand=self.hand.copy(), score=self.score.copy())
+        return new_bot
+
 class TrickScorer:
 
     RANK_TO_POINTS = {
@@ -170,6 +188,11 @@ class TrickScorer:
         Rank.QUEEN: 3,
         Rank.JACK: 2,
     }
+
+
+    def score(t: Trick, m: Optional[Marriage], leader: Bot, follower: Bot) -> Tuple[Bot, Bot]:
+        """The returned bots having the score of the marriageand  trick applied, and in order (new_leader, new_follower)"""
+        raise NotImplementedError("TODO")
 
     def score(self, trick: Trick) -> Score:
         # score_one = trick.
@@ -202,23 +225,7 @@ class PlayerGameState:
         pass
 
 
-# TODO move to a more logical palce
-class Bot:
-    """A bot with its implementation and current state in a game"""
 
-    implementation: Callable[['GameState'], Move]
-    hand: Hand
-    score: Score
-
-    def get_move(self, state: PlayerGameState) -> Move:
-        move = self.implementation.get_move(state)
-        assert self.hand.has_cards(move.cards()), \
-            f"Tried to play a move for which the player does not have the cards. Played {move.cards}, but has {self.hand}"
-        return move
-
-    def copy(self) -> 'Bot':
-        new_bot = Bot(implementation=self.implementation, hand=self.hand.copy(), score=self.score.copy())
-        return new_bot
 
 
 @dataclass
