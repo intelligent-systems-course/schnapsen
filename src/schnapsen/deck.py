@@ -113,13 +113,12 @@ class CardCollection(ABC):
 
     @abstractmethod
     def get_cards(self) -> Iterable[Card]:
-        pass
+        raise NotImplementedError()
 
     def filter(self, suit: Suit) -> Iterable[Card]:
         """Returns an Iterable with in it all cards which have the provided suit"""
         results: List[Card] = list(filter(lambda x: x.is_suit(suit), self.get_cards()))
         return results
-
 
 class OrderedCardCollection(CardCollection):
     def __init__(self) -> None:

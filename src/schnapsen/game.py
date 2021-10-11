@@ -1,22 +1,24 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
+import dataclasses
+from functools import partial
 from types import FunctionType
-from typing import Any, Callable, Iterable, Optional
+from typing import Any, Callable, Iterable, Optional, Tuple
 from .deck import CardCollection, OrderedCardCollection, Card, Rank, Suit
 
 
 class Move(ABC):
     @abstractmethod
     def is_marriage(self) -> bool:
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def is_trump_exchange(self) -> bool:
-        pass
+        raise NotImplementedError()
 
     @abstractmethod
     def cards(self) -> Iterable[Card]:
-        pass
+        raise NotImplementedError()
 
 
 @dataclass
@@ -98,42 +100,91 @@ class Hand (CardCollection):
     def has_cards(self, cards: Iterable[Card]):
         return all([card in self.cards for card in cards])
 
+    def copy(self) -> 'Hand':
+        return Hand(list(self.cards))
+
 
 class Talon (OrderedCardCollection):
-    pass
+    def __init__(cards: Iterable[Card]) -> None:
+        """The cards of the Talon. The first card is the bottommost card. The last on is the top card (which will be taken is a card is drawn)
+            The Trump card is at the bottom of the Talon.
+        """
+        super().__init__(list(cards))
+
+    def copy(self):
+        return Talon(self._cards)
+
+    def trump_exchange(self, new_trump: Card) -> Tuple['Talon', Card]:
+        """ perfom a trump-jack exchange. The card to be put as the trump card must be a Jack od the same suit.
+        As a result, this Talon is not changed, but rather a modified Talon and the exchanged card are returned."""
+        assert new_trump.is_rank(Rank.JACK)
+        assert len(self._cards) >= 2
+        assert new_trump.is_same_suit(self._cards[0])
+        new_talon = self.copy()
+        old_trump = new_talon._cards.pop(0)
+        new_talon.insert(0, new_trump)
+        return (new_talon, old_trump)
+
+    def draw_cards(self) -> Tuple['Talon', Card, Card]:
+        """Draw a card from this Talon. This does not change the talon, btu rather returns a talon with the change applied and the card drawn"""
+        assert len(self._cards)
+        self._cards
 
 
 class PartialTrick:
-    def __init__(self, move: Move) -> None:
+    def __init__(self, move: RegularMove) -> None:
         self.move = move
 
 
+@dataclasses
 class Trick(PartialTrick):
-    def __init__(self, part: PartialTrick, second_move: Move) -> None:
+    first_move: RegularMove
+    second_move: RegularMove
+
+    def __init__(self, part: PartialTrick, second_move: RegularMove) -> None:
         assert not part.move.is_marriage()
         self.first_move = part.move
         self.second_move = second_move
 
 
-@dataclass
+@dataclass(frozen=True)
 class Score:
     direct_points: int = 0
     pending_points: int = 0
 
-    def record_marriage(self):
-        self.pending_points += 20
+    def __add__(self, other: 'Score'):
+        total_direct_points = self.direct_points + other.direct_points
+        total_pending_points = self.pending_points + other.pending_points
+        return Score(total_direct_points, total_pending_points)
 
-    def record_royal_marriage(self):
-        self.pending_points += 40
-
-
-# class TrickScorer:
-#     @abstractmethod
-#     def score(self, trick: Trick) -> Score:
-#         pass
+    def copy(self) -> 'Score':
+        return Score(direct_points=self.direct_points, pending_points=self.pending_points)
 
 
-class InvibleTalon:
+class TrickScorer:
+
+    RANK_TO_POINTS = {
+        Rank.ACE: 11,
+        Rank.TEN: 10,
+        Rank.KING: 4,
+        Rank.QUEEN: 3,
+        Rank.JACK: 2,
+    }
+
+    def score(self, trick: Trick) -> Score:
+        # score_one = trick.
+        pass
+
+    def marriage(self) -> 'Score':
+        new_score = Score(pending_points=20)
+        return new_score
+
+    def royal_marriage(self) -> 'Score':
+        new_score = Score(pending_points=40)
+        return new_score
+
+
+class InvisibleTalon:
     pass
 
 
@@ -142,7 +193,7 @@ class PlayerGameState:
     opponent_hand: Optional[Hand]
     on_table: PartialTrick
     trump: Card
-    talon: InvibleTalon
+    talon: InvisibleTalon
 
     def __init__(self, state: 'GameState', first_or_second) -> None:
         pass
@@ -152,14 +203,22 @@ class PlayerGameState:
 
 
 # TODO move to a more logical palce
-@dataclass
 class Bot:
-    implementation : Callable[['GameState'], Move]
+    """A bot with its implementation and current state in a game"""
+
+    implementation: Callable[['GameState'], Move]
     hand: Hand
     score: Score
 
     def get_move(self, state: PlayerGameState) -> Move:
-        self.implementation.get_move(state)
+        move = self.implementation.get_move(state)
+        assert self.hand.has_cards(move.cards()), \
+            f"Tried to play a move for which the player does not have the cards. Played {move.cards}, but has {self.hand}"
+        return move
+
+    def copy(self) -> 'Bot':
+        new_bot = Bot(implementation=self.implementation, hand=self.hand.copy(), score=self.score.copy())
+        return new_bot
 
 
 @dataclass
@@ -171,60 +230,87 @@ class GameState:
     bot2: Bot
     leader: Bot
     follower: Bot
-    trump: Card
+    trump_suit: Suit
     talon: Talon
     previous: 'GameState'
     # ongoing_trick: PartialTrick
-    # scorer: TrickScorer
+    scorer: TrickScorer = TrickScorer()
 
-    def copy() -> 'GameState':
+    def copy(self) -> 'GameState':
         """Make a copy of the gamestate"""
 
         # TODO copy the needed parts: bots, talon
-        new_state = GameState(bot1, bot2, leader, follower, trump, talon, self)
+        bot1 = self.bot1.copy()
+        bot2 = self.bot2.copy()
+        if self.leader == self.bot1:
+            leader = bot1
+            follower = bot2
+        else:
+            leader = bot2
+            follower = bot1
+
+        new_state = GameState(bot1=bot1, bot2=bot2, leader=leader, follower=follower, trump=self.trump, talon=self.talon.copy(), previous=self)
+        return new_state
+
+    def play_trum_exchange(self, trump_move: Trump_Exchange) -> 'GameState':
+        assert trump_move.is_suit(self.trump_suit), \
+            f"A trump exchange can only be done with a Jack o the same suit as the current trump. Got a {trump_move.jack} while the  Trump card is a {self.trump}"
+        # create new GameState with moved cards
+        gamestate = self.copy()
+        # apply the changes in the gamestate
+        gamestate.leader.hand.remove(trump_move.jack)
+        modified_talon, old_trump = gamestate.talon.trump_exchange(trump_move.jack)
+        gamestate.talon = modified_talon
+        gamestate.leader.hand.add(old_trump)
+        gamestate.trump = trump_move.jack
+        return gamestate
+
+    def _play_marriage(self, marriage_move: Marriage) -> Score:
+        """Computes the new score from playing the mariage. This does not change the GameState"""
+        if marriage_move.has_same_suit(self.trump):
+            return self.leader.score + self.scorer.royal_marriage()
+        else:
+            return self.leader.score + self.scorer.marriage()
+
+    def __decide_winer_and_loser(trick):
+        pass
 
     def play_trick(self) -> 'GameState':
 
-        player_game_state = PlayerGameState(self, "first")
+        leader_game_state = PlayerGameState(self, "leader")
         # ask first players move
-        move = self.leader.get_move(player_game_state)
+        leader_move = self.leader.get_move(leader_game_state)
 
-        assert self.leader.hand.has_cards(move.cards()), \
-            "Tried to play a move for which the player does not have the cards. Played {move.cards}, but has {self.leader.hand}"
-
-        if move.is_trump_exchange():
-            # create new GameState with moved cards
-            trump_move: Trump_Exchange = move
-            assert trump_move.has_same_suit(self.trump), \
-                f"A trump exchange can only be done with a Jack o the same suit as the current trump. Got a {trump_move.jack} while the  Trump card is a {self.trump}"
-            gamestate = self.copy()
-            # apply the changes in the gamestate
-            gamestate.leader.hand.remove(trump_move.jack)
-            gamestate.leader.hand.add(self.trump)
-            gamestate.trump = trump_move.jack
-            return gamestate
+        if leader_move.is_trump_exchange():
+            trump_move: Trump_Exchange = leader_move
+            return self.play_trum_exchange(trump_move)
             # TODO is this okay? We end the trick without a real trick being played
-        if move.is_marriage():
+        if leader_move.is_marriage():
             # record score, keep in mind the royal marriage
-            marriage_move: Marriage = move
-            if marriage_move.has_same_suit(self.trump):
-                self.leader.score.record_royal_marriage()
-            else:
-                self.leader.score.record_marriage()
-
-            move = move.as_regular_move()
-
+            marriage_move: Marriage = leader_move
+            new_leader_score = self._play_marriage(marriage_move=marriage_move)
+            leader_move = leader_move.as_regular_move()
+        else:
+            # normal move, make a copy of the score already
+            new_leader_score = self.leader.score.copy()
         # normal play
+        partial_trick = PartialTrick(leader_move)
+        follower_game_state = PlayerGameState(self, "follower", partial_trick)
+        follower_move = self.follower.get_move(follower_game_state)
 
-            loser =
-            winner =
+        trick = Trick(partial_trick, follower_move)
+        winner, loser = self.decide_winner_and_loser(trick)
+        points = self.scorer.score
 
-            if second_player_wins:
-                new_state = GameState(
-                    self.bot1, self.bot2, leader=winner,
-                    follower=loser,
-                    # TODO and so on
-                )
+        loser =
+        winner =
+
+        if second_player_wins:
+            new_state = GameState(
+                self.bot1, self.bot2, leader=winner,
+                follower=loser,
+                # TODO and so on
+            )
 
             # ask second player
 
@@ -238,14 +324,14 @@ class GameState:
             #     pass
 
 
-class FirstMovePhaseOneState:
-    player_hand: Hand
-    trump: Card
-    talon: InvibleTalon
+# class FirstMovePhaseOneState:
+#     player_hand: Hand
+#     trump: Card
+#     talon: InvisibleTalon
 
 
-class SecondMovePhaseTwoState:
-    player_hand: Hand
-    opponent_hand: Hand
-    on_table: PartialTrick
-    trump: Card
+# class SecondMovePhaseTwoState:
+#     player_hand: Hand
+#     opponent_hand: Hand
+#     on_table: PartialTrick
+#     trump: Card
