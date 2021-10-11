@@ -32,3 +32,7 @@ def load_schnapsen_bot(module_name: str):
     importlib.import_module(name=module_name)
     # taking the entry back out of the path. Not sure what that will do...
     sys.path.pop(0)
+
+
+
+
