@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from typing import Iterable, Optional
+from types import FunctionType
+from typing import Any, Callable, Iterable, Optional
 from .deck import CardCollection, OrderedCardCollection, Card, Rank, Suit
 
 
@@ -151,11 +152,11 @@ class PlayerGameState:
 
 
 # TODO move to a more logical palce
+@dataclass
 class Bot:
-    def __init__(self, implementation, hand: Hand) -> None:
-        self.hand = hand
-        self.implementation = implementation
-        self.score: Score
+    implementation : Callable[['GameState'], Move]
+    hand: Hand
+    score: Score
 
     def get_move(self, state: PlayerGameState) -> Move:
         self.implementation.get_move(state)
