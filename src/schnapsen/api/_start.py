@@ -1,4 +1,4 @@
-from abc import abstractmethod
+from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum, auto
 import inspect
@@ -89,16 +89,38 @@ class Card(Enum):
     KING_DIAMONDS = (Rank.KING, Suit.DIAMONDS, "🃎")
 
     def is_suit(self, suit: Suit):
-        return self.value[2] == suit
+        return self.value[1] == suit
+
+    def is_rank(self, rank: Rank):
+        return self.value[0] == rank
+
+    @staticmethod
+    def get_card(rank: Rank, suit: Suit):
+        for card in Card:
+            (card_rank, card_suit, _) = card.value
+            if rank == card_rank and suit == card_suit:
+                return card
+        raise Exception(f"This card does not exist: {card_rank}, {card_suit}. This should be impossible as all combinations are defined")
 
 
-class CardCollection:
-    def __init__(self) -> None:
-        self._cards: List[Card] = []
+class CardCollection(ABC):
+
+    @abstractmethod
+    def get_cards(self) -> Iterable[Card]:
+        pass
 
     def filter(self, suit: Suit) -> Iterable[Card]:
         """Returns an Iterable with in it all cards which have the provided suit"""
-        return filter(lambda x: x.is_suit(suit), self._cards)
+        results: List[Card] = list(filter(lambda x: x.is_suit(suit), self.get_cards()))
+        return results
+
+
+class OrderedCardCollection(CardCollection):
+    def __init__(self) -> None:
+        self._cards: List[Card] = []
+
+    def get_cards(self) -> Iterable[Card]:
+        return self._cards
 
 
 class Hand (CardCollection):
@@ -170,7 +192,7 @@ BOT_REGISTRY = _BotRegistry()
 
 # Arguments can be added as keyword arguments
 def Bot(_bot_class: Type = None, *, bot_name: str = None, bot_id: str = None):
-    print(bot_name)
+    print(f"the Bot with name '{bot_name}' has now been registered")
 
     def decorator_name(bot_class):
         # register the bot

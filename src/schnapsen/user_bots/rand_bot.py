@@ -1,8 +1,7 @@
-import schnapsen.api
-from schnapsen.api import Card, PlayerGameState
+from schnapsen.api import Card, PlayerGameState, Bot
 
 
-@schnapsen.api.Bot(bot_name="Random bot", bot_id="rand")
+@Bot(bot_name="Random bot", bot_id="rand")
 class RandBot():
     def __init__(self, seed: int) -> None:
         pass
