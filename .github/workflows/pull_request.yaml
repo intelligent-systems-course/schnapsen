@@ -58,6 +58,6 @@ jobs:
       #   if: steps.PR-check.outputs.status == 'pending'
       #   run: exit 1
       - name: Tests and checks skipped
-         run: echo "Tests and checks skipped"
+        run: echo "Tests and checks skipped"
       - name: exit
-         run: exit 1
+        run: exit 1
