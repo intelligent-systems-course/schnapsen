@@ -103,6 +103,9 @@ class HandWithoutDuplicates(Hand):
         assert card not in self.cards, "Adding a card to a hand, but there is already such a a card"
         super().add(card)
 
+    def copy(self) -> 'HandWithoutDuplicates':
+        return HandWithoutDuplicates(self.cards, self.max_size)
+
 
 class Talon(OrderedCardCollection):
 
