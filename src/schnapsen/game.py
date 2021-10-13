@@ -433,9 +433,9 @@ class GameState:
 
         # important: the winner takes the first card of the talon, the loser the second one.
         # this also ensures that the loser of the last trick of the first phase gets the face up trump
-        drawn = game_state.talon.draw_cards(2).__iter__()
-        game_state.leader.hand.add(drawn.__next__())
-        game_state.follower.hand.add(drawn.__next__())
+        drawn = iter(game_state.talon.draw_cards(2))
+        game_state.leader.hand.add(next(drawn))
+        game_state.follower.hand.add(next(drawn))
 
     def game_ended(self) -> bool:
         return self.talon.is_empty() and self.bot1.hand.is_empty() and self.bot2.hand.is_empty()
