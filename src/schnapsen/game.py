@@ -90,6 +90,9 @@ class Hand(CardCollection):
     def copy(self) -> 'Hand':
         return Hand(list(self.cards))
 
+    def is_empty(self) -> bool:
+        return len(self.cards) == 0
+
     def get_cards(self) -> Iterable[Card]:
         return list(self.cards)
 
@@ -202,7 +205,7 @@ class TrickScorer:
 
     def score(self, t: Trick, leader: Bot, follower: Bot, trump: Suit) -> Tuple[Bot, Bot]:
         """The returned bots having the score of the trick applied, and are returned in order (new_leader, new_follower)"""
-
+        # Note: also pending points need to be applied here.
         raise NotImplementedError("TODO")
 
 # some code copied from the old engine
@@ -401,6 +404,7 @@ class GameState:
 
     @staticmethod
     def _play_trick(game_state: 'GameState') -> None:
+        assert not game_state.game_ended()
         leader_game_state = LeaderGameState(game_state)
         # ask first players move
         leader_move = game_state.leader.get_move(leader_game_state)
@@ -432,6 +436,9 @@ class GameState:
         drawn = game_state.talon.draw_cards(2).__iter__()
         game_state.leader.hand.add(drawn.__next__())
         game_state.follower.hand.add(drawn.__next__())
+
+    def game_ended(self) -> bool:
+        return self.talon.is_empty() and self.bot1.hand.is_empty() and self.bot2.hand.is_empty()
 
 
 # class FirstMovePhaseOneState:

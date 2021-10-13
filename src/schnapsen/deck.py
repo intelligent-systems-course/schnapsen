@@ -142,6 +142,10 @@ class CardCollection(ABC):
         results: List[Card] = list(filter(lambda x: x.suit is suit, self.get_cards()))
         return results
 
+    @abstractmethod
+    def is_empty(self) -> bool:
+        pass
+
 
 class OrderedCardCollection(CardCollection):
     def __init__(self, cards: Optional[Iterable[Card]] = None) -> None:
