@@ -373,10 +373,10 @@ class GameState:
             # failing this, you must play a lower card of the same suit;
                 elif lower_same_suit:
                     return RegularMove.from_cards(lower_same_suit)
-                raise AssertionError("Somethign is wrong in the logic here. There should be cards, but they are neither palced int he low, not higher list")
+                raise AssertionError("Somethign is wrong in the logic here. There should be cards, but they are neither placed in the low, nor higher list")
             # failing this, if the opponen did not play a trump, you must play a trump
             trump_cards = hand.filter(self.trump_suit)
-            if leader_card.suit == self.trump_suit and trump_cards:
+            if leader_card.suit != self.trump_suit and trump_cards:
                 return RegularMove.from_cards(trump_cards)
             # failing this, you can play anything
             return RegularMove.from_cards(hand.get_cards())
