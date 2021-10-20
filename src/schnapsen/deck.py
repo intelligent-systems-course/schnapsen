@@ -147,6 +147,10 @@ class CardCollection(ABC):
         pass
 
 
+    def size(self):
+        return len(self.get_cards())
+
+
 class OrderedCardCollection(CardCollection):
     def __init__(self, cards: Optional[Iterable[Card]] = None) -> None:
         """
@@ -162,12 +166,9 @@ class OrderedCardCollection(CardCollection):
     def get_cards(self) -> Iterable[Card]:
         return list(self._cards)
 
+    def size(self):
+        return len(self._cards)
+
 
 # TODO: some more thinking is needed for the class hierarchy for the different collections of cards
 
-def get_schnapsen_deck() -> OrderedCardCollection:
-    deck = OrderedCardCollection()
-    for suit in Suit:
-        for rank in [Rank.JACK, Rank.QUEEN, Rank.KING, Rank.TEN, Rank.ACE]:
-            deck._cards.append(Card.get_card(rank, suit))
-    return deck
