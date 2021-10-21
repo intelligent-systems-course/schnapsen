@@ -18,7 +18,7 @@ class DeckGenerationTest(TestCase):
 
 class DealingTest (TestCase):
     def test_dealing(self) -> None:
-        deck = OrderedCardCollection = SchnapsenDeckGenerator.get_initial_deck()
+        deck: OrderedCardCollection = SchnapsenDeckGenerator.get_initial_deck()
         shuffled_deck = SchnapsenDeckGenerator.shuffle_deck(deck, Random())
         cards = list(shuffled_deck.get_cards())
 
@@ -35,4 +35,3 @@ class DealingTest (TestCase):
             assert cards[i] in rest
             assert cards[i] not in hand1
             assert cards[i] not in hand2
-

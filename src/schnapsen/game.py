@@ -402,10 +402,9 @@ class SchnapsenTrickPlayer(TrickPlayer):
             raise Exception("Follower played an illegal move")
         return follower_move
 
-
     @staticmethod
     def _play_trick(game_state: 'GameState') -> None:
-        partial_trick =  SchnapsenTrickPlayer.get_leader_move(game_state)
+        partial_trick = SchnapsenTrickPlayer.get_leader_move(game_state)
         follower_move = SchnapsenTrickPlayer.get_follower_move(game_state, partial_trick)
 
         if partial_trick.first_move.is_marriage():
@@ -442,12 +441,6 @@ class SimpleMoveRequester(MoveRequester):
 
     def get_move(self, bot: Bot, state: PlayerGameState) -> Move:
         return bot.get_move(state)
-
-
-class MoveValidator(ABC):
-    @abstractmethod
-    def validate_leader_move(self, state: GameState, move: Move):
-        pass
 
 
 class MoveValidator(ABC):

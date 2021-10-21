@@ -10,11 +10,3 @@ class CardTest (TestCase):
         assert Card.JACK_SPADES.suit == Suit.SPADES
         assert Card.JACK_HEARTS.suit == Suit.HEARTS
         assert Card.JACK_DIAMONDS.suit == Suit.DIAMONDS
-
-
-
-
-
-
-
-

@@ -8,9 +8,9 @@ class GameTest (TestCase):
         # play marriage
         # loose trick
         # make sure marriage points are not applied
-#        assert
+        #        assert
         # win trick
 
         # make sure marriage poits are applied
-#        assert
+        #        assert
         pass

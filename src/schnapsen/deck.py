@@ -146,7 +146,6 @@ class CardCollection(ABC):
     def is_empty(self) -> bool:
         pass
 
-
     def size(self):
         return len(self.get_cards())
 
@@ -171,4 +170,3 @@ class OrderedCardCollection(CardCollection):
 
 
 # TODO: some more thinking is needed for the class hierarchy for the different collections of cards
-
