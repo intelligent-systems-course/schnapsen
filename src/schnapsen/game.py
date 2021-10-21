@@ -368,7 +368,7 @@ class SchnapsenTrickPlayer(TrickPlayer):
     # TODO : it might be that this has to be split in two: first the leader, then the follower.
 
     @staticmethod
-    def _play_trick(game_state: 'GameState') -> None:
+    def get_leader_move(game_state: 'GameState') -> PartialTrick:
         assert not game_state.game_ended()
         leader_game_state = LeaderGameState(game_state)
         # ask first players move
@@ -392,15 +392,26 @@ class SchnapsenTrickPlayer(TrickPlayer):
         # normal play continues, follower's turn
 
         partial_trick = PartialTrick(trump_exchange=trump_exchange, first_move=leader_move)
+        return partial_trick
+
+    @staticmethod
+    def get_follower_move(game_state: 'GameState', partial_trick: PartialTrick) -> Move:
         follower_game_state = FollowerGameState(game_state, partial_trick)
         follower_move = game_state.follower.get_move(follower_game_state)
         if follower_move not in game_state.get_legal_follower_moves(partial_trick):
             raise Exception("Follower played an illegal move")
+        return follower_move
 
-        if leader_move.is_marriage:
-            regular_leader_move: RegularMove = cast(Marriage, leader_move).as_regular_move()
+
+    @staticmethod
+    def _play_trick(game_state: 'GameState') -> None:
+        partial_trick =  SchnapsenTrickPlayer.get_leader_move(game_state)
+        follower_move = SchnapsenTrickPlayer.get_follower_move(game_state, partial_trick)
+
+        if partial_trick.first_move.is_marriage():
+            regular_leader_move: RegularMove = cast(Marriage, partial_trick.first_move).as_regular_move()
         else:
-            regular_leader_move = leader_move
+            regular_leader_move = partial_trick.first_move
         regular_follower_move = cast(RegularMove, follower_move)
         trick = Trick(regular_leader_move, regular_follower_move)
         game_state.leader, game_state.follower = game_state.scorer.score(trick, game_state.leader, game_state.follower, game_state.trump_suit)
