@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from enum import Enum
 from random import Random
-from typing import Callable, Iterable, List, Mapping, Optional, Tuple, cast
+from typing import Callable, Iterable, List, Mapping, Optional, Tuple, Union, cast
 from .deck import CardCollection, OrderedCardCollection, Card, Rank, Suit
 
 
@@ -17,6 +17,21 @@ class Move(ABC):
     @abstractmethod
     def cards(self) -> Iterable[Card]:
         raise NotImplementedError()
+
+
+@dataclass(frozen=True)
+class Trump_Exchange(Move):
+    jack: Card
+
+    def _post_init__(self) -> None:
+        assert self.jack.rank is Rank.JACK
+        self.suit = self.jack.suit
+
+    def is_trump_exchange(self) -> bool:
+        return True
+
+    def cards(self) -> Iterable[Card]:
+        return [self.jack]
 
 
 @dataclass(frozen=True)
@@ -51,21 +66,6 @@ class Marriage(Move):
 
     def cards(self) -> Iterable[Card]:
         return [self.queen_card, self.king_card]
-
-
-@dataclass(frozen=True)
-class Trump_Exchange(Move):
-    jack: Card
-
-    def _post_init__(self) -> None:
-        assert self.jack.rank is Rank.JACK
-        self.suit = self.jack.suit
-
-    def is_trump_exchange(self) -> bool:
-        return True
-
-    def cards(self) -> Iterable[Card]:
-        return [self.jack]
 
 
 class Hand(CardCollection):
@@ -142,7 +142,8 @@ class Talon(OrderedCardCollection):
 
 @dataclass(frozen=True)
 class PartialTrick:
-    first_move: RegularMove
+    trump_exchange: Optional[Trump_Exchange]
+    first_move: Union[RegularMove, Marriage]
 
 
 @dataclass(frozen=True)
@@ -344,16 +345,15 @@ class SchnapsenTrickPlayer(TrickPlayer):
         else:
             return GamePhase.ONE
 
-    def play_trump_exchange(self, trump_move: Trump_Exchange) -> None:
-        assert trump_move.suit is self.trump_suit, \
-            f"A trump exchange can only be done with a Jack of the same suit as the current trump. Got a {trump_move.jack} while the  Trump card is a {self.trump_suit}"
+    def play_trump_exchange(self, trump_exhange: Trump_Exchange) -> None:
+        assert trump_exhange.suit is self.trump_suit, \
+            f"A trump exchange can only be done with a Jack of the same suit as the current trump. Got a {trump_exhange.jack} while the  Trump card is a {self.trump_suit}"
         # apply the changes in the gamestate
-        self.leader.hand.remove(trump_move.jack)
-        old_trump = self.talon.trump_exchange(trump_move.jack)
+        self.leader.hand.remove(trump_exhange.jack)
+        old_trump = self.talon.trump_exchange(trump_exhange.jack)
         self.leader.hand.add(old_trump)
 
     def _play_marriage(self, marriage_move: Marriage) -> None:
-        """Computes the new score from playing the mariage. This does not change the GameState"""
         if marriage_move.suit is self.trump_suit:
             self.leader.score += self.scorer.royal_marriage()
         else:
@@ -376,24 +376,33 @@ class SchnapsenTrickPlayer(TrickPlayer):
         if leader_move not in game_state.get_legal_leader_moves():
             raise Exception("Leader played an illegal move")
         if leader_move.is_trump_exchange():
-            trump_move: Trump_Exchange = cast(Trump_Exchange, leader_move)
-            game_state.play_trump_exchange(trump_move)
-            return
-            # TODO is this okay? We end the trick without a real trick being played
+            trump_exchange: Trump_Exchange = cast(Trump_Exchange, leader_move)
+            game_state.play_trump_exchange(trump_exchange)
+            # ask first players move again, as the exchange is not a real move
+            leader_move = game_state.leader.get_move(leader_game_state)
+            if leader_move not in game_state.get_legal_leader_moves():
+                raise Exception("Leader played an illegal move")
+        else:
+            trump_exchange = None
         if leader_move.is_marriage():
             # record score, keep in mind the royal marriage
             marriage_move: Marriage = cast(Marriage, leader_move)
             game_state._play_marriage(marriage_move=marriage_move)
             leader_move = marriage_move.as_regular_move()
         # normal play continues, follower's turn
-        regular_leader_move = cast(RegularMove, leader_move)
-        partial_trick = PartialTrick(regular_leader_move)
+
+        partial_trick = PartialTrick(trump_exchange=trump_exchange, first_move=leader_move)
         follower_game_state = FollowerGameState(game_state, partial_trick)
         follower_move = game_state.follower.get_move(follower_game_state)
         if follower_move not in game_state.get_legal_follower_moves(partial_trick):
             raise Exception("Follower played an illegal move")
+
+        if leader_move.is_marriage:
+            regular_leader_move: RegularMove = cast(Marriage, leader_move).as_regular_move()
+        else:
+            regular_leader_move = leader_move
         regular_follower_move = cast(RegularMove, follower_move)
-        trick = Trick(partial_trick.first_move, regular_follower_move)
+        trick = Trick(regular_leader_move, regular_follower_move)
         game_state.leader, game_state.follower = game_state.scorer.score(trick, game_state.leader, game_state.follower, game_state.trump_suit)
 
         # important: the winner takes the first card of the talon, the loser the second one.
