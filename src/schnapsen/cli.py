@@ -42,5 +42,5 @@ def try_game() -> None:
     engine = schnapsen.game.SchnapsenGamePlayEngine()
     bot1 = RandBot(12112121)
     bot2 = RandBot(464566)
-    for i in range(10000):
+    for i in range(1000):
         engine.play_game(bot1.get_move, bot2.get_move, random.Random(i))
