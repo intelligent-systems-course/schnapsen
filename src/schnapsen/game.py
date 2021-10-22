@@ -670,7 +670,6 @@ class GamePlayEngine:
     deck_generator: DeckGenerator
     hand_generator: HandGenerator
     trick_player: TrickPlayer
-    play_trick: TrickPlayer
     move_requester: MoveRequester
     move_validator: MoveValidator
     trick_scorer: TrickScorer
@@ -715,7 +714,6 @@ class SchnapsenGamePlayEngine(GamePlayEngine):
             deck_generator=SchnapsenDeckGenerator(),
             hand_generator=SchnapsenHandGenerator(),
             trick_player=SchnapsenTrickPlayer(),
-            play_trick=SchnapsenTrickPlayer(),
             move_requester=SimpleMoveRequester(),
             move_validator=SchnapsenMoveValidator(),
             trick_scorer=SchnapsenTrickScorer()
