@@ -137,9 +137,14 @@ class CardCollection(ABC):
         """
         raise NotImplementedError()
 
-    def filter(self, suit: Suit) -> Iterable[Card]:
+    def filter_suit(self, suit: Suit) -> Iterable[Card]:
         """Returns an Iterable with in it all cards which have the provided suit"""
         results: List[Card] = list(filter(lambda x: x.suit is suit, self.get_cards()))
+        return results
+
+    def filter_rank(self, rank: Rank) -> Iterable[Card]:
+        """Returns an Iterable with in it all cards which have the provided rank"""
+        results: List[Card] = list(filter(lambda x: x.rank is rank, self.get_cards()))
         return results
 
     @abstractmethod
@@ -151,6 +156,10 @@ class CardCollection(ABC):
 
     def __iter__(self) -> Iterator[Card]:
         return self.get_cards().__iter__()
+
+    def __contains__(self, item: Any) -> bool:
+        assert isinstance(item, Card), "Only cards can be contained in a card collection"
+        return item in self.get_cards()
 
 
 class OrderedCardCollection(CardCollection):
