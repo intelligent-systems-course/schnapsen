@@ -698,7 +698,7 @@ class GamePlayEngine:
             if result:
                 winner, points = result
         winner_name = winner.data["name"]
-        print(f"Game ended. Winner is {winner_name} with {points} points")
+        # print(f"Game ended. Winner is {winner_name} with {points} points")
 
         # raise NotImplementedError("This should return something reasonable")
 

@@ -180,4 +180,11 @@ class OrderedCardCollection(CardCollection):
     def __len__(self) -> int:
         return len(self._cards)
 
+    def __iter__(self) -> Iterator[Card]:
+        return self._cards.__iter__()
+
+    def __contains__(self, item: Any) -> bool:
+        assert isinstance(item, Card), "Only cards can be contained in a card collection"
+        return item in self._cards
+
 # TODO: some more thinking is needed for the class hierarchy for the different collections of cards
