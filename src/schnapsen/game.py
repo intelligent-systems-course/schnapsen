@@ -16,7 +16,7 @@ class Move(ABC):
 
     @abstractmethod
     def cards(self) -> Iterable[Card]:
-        raise NotImplementedError()
+        pass
 
 
 @dataclass(frozen=True)
@@ -181,6 +181,9 @@ class Score:
 
     def copy(self) -> 'Score':
         return Score(direct_points=self.direct_points, pending_points=self.pending_points)
+
+    def with_pending_points(self) -> 'Score':
+        return Score(direct_points=self.direct_points + self.pending_points, pending_points=0)
 
 
 class GamePhase(Enum):
@@ -569,7 +572,7 @@ class TrickScorer(ABC):
     def score(self, leader_move: RegularMove, follower_move: RegularMove, leader: Bot, follower: Bot, trump: Suit) -> Tuple[Bot, Bot]:
         """The returned bots having the score of the trick applied, and are returned in order (new_leader, new_follower)"""
         # Note: also pending points need to be applied here.
-        raise NotImplementedError("TODO")
+        pass
 
     @abstractmethod
     def declare_winner(self, game_state: GameState) -> Optional[Tuple[Bot, int]]:
@@ -632,6 +635,7 @@ class SchnapsenTrickScorer(TrickScorer):
         # apply the points
         points_gained = leader_card_points + follower_card_points
         winner.score += Score(direct_points=points_gained)
+        winner.score = winner.score.with_pending_points()
         return winner, loser
 
     def declare_winner(self, game_state: GameState) -> Optional[Tuple[Bot, int]]:
