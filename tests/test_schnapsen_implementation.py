@@ -8,9 +8,9 @@ from random import Random
 class DeckGenerationTest(TestCase):
     def test_scnapsen_deck_generation(self) -> None:
         deck: OrderedCardCollection = SchnapsenDeckGenerator.get_initial_deck()
-        cards = deck.get_cards()
-        self.assertEqual(len(cards), 20, "Not the right number of cards")
-        self.assertEqual(len(cards), len(set(cards)), "Duplicates found in the cards")
+        self.assertEqual(len(deck), 20, "Not the right number of cards")
+        self.assertEqual(len(deck), len(set(deck.get_cards())), "Duplicates found in the cards")
+        cards = set(deck.get_cards())
         for suit in Suit:
             for rank in [Rank.TEN, Rank.JACK, Rank.QUEEN, Rank.KING, Rank.ACE]:
                 assert Card.get_card(rank, suit) in cards

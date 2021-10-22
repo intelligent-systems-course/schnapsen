@@ -1,6 +1,6 @@
 from abc import ABC, abstractmethod
 from enum import Enum, auto
-from typing import Any, Iterable, List, Optional
+from typing import Any, Iterable, Iterator, List, Optional
 import itertools
 
 
@@ -89,7 +89,7 @@ class Card(Enum):
     # This is a bit of trickery to still allow these as direct members, rather than methods
     # we define suit and rank here, but tell the enum system to ignore them
     # we, however, dynamically serve them in __getattribute__ upoon request
-    # it appears something similar should be possible using a __new__ method, but MC could nto figure this out yet.
+    # it appears something similar should be possible using a __new__ method, but MC could not figure this out yet.
     # https://docs.python.org/3/library/enum.html#when-to-use-new-vs-init
     _ignore_ = ["suit", "rank"]
     suit: Suit
@@ -146,8 +146,11 @@ class CardCollection(ABC):
     def is_empty(self) -> bool:
         pass
 
-    def size(self):
-        return len(self.get_cards())
+    def __len__(self) -> int:
+        return sum(1 for _ in self.get_cards())
+
+    def __iter__(self) -> Iterator[Card]:
+        return self.get_cards().__iter__()
 
 
 class OrderedCardCollection(CardCollection):
@@ -165,8 +168,7 @@ class OrderedCardCollection(CardCollection):
     def get_cards(self) -> Iterable[Card]:
         return list(self._cards)
 
-    def size(self):
+    def __len__(self) -> int:
         return len(self._cards)
-
 
 # TODO: some more thinking is needed for the class hierarchy for the different collections of cards
