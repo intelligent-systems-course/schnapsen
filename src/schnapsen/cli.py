@@ -1,6 +1,7 @@
 import importlib
 import click
 import schnapsen.game
+import schnapsen.twenty_four_card_schnapsen
 import random
 
 
@@ -40,6 +41,15 @@ class RandBot():
 @main.command()
 def try_game() -> None:
     engine = schnapsen.game.SchnapsenGamePlayEngine()
+    bot1 = RandBot(12112121)
+    bot2 = RandBot(464566)
+    for i in range(1000):
+        engine.play_game(bot1.get_move, bot2.get_move, random.Random(i))
+
+
+@main.command()
+def try_24_game() -> None:
+    engine = schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine()
     bot1 = RandBot(12112121)
     bot2 = RandBot(464566)
     for i in range(1000):
