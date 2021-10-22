@@ -36,7 +36,7 @@ jobs:
           flake8 src tests
       - name: Check typing with mypy
         run: |
-          mypy --install-types --non-interactive src tests
+          mypy --install-types --non-interactive  --strict src tests
       - name: Test with pytest
         run: |
           py.test tests
