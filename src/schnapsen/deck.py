@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from enum import Enum, auto
+import enum
 from typing import Any, Iterable, Iterator, List, Optional
 import itertools
 
@@ -29,6 +30,7 @@ class Rank(Enum):
     KING = auto()
 
 
+@enum.unique
 class Card(Enum):
     ACE_HEARTS = (Rank.ACE, Suit.HEARTS, "🂱")
     TWO_HEARTS = (Rank.TWO, Suit.HEARTS, "🂲")
@@ -86,27 +88,10 @@ class Card(Enum):
     QUEEN_DIAMONDS = (Rank.QUEEN, Suit.DIAMONDS, "🃍")
     KING_DIAMONDS = (Rank.KING, Suit.DIAMONDS, "🃎")
 
-    # This is a bit of trickery to still allow these as direct members, rather than methods
-    # we define suit and rank here, but tell the enum system to ignore them
-    # we, however, dynamically serve them in __getattribute__ upoon request
-    # it appears something similar should be possible using a __new__ method, but MC could not figure this out yet.
-    # https://docs.python.org/3/library/enum.html#when-to-use-new-vs-init
-    _ignore_ = ["suit", "rank"]
-    suit: Suit
-    rank: Rank
-
-    def __getattribute__(self, name: str) -> Any:
-        if name == "suit":
-            return self.value[1]
-        elif name == "rank":
-            return self.value[0]
-        else:
-            return super().__getattribute__(name)
-
-    def __setattr__(self, name: str, value: Any) -> None:
-        if name == "suit" or name == "rank":
-            raise AttributeError("suit and rank of a card cannot be changed")
-        return super().__setattr__(name, value)
+    def __init__(self, rank: Rank, suit: Suit, character: str) -> None:
+        self.rank = rank
+        self.suit = suit
+        self.character = character
 
     @staticmethod
     def _get_card(rank: Rank, suit: Suit) -> 'Card':
@@ -118,14 +103,15 @@ class Card(Enum):
 
     @staticmethod
     def get_card(rank: Rank, suit: Suit) -> 'Card':
-        global _CARD_CACHE
-        return _CARD_CACHE[(rank, suit)]
+        return _CardCache._CARD_CACHE[(rank, suit)]
+#        return _CARD_CACHE[(rank, suit)]
 
     def __str__(self) -> str:
         return f"{self.rank.name} of {self.suit.name} ({self.value[2]} )"
 
 
-_CARD_CACHE = {(card_rank, card_suit): Card._get_card(card_rank, card_suit) for (card_rank, card_suit) in itertools.product(Rank, Suit)}
+class _CardCache:
+    _CARD_CACHE = {(card_rank, card_suit): Card._get_card(card_rank, card_suit) for (card_rank, card_suit) in itertools.product(Rank, Suit)}
 
 
 class CardCollection(ABC):

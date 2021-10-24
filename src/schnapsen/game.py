@@ -56,6 +56,7 @@ class Marriage(Move):
         assert self.queen_card.rank is Rank.QUEEN
         assert self.king_card.rank is Rank.KING
         assert self.queen_card.suit == self.king_card.suit
+        object.__setattr__(self, "suit", self.queen_card.suit)
 
     def is_marriage(self) -> bool:
         return True
@@ -66,12 +67,6 @@ class Marriage(Move):
 
     def cards(self) -> Iterable[Card]:
         return [self.queen_card, self.king_card]
-
-    def __getattribute__(self, name: str) -> Any:
-        if name == "suit":
-            return self.queen_card.suit
-        else:
-            return super().__getattribute__(name)
 
 
 class Hand(CardCollection):
@@ -519,9 +514,10 @@ class SchnapsenMoveValidator(MoveValidator):
         cards_in_hand = game_state.leader.hand
         valid_moves: List[Move] = [RegularMove(card) for card in cards_in_hand]
         # trump exchanges
-        trump_jack = Card.get_card(Rank.JACK, game_state.trump_suit)
-        if trump_jack in cards_in_hand and not game_state.talon.is_empty():
-            valid_moves.append(Trump_Exchange(trump_jack))
+        if not game_state.talon.is_empty():
+            trump_jack = Card.get_card(Rank.JACK, game_state.trump_suit)
+            if trump_jack in cards_in_hand:
+                valid_moves.append(Trump_Exchange(trump_jack))
         # mariages
         for card in cards_in_hand.filter_rank(Rank.QUEEN):
             king_card = Card.get_card(Rank.KING, card.suit)
@@ -600,14 +596,16 @@ class TrickScorer(ABC):
 
 class SchnapsenTrickScorer(TrickScorer):
 
+    SCORES = {
+        Rank.ACE: 11,
+        Rank.TEN: 10,
+        Rank.KING: 4,
+        Rank.QUEEN: 3,
+        Rank.JACK: 2,
+    }
+
     def rank_to_points(self, rank: Rank) -> int:
-        return {
-            Rank.ACE: 11,
-            Rank.TEN: 10,
-            Rank.KING: 4,
-            Rank.QUEEN: 3,
-            Rank.JACK: 2,
-        }[rank]
+        return SchnapsenTrickScorer.SCORES[rank]
 
     def marriage(self, move: Marriage, gamestate: GameState) -> 'Score':
         if move.suit is gamestate.trump_suit:
@@ -711,7 +709,7 @@ class GamePlayEngine:
             if result:
                 winner, points = result
         winner_name = winner.data["name"]
-        # print(f"Game ended. Winner is {winner_name} with {points} points")
+        print(f"Game ended. Winner is {winner_name} with {points} points")
 
         # raise NotImplementedError("This should return something reasonable")
 
