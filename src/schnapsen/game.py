@@ -104,6 +104,16 @@ class Hand(CardCollection):
     def get_cards(self) -> Iterable[Card]:
         return list(self.cards)
 
+    def filter_suit(self, suit: Suit) -> Iterable[Card]:
+        """Returns an Iterable with in it all cards which have the provided suit"""
+        results = [card for card in self.cards if card.suit is suit]
+        return results
+
+    def filter_rank(self, rank: Rank) -> Iterable[Card]:
+        """Returns an Iterable with in it all cards which have the provided rank"""
+        results = [card for card in self.cards if card.rank is rank]
+        return results
+
 # Do we need this???
 # class HandWithoutDuplicates(Hand):
 #     def __init__(self, cards: Iterable[Card], max_size: int = 5) -> None:
@@ -701,7 +711,7 @@ class GamePlayEngine:
             if result:
                 winner, points = result
         winner_name = winner.data["name"]
-        print(f"Game ended. Winner is {winner_name} with {points} points")
+        # print(f"Game ended. Winner is {winner_name} with {points} points")
 
         # raise NotImplementedError("This should return something reasonable")
 

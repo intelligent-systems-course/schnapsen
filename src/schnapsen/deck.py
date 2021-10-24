@@ -187,4 +187,14 @@ class OrderedCardCollection(CardCollection):
         assert isinstance(item, Card), "Only cards can be contained in a card collection"
         return item in self._cards
 
+    def filter_suit(self, suit: Suit) -> Iterable[Card]:
+        """Returns an Iterable with in it all cards which have the provided suit"""
+        results = [card for card in self._cards if card.suit is suit]
+        return results
+
+    def filter_rank(self, rank: Rank) -> Iterable[Card]:
+        """Returns an Iterable with in it all cards which have the provided rank"""
+        results = [card for card in self._cards if card.rank is rank]
+        return results
+
 # TODO: some more thinking is needed for the class hierarchy for the different collections of cards
