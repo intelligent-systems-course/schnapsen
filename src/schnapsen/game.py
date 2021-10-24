@@ -435,7 +435,7 @@ class SchnapsenTrickPlayer(TrickPlayer):
         # ask first players move trough the requester
         leader_game_state = LeaderGameState(game_state, game_engine)
         leader_move = game_engine.move_requester.get_move(game_state.leader, leader_game_state)
-        if leader_move not in game_engine.move_validator.get_legal_leader_moves(game_engine, game_state):
+        if not game_engine.move_validator.is_legal_leader_move(game_engine, game_state, leader_move):
             raise Exception("Leader played an illegal move")
         return cast(Union[Trump_Exchange, Marriage, RegularMove], leader_move)
 
@@ -506,6 +506,9 @@ class MoveValidator(ABC):
     def get_legal_follower_moves(self, game_engine: 'GamePlayEngine', game_state: GameState, partial_trick: PartialTrick) -> Iterable[Move]:
         pass
 
+    def is_legal_leader_move(self, game_engine: 'GamePlayEngine', game_state: GameState, move: Move) -> bool:
+        return move in self.get_legal_leader_moves(game_engine, game_state)
+
 
 class SchnapsenMoveValidator(MoveValidator):
 
@@ -524,6 +527,21 @@ class SchnapsenMoveValidator(MoveValidator):
             if king_card in cards_in_hand:
                 valid_moves.append(Marriage(card, king_card))
         return valid_moves
+
+    def is_legal_leader_move(self, game_engine: 'GamePlayEngine', game_state: GameState, move: Move) -> bool:
+        cards_in_hand = game_state.leader.hand
+        if move.is_marriage():
+            marriage_move = cast(Marriage, move)
+            # we do not have to check whether they are the same suit because of the implementation of Marriage
+            return marriage_move.queen_card in cards_in_hand and marriage_move.king_card in cards_in_hand
+        if move.is_trump_exchange():
+            if game_state.talon.is_empty():
+                return False
+            trump_move: Trump_Exchange = cast(Trump_Exchange, move)
+            return trump_move.jack in cards_in_hand
+        # it has to be a regular move
+        regular_move = cast(RegularMove, move)
+        return regular_move.card in cards_in_hand
 
     def get_legal_follower_moves(self, game_engine: 'GamePlayEngine', game_state: GameState, partial_trick: PartialTrick) -> Iterable[Move]:
         hand = game_state.follower.hand
