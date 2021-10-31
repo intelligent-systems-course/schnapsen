@@ -42,7 +42,8 @@ jobs:
           py.test tests
 
   macos:
-    if: "contains(github.event.head_commit.message, 'Trigger macos CI')"
+    # Choosing the string like this makes it such that both linux and macos CI will be triggered
+    if: "contains(github.event.head_commit.message, 'Trigger CI macos')"
 
     runs-on: macos-latest
     strategy:
