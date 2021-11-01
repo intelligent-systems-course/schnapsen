@@ -233,6 +233,7 @@ class GameState:
     previous: Optional['GameState']
     # TODO it might be that we have to include the ongoing trick here, such that a bot can implement things like rdeep easily
     # ongoing_trick: PartialTrick
+    # TODO it is probably a good idea to keep the seen cards here
 
     def __post_init__(self) -> None:
         self.trump_suit = self.talon.trump_suit()

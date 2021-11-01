@@ -13,16 +13,18 @@ class MyDeckGenerator(DeckGenerator):
 
 class MyTrickScorer(SchnapsenTrickScorer):
 
+    scores = {
+        Rank.ACE: 11,
+        Rank.TEN: 10,
+        Rank.KING: 4,
+        Rank.QUEEN: 3,
+        Rank.JACK: 2,
+        Rank.NINE: 1,
+    }
+
     # We override how points are given, because we need a score for the extra card
     def rank_to_points(self, rank: Rank) -> int:
-        return {
-            Rank.ACE: 11,
-            Rank.TEN: 10,
-            Rank.KING: 4,
-            Rank.QUEEN: 3,
-            Rank.JACK: 2,
-            Rank.NINE: 1,
-        }[rank]
+        return MyTrickScorer.scores[rank]
 
 
 class TwentyFourSchnapsenGamePlayEngine(GamePlayEngine):
