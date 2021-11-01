@@ -1,29 +1,23 @@
 import importlib
 import click
-import schnapsen.fizzbuzz
+import schnapsen.game
+import schnapsen.twenty_four_card_schnapsen
+import random
 
 
 @click.group()
-def main():
+def main() -> None:
     """The main entry point."""
 
 
-@main.group()
-def fuzzers():
-    "Commands for fuzzing stuff"
-
-
-@fuzzers.command(name="fizzbuzz", help="Run FizzBuzz")
-@click.option("-a", "--start", type=int, default=0, help="The number to start the FizzBuzz from")
-@click.option("-e", "--end", type=int, default=100, help="The number to stop the FizzBuzz (inclusive)")
-def fizzbuzz(start: int, end: int):
-    for i in range(start, end + 1):
-        schnapsen.fizzbuzz.fizzbuzz(i)
+# @main.group()
+# def fuzzers():
+#     "Commands for fuzzing stuff"
 
 
 @main.command()
 @click.option("--module-name", default=".")
-def load_schnapsen_bot(module_name: str):
+def load_schnapsen_bot(module_name: str) -> None:
     import sys
     # Adding the empty directory -- seems to be the cwd to the path.
     # This makes it possible to load bots which are in suer defined modules
@@ -32,3 +26,31 @@ def load_schnapsen_bot(module_name: str):
     importlib.import_module(name=module_name)
     # taking the entry back out of the path. Not sure what that will do...
     sys.path.pop(0)
+
+
+class RandBot():
+    def __init__(self, seed: int) -> None:
+        self.rng = random.Random(seed)
+
+    def get_move(self, state: schnapsen.game.PlayerGameState) -> schnapsen.game.Move:
+        moves = state.valid_moves()
+        move = self.rng.choice(list(moves))
+        return move
+
+
+@main.command()
+def try_game() -> None:
+    engine = schnapsen.game.SchnapsenGamePlayEngine()
+    bot1 = RandBot(12112121)
+    bot2 = RandBot(464566)
+    for i in range(1000):
+        engine.play_game(bot1.get_move, bot2.get_move, random.Random(i))
+
+
+@main.command()
+def try_24_game() -> None:
+    engine = schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine()
+    bot1 = RandBot(12112121)
+    bot2 = RandBot(464566)
+    for i in range(1000):
+        engine.play_game(bot1.get_move, bot2.get_move, random.Random(i))

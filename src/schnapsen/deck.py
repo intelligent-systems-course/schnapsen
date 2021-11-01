@@ -1,9 +1,8 @@
 from abc import ABC, abstractmethod
-from dataclasses import dataclass
 from enum import Enum, auto
-import inspect
-from typing import Dict, Iterable, List, Type
-import functools
+import enum
+from typing import Any, Iterable, Iterator, List, Optional
+import itertools
 
 
 class Suit(Enum):
@@ -31,6 +30,7 @@ class Rank(Enum):
     KING = auto()
 
 
+@enum.unique
 class Card(Enum):
     ACE_HEARTS = (Rank.ACE, Suit.HEARTS, "🂱")
     TWO_HEARTS = (Rank.TWO, Suit.HEARTS, "🂲")
@@ -88,138 +88,99 @@ class Card(Enum):
     QUEEN_DIAMONDS = (Rank.QUEEN, Suit.DIAMONDS, "🃍")
     KING_DIAMONDS = (Rank.KING, Suit.DIAMONDS, "🃎")
 
-    def is_suit(self, suit: Suit):
-        return self.value[1] == suit
-
-    def is_rank(self, rank: Rank):
-        return self.value[0] == rank
+    def __init__(self, rank: Rank, suit: Suit, character: str) -> None:
+        self.rank = rank
+        self.suit = suit
+        self.character = character
 
     @staticmethod
-    def get_card(rank: Rank, suit: Suit):
+    def _get_card(rank: Rank, suit: Suit) -> 'Card':
         for card in Card:
             (card_rank, card_suit, _) = card.value
             if rank == card_rank and suit == card_suit:
                 return card
         raise Exception(f"This card does not exist: {card_rank}, {card_suit}. This should be impossible as all combinations are defined")
 
+    @staticmethod
+    def get_card(rank: Rank, suit: Suit) -> 'Card':
+        return _CardCache._CARD_CACHE[(rank, suit)]
+#        return _CARD_CACHE[(rank, suit)]
+
+    def __str__(self) -> str:
+        return f"{self.rank.name} of {self.suit.name} ({self.value[2]} )"
+
+
+class _CardCache:
+    _CARD_CACHE = {(card_rank, card_suit): Card._get_card(card_rank, card_suit) for (card_rank, card_suit) in itertools.product(Rank, Suit)}
+
 
 class CardCollection(ABC):
 
     @abstractmethod
     def get_cards(self) -> Iterable[Card]:
+        """
+        Get an Iterable of the cards in this collection. Changes to this Iterable will not be reflected in this Collection
+        """
+        raise NotImplementedError()
+
+    def filter_suit(self, suit: Suit) -> Iterable[Card]:
+        """Returns an Iterable with in it all cards which have the provided suit"""
+        results: List[Card] = list(filter(lambda x: x.suit is suit, self.get_cards()))
+        return results
+
+    def filter_rank(self, rank: Rank) -> Iterable[Card]:
+        """Returns an Iterable with in it all cards which have the provided rank"""
+        results: List[Card] = list(filter(lambda x: x.rank is rank, self.get_cards()))
+        return results
+
+    @abstractmethod
+    def is_empty(self) -> bool:
         pass
 
-    def filter(self, suit: Suit) -> Iterable[Card]:
-        """Returns an Iterable with in it all cards which have the provided suit"""
-        results: List[Card] = list(filter(lambda x: x.is_suit(suit), self.get_cards()))
-        return results
+    def __len__(self) -> int:
+        return sum(1 for _ in self.get_cards())
+
+    def __iter__(self) -> Iterator[Card]:
+        return self.get_cards().__iter__()
+
+    def __contains__(self, item: Any) -> bool:
+        assert isinstance(item, Card), "Only cards can be contained in a card collection"
+        return item in self.get_cards()
 
 
 class OrderedCardCollection(CardCollection):
-    def __init__(self) -> None:
-        self._cards: List[Card] = []
+    def __init__(self, cards: Optional[Iterable[Card]] = None) -> None:
+        """
+        Create an ordered collection of cards. The cards are in the order as specified in the Iterable.
+        By default the Collection is empty.
+        This constructor will make a defensive copy of the argument.
+        """
+        self._cards: List[Card] = list(cards or [])
+
+    def is_empty(self) -> bool:
+        return len(self._cards) == 0
 
     def get_cards(self) -> Iterable[Card]:
-        return self._cards
+        return list(self._cards)
 
+    def __len__(self) -> int:
+        return len(self._cards)
 
-class Hand (CardCollection):
-    def __init__(self) -> None:
-        pass
+    def __iter__(self) -> Iterator[Card]:
+        return self._cards.__iter__()
 
+    def __contains__(self, item: Any) -> bool:
+        assert isinstance(item, Card), "Only cards can be contained in a card collection"
+        return item in self._cards
 
-class Talon (CardCollection):
-    pass
+    def filter_suit(self, suit: Suit) -> Iterable[Card]:
+        """Returns an Iterable with in it all cards which have the provided suit"""
+        results = [card for card in self._cards if card.suit is suit]
+        return results
 
+    def filter_rank(self, rank: Rank) -> Iterable[Card]:
+        """Returns an Iterable with in it all cards which have the provided rank"""
+        results = [card for card in self._cards if card.rank is rank]
+        return results
 
-class PartialTrick:
-    pass
-
-# TODO: this used to have a better name, but I forgot
-
-
-class Trick(PartialTrick):
-    pass
-
-
-class Score:
-    pass
-
-
-class TrickScorer:
-    @abstractmethod
-    def score(self, trick: Trick) -> Score:
-        pass
-
-
-@dataclass
-class GameState:
-    hand1: Hand
-    hand2: Hand
-    trump: Card
-    talon: Talon
-
-    play: PartialTrick
-
-
-class PlayerGameState:
-    player_hand: Hand
-    opponent_hand: Hand
-    on_table: PartialTrick
-    trump: Card
-    talon: Talon
-
-
-# experimenting with a decorator for registering bots
-
-@dataclass
-class _BotEntry:
-    bot_class: Type
-    bot_name: str
-
-
-class _BotRegistry:
-    def __init__(self) -> None:
-        self.register: Dict[str, _BotEntry] = {}
-
-    def register_bot(self, bot_id: str, bot_class: Type, bot_name=None):
-        assert bot_id not in self.register, "A bot with this id already exists"
-        self.register[bot_id] = _BotEntry(bot_class, bot_name)
-
-
-BOT_REGISTRY = _BotRegistry()
-
-
-# Arguments can be added as keyword arguments
-def Bot(_bot_class: Type = None, *, bot_name: str = None, bot_id: str = None):
-    print(f"the Bot with name '{bot_name}' has now been registered")
-
-    def decorator_name(bot_class):
-        # register the bot
-        # This is needed to access the variable in the outer scope.
-        # MC: I am uncertain why this is not needed for the bot_id
-        nonlocal bot_name
-        if bot_name is None:
-            bot_name = bot_class.__name__
-        BOT_REGISTRY.register_bot(bot_id=bot_id, bot_class=bot_class, bot_name=bot_name)
-        # TODO do some sanity checks on the bot:
-        # This is indeed inspect.isfucntion and not inspect.ismethod. Presumably because this is the class and not an object of the class.
-        methods = inspect.getmembers(bot_class, predicate=inspect.isfunction)
-        if "get_move" not in {method[0] for method in methods}:
-            raise Exception(f"get_move() method not found on bot {bot_name} with id {id}")
-        get_move_params = inspect.signature(bot_class.get_move).parameters
-        # TODO check parameters
-        if not len(get_move_params) == 2:
-            raise Exception("get_move must accept two parameters, self, and the game state")
-
-        @functools.wraps(bot_class)
-        def wrapper_name(*args, **kwargs):
-            # Do something before using arg_1, ...
-            value = bot_class(*args, **kwargs)
-            # Do something after using arg_1, ...
-            return value
-        return wrapper_name
-    if _bot_class is None:
-        return decorator_name
-    else:
-        return decorator_name(_bot_class)
+# TODO: some more thinking is needed for the class hierarchy for the different collections of cards
