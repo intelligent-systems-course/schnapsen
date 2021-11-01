@@ -41,6 +41,38 @@ jobs:
         run: |
           py.test tests
 
+  macos:
+    # Choosing the string like this makes it such that both linux and macos CI will be triggered
+    if: "contains(github.event.head_commit.message, 'Trigger CI macos')"
+
+    runs-on: macos-latest
+    strategy:
+      matrix:
+        python-version: [ "3.8", "3.9", "3.10" ]
+
+    steps:
+      - uses: actions/checkout@v2
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v2
+        with:
+          python-version: ${{ matrix.python-version }}
+      - name: Upgrade pip and build dependencies
+        run: |
+          python3 -m pip install --upgrade pip setuptools wheel
+      - name: Install package
+        run: |
+          python -m pip install .[test]
+      - name: Lint with flake8
+        run: |
+          flake8 src tests
+      - name: Check typing with mypy
+        run: |
+          mypy --install-types --non-interactive  --strict src tests
+      - name: Test with pytest
+        run: |
+          py.test tests
+
+
   skipping_tests:
     # cf. https://github.com/pykeen/pykeen/blob/d79fe39f83bc2831137f22be6421b37568694cf4/.github/workflows/tests.yml#L112-L126
     if: "!contains(github.event.head_commit.message, 'Trigger CI')"
