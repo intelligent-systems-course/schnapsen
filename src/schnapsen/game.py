@@ -2,8 +2,19 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
 from random import Random
-from typing import Any, Callable, Iterable, List, Optional, Tuple, Union, cast
+from typing import Any, Iterable, List, Optional, Tuple, Union, cast
 from .deck import CardCollection, OrderedCardCollection, Card, Rank, Suit
+
+
+class Bot(ABC):
+
+    # def __init_subclass__(cls) -> None:
+    #     super().__init_subclass__()
+    #     # we have a hook to the class here and could get rid of the other way of registering bots, however this is likely not working for sub-sub classes!
+
+    @abstractmethod
+    def get_move(self, state: 'PlayerGameState') -> 'Move':
+        pass
 
 
 class Move(ABC):
@@ -197,10 +208,10 @@ class GamePhase(Enum):
 
 
 @dataclass
-class Bot:
+class BotState:
     """A bot with its implementation and current state in a game"""
 
-    implementation: Callable[['PlayerGameState'], Move]
+    implementation: Bot
     hand: Hand
     score: Score = field(default_factory=Score)
     won_cards: List[Card] = field(default_factory=list)
@@ -208,13 +219,13 @@ class Bot:
     data: Any = None
 
     def get_move(self, state: 'PlayerGameState') -> Move:
-        move = self.implementation(state)
+        move = self.implementation.get_move(state)
         assert self.hand.has_cards(move.cards()), \
             f"Tried to play a move for which the player does not have the cards. Played {move.cards}, but has {self.hand}"
         return move
 
-    def copy(self) -> 'Bot':
-        new_bot = Bot(
+    def copy(self) -> 'BotState':
+        new_bot = BotState(
             implementation=self.implementation,
             hand=self.hand.copy(),
             score=self.score.copy(),
@@ -226,8 +237,8 @@ class Bot:
 
 @dataclass
 class GameState:
-    leader: Bot
-    follower: Bot
+    leader: BotState
+    follower: BotState
     trump_suit: Suit = field(init=False)
     talon: Talon
     previous: Optional['GameState']
@@ -486,7 +497,7 @@ class MoveRequester:
     This logic also determines what happens in case the bot is to slow, throws an exception during operation, etc"""
 
     @abstractmethod
-    def get_move(self, bot: Bot, state: PlayerGameState) -> Move:
+    def get_move(self, bot: BotState, state: PlayerGameState) -> Move:
         pass
 
 
@@ -494,7 +505,7 @@ class SimpleMoveRequester(MoveRequester):
 
     """The simplest just asks the move"""
 
-    def get_move(self, bot: Bot, state: PlayerGameState) -> Move:
+    def get_move(self, bot: BotState, state: PlayerGameState) -> Move:
         return bot.get_move(state)
 
 
@@ -594,13 +605,13 @@ class SchnapsenMoveValidator(MoveValidator):
 
 class TrickScorer(ABC):
     @abstractmethod
-    def score(self, leader_move: RegularMove, follower_move: RegularMove, leader: Bot, follower: Bot, trump: Suit) -> Tuple[Bot, Bot]:
+    def score(self, leader_move: RegularMove, follower_move: RegularMove, leader: BotState, follower: BotState, trump: Suit) -> Tuple[BotState, BotState]:
         """The returned bots having the score of the trick applied, and are returned in order (new_leader, new_follower)"""
         # Note: also pending points need to be applied here.
         pass
 
     @abstractmethod
-    def declare_winner(self, game_state: GameState) -> Optional[Tuple[Bot, int]]:
+    def declare_winner(self, game_state: GameState) -> Optional[Tuple[BotState, int]]:
         """return a bot and the number of points if there is a winner of this game already"""
         pass
 
@@ -634,7 +645,7 @@ class SchnapsenTrickScorer(TrickScorer):
             # any other marriage
             return Score(pending_points=20)
 
-    def score(self, leader_move: RegularMove, follower_move: RegularMove, leader: Bot, follower: Bot, trump: Suit) -> Tuple[Bot, Bot]:
+    def score(self, leader_move: RegularMove, follower_move: RegularMove, leader: BotState, follower: BotState, trump: Suit) -> Tuple[BotState, BotState]:
         leader_card = leader_move.card
         follower_card = follower_move.card
         assert leader_card != follower_card
@@ -665,7 +676,7 @@ class SchnapsenTrickScorer(TrickScorer):
         winner.score = winner.score.with_pending_points()
         return winner, loser
 
-    def declare_winner(self, game_state: GameState) -> Optional[Tuple[Bot, int]]:
+    def declare_winner(self, game_state: GameState) -> Optional[Tuple[BotState, int]]:
         """
         Declaring a winner uses the logic from https://www.pagat.com/marriage/schnaps.html#marriages , but simplified, because we do not have closing of the Talon and no need to guess the scores.
         The following text adapted accordingly from that website.
@@ -705,13 +716,13 @@ class GamePlayEngine:
     move_validator: MoveValidator
     trick_scorer: TrickScorer
 
-    def play_game(self, bot1_getmove: Callable[['PlayerGameState'], Move], bot2_getmove: Callable[['PlayerGameState'], Move], rng: Random) -> None:
+    def play_game(self, bot1_getmove: Bot, bot2_getmove: Bot, rng: Random) -> None:
         cards = self.deck_generator.get_initial_deck()
         shuffled = self.deck_generator.shuffle_deck(cards, rng)
         hand1, hand2, talon = self.hand_generator.generateHands(shuffled)
 
-        bot1 = Bot(implementation=bot1_getmove, hand=hand1, data={"name": "bot1"})
-        bot2 = Bot(implementation=bot2_getmove, hand=hand2, data={"name": "bot2"})
+        bot1 = BotState(implementation=bot1_getmove, hand=hand1, data={"name": "bot1"})
+        bot2 = BotState(implementation=bot2_getmove, hand=hand2, data={"name": "bot2"})
 
         game_state = GameState(
             leader=bot1,
@@ -720,7 +731,7 @@ class GamePlayEngine:
             previous=None
         )
 
-        winner: Optional[Bot] = None
+        winner: Optional[BotState] = None
         points: int
         while not winner:
             game_state = self.trick_player.play_trick(self, game_state)
@@ -735,7 +746,7 @@ class GamePlayEngine:
     # TODO the idea of the following method is to be able to implementsomething like rdeep
     # we still need to figure out how to let it play from an intermediate state with only one move played
 
-    def play_game_from_state(self, bot1: Bot, bot2: Bot, game_state: GameState) -> None:
+    def play_game_from_state(self, bot1: BotState, bot2: BotState, game_state: GameState) -> None:
         raise NotImplementedError()
 
 

@@ -28,7 +28,7 @@ def load_schnapsen_bot(module_name: str) -> None:
     sys.path.pop(0)
 
 
-class RandBot():
+class RandBot(schnapsen.game.Bot):
     def __init__(self, seed: int) -> None:
         self.rng = random.Random(seed)
 
@@ -44,7 +44,7 @@ def try_game() -> None:
     bot1 = RandBot(12112121)
     bot2 = RandBot(464566)
     for i in range(1000):
-        engine.play_game(bot1.get_move, bot2.get_move, random.Random(i))
+        engine.play_game(bot1, bot2, random.Random(i))
 
 
 @main.command()
@@ -53,4 +53,4 @@ def try_24_game() -> None:
     bot1 = RandBot(12112121)
     bot2 = RandBot(464566)
     for i in range(1000):
-        engine.play_game(bot1.get_move, bot2.get_move, random.Random(i))
+        engine.play_game(bot1, bot2, random.Random(i))
