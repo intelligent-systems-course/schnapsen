@@ -1,4 +1,7 @@
 
+This is a project were we are working on making an improved platform for the schnapsen card game.
+It is not currently in a shape such that it can be used for the course.
+
 
 If you want to use the platform to implement your own bots, run
 
