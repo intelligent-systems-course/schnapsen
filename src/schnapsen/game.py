@@ -310,6 +310,10 @@ class PlayerGameState(ABC):
     def get_phase(self) -> GamePhase:
         return self.__game_state.game_phase()
 
+    @abstractmethod
+    def get_opponent_hand_in_phase_two(self) -> Hand:
+        raise NotImplementedError()
+
     def make_assumption(self) -> 'GameState':
         """
                 Takes the current imperfect information state and makes a
@@ -348,6 +352,10 @@ class LeaderGameState(PlayerGameState):
     def get_opponent_score(self) -> Score:
         raise NotImplementedError()
 
+    def get_opponent_hand_in_phase_two(self) -> Hand:
+        assert self.get_phase() == GamePhase.TWO
+        return self.__game_state.follower.hand.copy()
+
 
 class FollowerGameState(PlayerGameState):
     def __init__(self, state: 'GameState', engine: 'GamePlayEngine', partial_trick: PartialTrick) -> None:
@@ -368,6 +376,9 @@ class FollowerGameState(PlayerGameState):
     def get_opponent_score(self) -> Score:
         raise NotImplementedError()
 
+    def get_opponent_hand_in_phase_two(self) -> Hand:
+        assert self.get_phase() == GamePhase.TWO
+        return self.__game_state.leader.hand.copy()
 
 class DeckGenerator(ABC):
     @abstractmethod
