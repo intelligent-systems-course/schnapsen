@@ -161,6 +161,10 @@ class Talon(OrderedCardCollection):
         assert new_trump.suit is self._cards[-1].suit
         old_trump = self._cards.pop(len(self._cards) - 1)
         self._cards.append(new_trump)
+
+# question: wouldn t this put the new trump at the top of the deck ?
+# and also remove the card at the top too
+
         return old_trump
 
     def draw_cards(self, amount: int) -> Iterable[Card]:
@@ -177,12 +181,12 @@ class Talon(OrderedCardCollection):
 @dataclass(frozen=True)
 class PartialTrick:
     trump_exchange: Optional[Trump_Exchange]
-    first_move: Union[RegularMove, Marriage]
+    leader_move: Union[RegularMove, Marriage]
 
 
 @dataclass(frozen=True)
 class Trick(PartialTrick):
-    second_move: RegularMove
+    follower_move: RegularMove
 
 
 @dataclass
@@ -215,7 +219,7 @@ class BotState:
     hand: Hand
     score: Score = field(default_factory=Score)
     won_cards: List[Card] = field(default_factory=list)
-    # TODO We use this data to emember which bot it which. Likely there is a better way.
+    # TODO We use this data to remember which bot is which. Likely there is a better way.
     data: Any = None
 
     def get_move(self, state: 'PlayerGameState') -> Move:
@@ -419,13 +423,13 @@ class SchnapsenHandGenerator(HandGenerator):
         return (hand1, hand2, rest)
 
 
-class TrickPlayer(ABC):
+class TrickImplementer(ABC):
     @abstractmethod
     def play_trick(self, game_engine: 'GamePlayEngine', game_state: GameState) -> GameState:
         pass
 
 
-class SchnapsenTrickPlayer(TrickPlayer):
+class SchnapsenTrickImplementer(TrickImplementer):
 
     def play_trick(self, game_engine: 'GamePlayEngine', game_state: GameState) -> GameState:
         mutable_game_state = game_state.copy_for_next()
@@ -435,10 +439,10 @@ class SchnapsenTrickPlayer(TrickPlayer):
     def _play_trick(self, game_engine: 'GamePlayEngine', game_state: 'GameState') -> None:
         partial_trick = self.get_leader_move(game_engine, game_state)
 
-        if partial_trick.first_move.is_marriage():
-            regular_leader_move: RegularMove = cast(Marriage, partial_trick.first_move).as_regular_move()
+        if partial_trick.leader_move.is_marriage():
+            regular_leader_move: RegularMove = cast(Marriage, partial_trick.leader_move).as_regular_move()
         else:
-            regular_leader_move = cast(RegularMove, partial_trick.first_move)
+            regular_leader_move = cast(RegularMove, partial_trick.leader_move)
 #        trick = Trick(trump_exchange=partial_trick.trump_exchange, first_move=partial_trick.first_move, second_move=follower_move)
         game_state.leader.hand.remove(regular_leader_move.card)
 
@@ -568,10 +572,10 @@ class SchnapsenMoveValidator(MoveValidator):
 
     def get_legal_follower_moves(self, game_engine: 'GamePlayEngine', game_state: GameState, partial_trick: PartialTrick) -> Iterable[Move]:
         hand = game_state.follower.hand
-        if partial_trick.first_move.is_marriage():
-            leader_card = cast(Marriage, partial_trick.first_move).queen_card
+        if partial_trick.leader_move.is_marriage():
+            leader_card = cast(Marriage, partial_trick.leader_move).queen_card
         else:
-            leader_card = cast(RegularMove, partial_trick.first_move).card
+            leader_card = cast(RegularMove, partial_trick.leader_move).card
         if game_state.game_phase() is GamePhase.ONE:
             # no need to follow, any card in the hand is a legal move
             return RegularMove.from_cards(hand.get_cards())
@@ -722,7 +726,7 @@ class SchnapsenTrickScorer(TrickScorer):
 class GamePlayEngine:
     deck_generator: DeckGenerator
     hand_generator: HandGenerator
-    trick_player: TrickPlayer
+    trick_player: TrickImplementer
     move_requester: MoveRequester
     move_validator: MoveValidator
     trick_scorer: TrickScorer
@@ -766,7 +770,7 @@ class SchnapsenGamePlayEngine(GamePlayEngine):
         super().__init__(
             deck_generator=SchnapsenDeckGenerator(),
             hand_generator=SchnapsenHandGenerator(),
-            trick_player=SchnapsenTrickPlayer(),
+            trick_player=SchnapsenTrickImplementer(),
             move_requester=SimpleMoveRequester(),
             move_validator=SchnapsenMoveValidator(),
             trick_scorer=SchnapsenTrickScorer()
