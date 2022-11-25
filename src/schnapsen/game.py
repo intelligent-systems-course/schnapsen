@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
 from random import Random
-from typing import Any, Iterable, List, Optional, Tuple, Union, cast
+from typing import Iterable, List, Optional, Tuple, Union, cast
 from .deck import CardCollection, OrderedCardCollection, Card, Rank, Suit
 
 
@@ -36,7 +36,6 @@ class Trump_Exchange(Move):
 
     def _post_init__(self) -> None:
         assert self.jack.rank is Rank.JACK
-        self.suit = self.jack.suit
 
     def is_trump_exchange(self) -> bool:
         return True
@@ -189,7 +188,7 @@ class Trick(PartialTrick):
     follower_move: RegularMove
 
 
-@dataclass
+@dataclass(frozen=True)
 class Score:
     direct_points: int = 0
     pending_points: int = 0
@@ -202,7 +201,7 @@ class Score:
     def copy(self) -> 'Score':
         return Score(direct_points=self.direct_points, pending_points=self.pending_points)
 
-    def with_pending_points(self) -> 'Score':
+    def redeem_pending_points(self) -> 'Score':
         return Score(direct_points=self.direct_points + self.pending_points, pending_points=0)
 
 
@@ -245,6 +244,7 @@ class GameState:
     trump_suit: Suit = field(init=False)
     talon: Talon
     previous: Optional['GameState']
+    played_trick: Optional[Trick] = None
     # TODO it might be that we have to include the ongoing trick here, such that a bot can implement things like rdeep easily
     # ongoing_trick: PartialTrick
     # TODO it is probably a good idea to keep the seen cards here
@@ -257,7 +257,7 @@ class GameState:
 
         leader = self.leader.copy()
         follower = self.follower.copy()
-
+        # We intentionally do no initialize played_trick
         new_state = GameState(leader=leader, follower=follower, talon=self.talon.copy(), previous=self)
         return new_state
 
@@ -383,6 +383,7 @@ class FollowerGameState(PlayerGameState):
         assert self.get_phase() == GamePhase.TWO
         return self.__game_state.leader.hand.copy()
 
+
 class DeckGenerator(ABC):
     @abstractmethod
     def get_initial_deck(self) -> OrderedCardCollection:
@@ -432,23 +433,26 @@ class SchnapsenTrickImplementer(TrickImplementer):
 
     def play_trick(self, game_engine: 'GamePlayEngine', game_state: GameState) -> GameState:
         mutable_game_state = game_state.copy_for_next()
-        self._play_trick(game_engine, mutable_game_state)
+        trick = self._play_trick(game_engine, mutable_game_state)
+        mutable_game_state.played_trick = trick
         return mutable_game_state
 
-    def _play_trick(self, game_engine: 'GamePlayEngine', game_state: 'GameState') -> None:
+    def _play_trick(self, game_engine: 'GamePlayEngine', game_state: 'GameState') -> Trick:
         partial_trick = self.get_leader_move(game_engine, game_state)
 
         if partial_trick.leader_move.is_marriage():
             regular_leader_move: RegularMove = cast(Marriage, partial_trick.leader_move).as_regular_move()
         else:
             regular_leader_move = cast(RegularMove, partial_trick.leader_move)
-#        trick = Trick(trump_exchange=partial_trick.trump_exchange, first_move=partial_trick.first_move, second_move=follower_move)
+
         game_state.leader.hand.remove(regular_leader_move.card)
 
         follower_move = self.get_follower_move(game_engine, game_state, partial_trick)
         game_state.follower.hand.remove(follower_move.card)
 
-        game_state.leader, game_state.follower = game_engine.trick_scorer.score(regular_leader_move, follower_move, game_state.leader, game_state.follower, game_state.trump_suit)
+        trick = Trick(trump_exchange=partial_trick.trump_exchange, leader_move=partial_trick.leader_move, follower_move=follower_move)
+
+        game_state.leader, game_state.follower = game_engine.trick_scorer.score(trick, game_state.leader, game_state.follower, game_state.trump_suit)
 
         # important: the winner takes the first card of the talon, the loser the second one.
         # this also ensures that the loser of the last trick of the first phase gets the face up trump
@@ -456,6 +460,8 @@ class SchnapsenTrickImplementer(TrickImplementer):
             drawn = iter(game_state.talon.draw_cards(2))
             game_state.leader.hand.add(next(drawn))
             game_state.follower.hand.add(next(drawn))
+
+        return trick
 
     def __get_one_valid_leader_move(self, game_engine: 'GamePlayEngine', game_state: 'GameState') -> Union[Trump_Exchange, Marriage, RegularMove]:
         # ask first players move trough the requester
@@ -482,7 +488,7 @@ class SchnapsenTrickImplementer(TrickImplementer):
             marriage_move: Marriage = cast(Marriage, leader_move)
             self._play_marriage(game_engine, game_state, marriage_move=marriage_move)
 
-        partial_trick = PartialTrick(trump_exchange=trump_exchange, first_move=leader_move)
+        partial_trick = PartialTrick(trump_exchange=trump_exchange, leader_move=leader_move)
         return partial_trick
 
     def play_trump_exchange(self, game_state: GameState, trump_exhange: Trump_Exchange) -> None:
@@ -619,7 +625,8 @@ class SchnapsenMoveValidator(MoveValidator):
 
 class TrickScorer(ABC):
     @abstractmethod
-    def score(self, leader_move: RegularMove, follower_move: RegularMove, leader: BotState, follower: BotState, trump: Suit) -> Tuple[BotState, BotState]:
+    def score(self, trick: Trick, leader: BotState, follower: BotState,
+              trump: Suit) -> Tuple[BotState, BotState]:
         """The returned bots having the score of the trick applied, and are returned in order (new_leader, new_follower)"""
         # Note: also pending points need to be applied here.
         pass
@@ -659,9 +666,16 @@ class SchnapsenTrickScorer(TrickScorer):
             # any other marriage
             return Score(pending_points=20)
 
-    def score(self, leader_move: RegularMove, follower_move: RegularMove, leader: BotState, follower: BotState, trump: Suit) -> Tuple[BotState, BotState]:
-        leader_card = leader_move.card
-        follower_card = follower_move.card
+    # def score(self, leader_move: RegularMove, follower_move: RegularMove, leader: BotState, follower: BotState, trump: Suit) -> Tuple[BotState, BotState]:
+    def score(self, trick: Trick, leader: BotState, follower: BotState, trump: Suit) -> Tuple[BotState, BotState]:
+
+        if trick.leader_move.is_marriage():
+            regular_leader_move: RegularMove = cast(Marriage, trick.leader_move).as_regular_move()
+        else:
+            regular_leader_move = cast(RegularMove, trick.leader_move)
+
+        leader_card = regular_leader_move.card
+        follower_card = trick.follower_move.card
         assert leader_card != follower_card
         leader_card_points = self.rank_to_points(leader_card.rank)
         follower_card_points = self.rank_to_points(follower_card.rank)
@@ -687,7 +701,8 @@ class SchnapsenTrickScorer(TrickScorer):
         # apply the points
         points_gained = leader_card_points + follower_card_points
         winner.score += Score(direct_points=points_gained)
-        winner.score = winner.score.with_pending_points()
+        # add winner's total of direct and pending points as their new direct points
+        winner.score = winner.score.redeem_pending_points()
         return winner, loser
 
     def declare_winner(self, game_state: GameState) -> Optional[Tuple[BotState, int]]:
@@ -725,7 +740,7 @@ class SchnapsenTrickScorer(TrickScorer):
 class GamePlayEngine:
     deck_generator: DeckGenerator
     hand_generator: HandGenerator
-    trick_player: TrickImplementer
+    trick_implementer: TrickImplementer
     move_requester: MoveRequester
     move_validator: MoveValidator
     trick_scorer: TrickScorer
@@ -746,12 +761,10 @@ class GamePlayEngine:
         )
 
         winner: Optional[BotState] = None
-        points: int
+        points: int = -1
         while not winner:
-            game_state = self.trick_player.play_trick(self, game_state)
-            result = self.trick_scorer.declare_winner(game_state)
-            if result:
-                winner, points = result
+            game_state = self.trick_implementer.play_trick(self, game_state)
+            winner, points = self.trick_scorer.declare_winner(game_state) or (None, -1)
         winner_id = winner.bot_id
         print(f"Game ended. Winner is {winner_id} with {points} points")
 
@@ -769,7 +782,7 @@ class SchnapsenGamePlayEngine(GamePlayEngine):
         super().__init__(
             deck_generator=SchnapsenDeckGenerator(),
             hand_generator=SchnapsenHandGenerator(),
-            trick_player=SchnapsenTrickImplementer(),
+            trick_implementer=SchnapsenTrickImplementer(),
             move_requester=SimpleMoveRequester(),
             move_validator=SchnapsenMoveValidator(),
             trick_scorer=SchnapsenTrickScorer()
