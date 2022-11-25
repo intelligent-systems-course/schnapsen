@@ -1,4 +1,4 @@
-from schnapsen.game import DeckGenerator, SchnapsenDeckGenerator, GamePlayEngine, SchnapsenHandGenerator, SchnapsenMoveValidator, SchnapsenTrickPlayer, SchnapsenTrickScorer, SimpleMoveRequester
+from schnapsen.game import DeckGenerator, SchnapsenDeckGenerator, GamePlayEngine, SchnapsenHandGenerator, SchnapsenMoveValidator, SchnapsenTrickImplementer, SchnapsenTrickScorer, SimpleMoveRequester
 from schnapsen.deck import Card, OrderedCardCollection, Rank, Suit
 
 
@@ -32,7 +32,7 @@ class TwentyFourSchnapsenGamePlayEngine(GamePlayEngine):
         super().__init__(
             deck_generator=MyDeckGenerator(),
             hand_generator=SchnapsenHandGenerator(),
-            trick_player=SchnapsenTrickPlayer(),
+            trick_implementer=SchnapsenTrickImplementer(),
             move_requester=SimpleMoveRequester(),
             move_validator=SchnapsenMoveValidator(),
             trick_scorer=MyTrickScorer()
