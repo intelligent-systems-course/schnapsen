@@ -5,7 +5,7 @@ from schnapsen.game import SchnapsenDeckGenerator, SchnapsenHandGenerator
 from random import Random
 
 
-class DeckGenerationTest(TestCase):
+class deckGenerationTest(TestCase):
     def test_scnapsen_deck_generation(self) -> None:
         deck: OrderedCardCollection = SchnapsenDeckGenerator.get_initial_deck()
         self.assertEqual(len(deck), 20, "Not the right number of cards")
@@ -16,7 +16,7 @@ class DeckGenerationTest(TestCase):
                 assert Card.get_card(rank, suit) in cards
 
 
-class DealingTest (TestCase):
+class dealingTest (TestCase):
     def test_dealing(self) -> None:
         deck: OrderedCardCollection = SchnapsenDeckGenerator.get_initial_deck()
         shuffled_deck = SchnapsenDeckGenerator.shuffle_deck(deck, Random())
