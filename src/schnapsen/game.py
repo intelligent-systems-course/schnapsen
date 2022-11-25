@@ -217,10 +217,9 @@ class BotState:
 
     implementation: Bot
     hand: Hand
+    bot_id: str
     score: Score = field(default_factory=Score)
     won_cards: List[Card] = field(default_factory=list)
-    # TODO We use this data to remember which bot is which. Likely there is a better way.
-    data: Any = None
 
     def get_move(self, state: 'PlayerGameState') -> Move:
         move = self.implementation.get_move(state)
@@ -234,7 +233,7 @@ class BotState:
             hand=self.hand.copy(),
             score=self.score.copy(),
             won_cards=list(self.won_cards),
-            data=self.data
+            bot_id=self.bot_id
         )
         return new_bot
 
@@ -731,17 +730,17 @@ class GamePlayEngine:
     move_validator: MoveValidator
     trick_scorer: TrickScorer
 
-    def play_game(self, bot1_getmove: Bot, bot2_getmove: Bot, rng: Random) -> None:
+    def play_game(self, bot1: Bot, bot2: Bot, rng: Random) -> None:
         cards = self.deck_generator.get_initial_deck()
         shuffled = self.deck_generator.shuffle_deck(cards, rng)
         hand1, hand2, talon = self.hand_generator.generateHands(shuffled)
 
-        bot1 = BotState(implementation=bot1_getmove, hand=hand1, data={"name": "bot1"})
-        bot2 = BotState(implementation=bot2_getmove, hand=hand2, data={"name": "bot2"})
+        leader_state = BotState(implementation=bot1, hand=hand1, bot_id="bot1")
+        follower_state = BotState(implementation=bot2, hand=hand2, bot_id="bot2")
 
         game_state = GameState(
-            leader=bot1,
-            follower=bot2,
+            leader=leader_state,
+            follower=follower_state,
             talon=talon,
             previous=None
         )
@@ -753,8 +752,8 @@ class GamePlayEngine:
             result = self.trick_scorer.declare_winner(game_state)
             if result:
                 winner, points = result
-        winner_name = winner.data["name"]
-        print(f"Game ended. Winner is {winner_name} with {points} points")
+        winner_id = winner.bot_id
+        print(f"Game ended. Winner is {winner_id} with {points} points")
 
         # raise NotImplementedError("This should return something reasonable")
 
