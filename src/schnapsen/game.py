@@ -208,6 +208,7 @@ class Trick(PartialTrick):
     def __repr__(self) -> str:
         return str({"trump_exchange": self.trump_exchange, "leader_move": self.leader_move, "follower_move": self.follower_move})
 
+
 @dataclass(frozen=True)
 class Score:
     direct_points: int = 0
@@ -223,7 +224,7 @@ class Score:
 
     def redeem_pending_points(self) -> 'Score':
         return Score(direct_points=self.direct_points + self.pending_points, pending_points=0)
-    
+
     def __repr__(self) -> str:
         return str({"direct_points": self.direct_points, "pending_points": self.pending_points})
 
@@ -260,8 +261,8 @@ class BotState:
         return new_bot
 
     def __repr__(self) -> str:
-        return str({"implementation": self.implementation, "hand": self.hand, 
-                    "bot_id": self.bot_id, "score": self.score, 
+        return str({"implementation": self.implementation, "hand": self.hand,
+                    "bot_id": self.bot_id, "score": self.score,
                     "won_cards": self.won_cards})
 
 
@@ -299,9 +300,9 @@ class GameState:
         return self.leader.hand.is_empty() and self.follower.hand.is_empty() and self.talon.is_empty()
 
     def __repr__(self) -> str:
-        return {"leader": self.leader, "follower": self.follower,
-                "trump_suit": self.trump_suit, "talon": self.talon,
-                "previous": self.previous, "played_trick": self.played_trick}
+        return str({"leader": self.leader, "follower": self.follower,
+                    "trump_suit": self.trump_suit, "talon": self.talon,
+                    "previous": self.previous, "played_trick": self.played_trick})
 
 
 class PlayerGameState(ABC):
@@ -420,7 +421,7 @@ class FollowerGameState(PlayerGameState):
         return self.__game_state.leader.hand.copy()
 
     def __repr__(self) -> str:
-        return str({"__game_state": self.__game_state, "__engine": self.__engine, 
+        return str({"__game_state": self.__game_state, "__engine": self.__engine,
                     "partial_trick": self.partial_trick})
 
 
@@ -448,6 +449,7 @@ class SchnapsenDeckGenerator(DeckGenerator):
 
     # def __repr__(self) -> str:
     #     return str({"_cards": self._cards})
+
 
 class HandGenerator(ABC):
     @abstractmethod
@@ -819,7 +821,7 @@ class GamePlayEngine:
         raise NotImplementedError()
 
     def __repr__(self) -> str:
-        return str({"deck_generator": self.deck_generator, 
+        return str({"deck_generator": self.deck_generator,
                     "hand_generator": self.hand_generator,
                     "trick_implementer": self.trick_implementer,
                     "move_requester": self.move_requester,
