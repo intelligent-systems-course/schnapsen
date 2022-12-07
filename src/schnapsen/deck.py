@@ -183,4 +183,7 @@ class OrderedCardCollection(CardCollection):
         results = [card for card in self._cards if card.rank is rank]
         return results
 
+    def __repr__(self) -> str:
+        return str({"_cards": self._cards})
+
 # TODO: some more thinking is needed for the class hierarchy for the different collections of cards

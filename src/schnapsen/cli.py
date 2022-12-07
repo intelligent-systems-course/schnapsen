@@ -37,6 +37,8 @@ class RandBot(schnapsen.game.Bot):
         move = self.rng.choice(list(moves))
         return move
 
+    def __repr__(self) -> str:
+        return str({"rng": self.rng})
 
 @main.command()
 def try_game() -> None:
