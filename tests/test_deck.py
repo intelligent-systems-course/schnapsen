@@ -93,4 +93,29 @@ class CardTest(TestCase):
             for rank in range(1, 14):
                 card = Card.get_card(Rank(rank), Suit(suit))
                 self.assertEqual(card.suit, Suit(suit))
-                self.assertEqual(card.rank, Rank(rank))                
+                self.assertEqual(card.rank, Rank(rank))
+
+    def test_OrderedCardCollection(self) -> None:
+        foo = OrderedCardCollection()
+        self.assertTrue(foo.is_empty())
+        self.assertEqual(len(foo), 0)
+
+        foo = OrderedCardCollection([Card.ACE_CLUBS])
+        self.assertFalse(foo.is_empty())
+        self.assertEqual(len(foo), 1)
+
+        cards = [Card.ACE_CLUBS, Card.FOUR_DIAMONDS, Card.QUEEN_HEARTS]
+
+        foo = OrderedCardCollection(cards)
+
+        for idx, card in enumerate(foo):
+            self.assertEqual(card, cards[idx])
+            self.assertTrue(foo.__contains__(card))
+
+        self.assertEqual(foo.filter_suit(Suit.CLUBS)[0], Card.ACE_CLUBS)
+        self.assertEqual(foo.filter_suit(Suit.DIAMONDS)[0], Card.FOUR_DIAMONDS)
+        self.assertEqual(foo.filter_suit(Suit.HEARTS)[0], Card.QUEEN_HEARTS)
+
+        self.assertEqual(foo.filter_rank(Rank.ACE)[0], Card.ACE_CLUBS)
+        self.assertEqual(foo.filter_rank(Rank.FOUR)[0], Card.FOUR_DIAMONDS)
+        self.assertEqual(foo.filter_rank(Rank.QUEEN)[0], Card.QUEEN_HEARTS)
