@@ -12,6 +12,9 @@ class Bot(ABC):
     #     super().__init_subclass__()
     #     # we have a hook to the class here and could get rid of the other way of registering bots, however this is likely not working for sub-sub classes!
 
+    def __init__(self, bot_id: str) -> None:
+        self.bot_id = bot_id
+
     @abstractmethod
     def get_move(self, state: 'PlayerGameState') -> 'Move':
         pass
@@ -160,10 +163,6 @@ class Talon(OrderedCardCollection):
         assert new_trump.suit is self._cards[-1].suit
         old_trump = self._cards.pop(len(self._cards) - 1)
         self._cards.append(new_trump)
-
-# question: wouldn t this put the new trump at the top of the deck ?
-# and also remove the card at the top too
-
         return old_trump
 
     def draw_cards(self, amount: int) -> Iterable[Card]:
@@ -187,6 +186,8 @@ class PartialTrick:
 class Trick(PartialTrick):
     follower_move: RegularMove
 
+    def copy(self) -> 'Trick':
+        return Trick(trump_exchange=self.trump_exchange, leader_move=self.leader_move, follower_move=self.follower_move)
 
 @dataclass(frozen=True)
 class Score:
@@ -216,7 +217,6 @@ class BotState:
 
     implementation: Bot
     hand: Hand
-    bot_id: str
     score: Score = field(default_factory=Score)
     won_cards: List[Card] = field(default_factory=list)
 
@@ -232,7 +232,6 @@ class BotState:
             hand=self.hand.copy(),
             score=self.score.copy(),
             won_cards=list(self.won_cards),
-            bot_id=self.bot_id
         )
         return new_bot
 
@@ -288,9 +287,36 @@ class PlayerGameState(ABC):
     def get_opponent_card(self) -> Optional[Move]:
         raise NotImplementedError()
 
-    # TODO define what should be returned from this method
-    def get_game_history(self) -> None:
-        raise NotImplementedError()
+    def get_game_history(self, according_to_agent_id: str) -> list[tuple[bool, BotState, Trick]]:
+        """
+        param according_to_agent_id (str) the id of the agent, according to whose perspective
+            and limited knowledge we will return the game history.
+            as not to include opponents hidden had cards for example.
+        :return: List[Tuple[agent_was_leader:bool, BotState, Trick]] in order chronological order, index 0 is the first round played.
+        """
+        game_state_history: List[Tuple[bool, BotState, Trick]] = []
+        # We take the "double" previous, because, a copy of the first gameState is duplicated before even the first move.
+        previous_game_state = self.__game_state.previous.previous
+        while previous_game_state is not None:
+            agent_was_leader: bool
+            previous_bot_state: BotState
+            played_trick: Optional[Trick]
+            if previous_game_state.played_trick is None:
+                played_trick = None
+            else:
+                played_trick = previous_game_state.played_trick.copy()
+            if previous_game_state.leader.implementation.bot_id == according_to_agent_id:
+                agent_was_leader = True
+                previous_bot_state = previous_game_state.leader.copy()
+            else:
+                agent_was_leader = False
+                previous_bot_state = previous_game_state.follower.copy()
+            turn_summary: Tuple[bool, BotState, Trick]
+            turn_summary = (agent_was_leader, previous_bot_state, played_trick)
+            game_state_history.insert(0, turn_summary)
+            previous_game_state = previous_game_state.previous
+
+        return game_state_history
 
     @abstractmethod
     def get_hand(self) -> Hand:
@@ -318,14 +344,22 @@ class PlayerGameState(ABC):
         raise NotImplementedError()
 
     def make_assumption(self) -> 'GameState':
+        # here: "create a new hypothetical gameState that instantiates randomly all hidden cards. This would allow for a "Monte Carlo tree search" policy."
         """
                 Takes the current imperfect information state and makes a
                 random guess as to the states of the unknown cards.
-
-        This also takes into account cards seen earlier during marriages played by the opponent, as well as potential trump jack exchanges
-
                 :return: A perfect information state object.
                 """
+
+        # comments: we can use the implemented history + the agents current had to calculate the cards that we know that the other agent does not have.
+        # also take into acount the played tricks to see if a marraige was played, or a trump exchange and see if this information is stll important or if that card was played by the other agent already,
+        # then calculate the nubmer of Talon cards and the number of opponents cards. and randomly sample the cards of the opponent that we need to hypothesise about.
+
+        # this function will have to be implemented both on LeaderGameState and FollowerGameState classes,
+        # since only this way we can know which agent (both role in current turn but also their id) called this function.
+        # So maybe there can be a coomon part here -> where we gather information needed from previous turns
+        # and on each subclass we do additionall stuff (Leader: we simply sample cards, Follower: we take into account the partial current trick and then sample cards)
+
         raise NotImplementedError()
 
 
@@ -464,7 +498,7 @@ class SchnapsenTrickImplementer(TrickImplementer):
         return trick
 
     def __get_one_valid_leader_move(self, game_engine: 'GamePlayEngine', game_state: 'GameState') -> Union[Trump_Exchange, Marriage, RegularMove]:
-        # ask first players move trough the requester
+        # ask first players move through the requester
         leader_game_state = LeaderGameState(game_state, game_engine)
         leader_move = game_engine.move_requester.get_move(game_state.leader, leader_game_state)
         if not game_engine.move_validator.is_legal_leader_move(game_engine, game_state, leader_move):
@@ -750,8 +784,8 @@ class GamePlayEngine:
         shuffled = self.deck_generator.shuffle_deck(cards, rng)
         hand1, hand2, talon = self.hand_generator.generateHands(shuffled)
 
-        leader_state = BotState(implementation=bot1, hand=hand1, bot_id="bot1")
-        follower_state = BotState(implementation=bot2, hand=hand2, bot_id="bot2")
+        leader_state = BotState(implementation=bot1, hand=hand1)
+        follower_state = BotState(implementation=bot2, hand=hand2)
 
         game_state = GameState(
             leader=leader_state,
@@ -765,7 +799,7 @@ class GamePlayEngine:
         while not winner:
             game_state = self.trick_implementer.play_trick(self, game_state)
             winner, points = self.trick_scorer.declare_winner(game_state) or (None, -1)
-        winner_id = winner.bot_id
+        winner_id = winner.implementation.bot_id
         print(f"Game ended. Winner is {winner_id} with {points} points")
 
         # raise NotImplementedError("This should return something reasonable")
