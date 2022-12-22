@@ -18,7 +18,7 @@ pip install -e .
 To run the tests, run:
 
 ```sh
-python -m unittest discover ./tests
+pytest ./tests
 ```
 
 
