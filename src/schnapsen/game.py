@@ -817,12 +817,12 @@ class GamePlayEngine:
         raise NotImplementedError()
 
     def __repr__(self) -> str:
-        return str({"deck_generator": self.deck_generator,
-                    "hand_generator": self.hand_generator,
-                    "trick_implementer": self.trick_implementer,
-                    "move_requester": self.move_requester,
-                    "move_validator": self.move_validator,
-                    "trick_scorer": self.trick_scorer})
+        return f"GamePlayEngine(deck_generator={self.deck_generator}, "\
+               f"hand_generator={self.hand_generator}, "\
+               f"trick_implementer={self.trick_implementer}, "\
+               f"move_requester={self.move_requester}, "\
+               f"move_validator={self.move_validator}, "\
+               f"trick_scorer={self.trick_scorer})"
 
 
 class SchnapsenGamePlayEngine(GamePlayEngine):
@@ -835,6 +835,9 @@ class SchnapsenGamePlayEngine(GamePlayEngine):
             move_validator=SchnapsenMoveValidator(),
             trick_scorer=SchnapsenTrickScorer()
         )
+
+    def __repr__(self) -> str:
+        return super().__repr__()
 
 
 # class FirstMovePhaseOneState:
