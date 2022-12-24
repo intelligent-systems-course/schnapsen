@@ -21,9 +21,6 @@ class _BotRegistry:
         assert bot_id not in self.register, "A bot with this id already exists"
         self.register[bot_id] = _BotEntry(bot_class, bot_name)
 
-    def __repr__(self) -> str:
-        return str({"register": self.register})
-
 
 BOT_REGISTRY = _BotRegistry()
 

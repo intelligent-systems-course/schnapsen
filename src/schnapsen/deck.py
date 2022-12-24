@@ -184,6 +184,6 @@ class OrderedCardCollection(CardCollection):
         return results
 
     def __repr__(self) -> str:
-        return str({"_cards": self._cards})
+        return f"OrderedCardCollection(cards={self._cards})"
 
 # TODO: some more thinking is needed for the class hierarchy for the different collections of cards
