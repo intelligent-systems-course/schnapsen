@@ -32,8 +32,8 @@ class MoveTest(TestCase):
             exchange = Trump_Exchange(jack=jack)
             self.assertTrue(exchange.is_trump_exchange())
             self.assertFalse(exchange.is_marriage())
-            self.assertEquals(len(exchange.cards), 1)
-            self.assertEquals(exchange.cards[0], jack)
+            self.assertEqual(len(exchange.cards), 1)
+            self.assertEqual(exchange.cards[0], jack)
 
     def test_trump_creation_fails(self) -> None:
         for card in Card:
