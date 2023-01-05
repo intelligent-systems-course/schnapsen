@@ -4,8 +4,6 @@ from schnapsen.deck import (
     Suit,
     Rank,
     Card,
-    _CardCache,
-    CardCollection,
     OrderedCardCollection,
 )
 

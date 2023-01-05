@@ -14,12 +14,12 @@ class Bot(ABC):
 
 
 class Move(ABC):
-    """ 
+    """
     A single move during a game. There are several concreate moves possible. They are classes inheriting from this class.
 
     Attributes:
         cards: list(Card) The cards played in this move
-    
+
     """
 
     def is_marriage(self) -> bool:
@@ -33,7 +33,7 @@ class Move(ABC):
             # We call the method to compute the card list
             return object.__getattribute__(self, "_cards")()
         return object.__getattribute__(self, name)
-    
+
     @abstractmethod
     def _cards(self) -> Iterable[Card]:
         pass

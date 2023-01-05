@@ -1,5 +1,5 @@
 from unittest import TestCase
-from schnapsen.deck import CardCollection, OrderedCardCollection, Card, Rank, Suit
+from schnapsen.deck import Card, Rank, Suit
 from schnapsen.game import (
     Trump_Exchange,
     Marriage,
@@ -37,7 +37,7 @@ class MoveTest(TestCase):
 
     def test_trump_creation_fails(self) -> None:
         for card in Card:
-            if not card in self.jacks:
+            if card not in self.jacks:
                 with self.assertRaises(AssertionError):
                     Trump_Exchange(jack=card)
 
@@ -183,7 +183,7 @@ class GameTest(TestCase):
         self.assertEqual(bar, Card.TWO_CLUBS)
         with self.assertRaises(AssertionError):
             foo.draw_cards(3)
-        baz = foo.draw_cards(1)
+        baz = list(foo.draw_cards(1))
         self.assertEqual(baz[0], Card.ACE_CLUBS)
         self.assertEqual(foo._cards, [Card.JACK_CLUBS])
         self.assertEqual(foo.trump_suit(), Suit.CLUBS)
@@ -268,7 +268,7 @@ class GameTest(TestCase):
         talon = Talon(cards=[Card.ACE_HEARTS], trump_suit=Suit.HEARTS)
 
         gs = GameState(
-            leader=leader, follower=follower, talon=talon, previous="previous"
+            leader=leader, follower=follower, talon=talon, previous=None
         )
         self.assertFalse(gs.all_cards_played())
 
@@ -310,7 +310,7 @@ class GameTest(TestCase):
         talon = Talon(cards=[Card.ACE_HEARTS], trump_suit=Suit.HEARTS)
 
         gs = GameState(
-            leader=leader, follower=follower, talon=talon, previous="previous"
+            leader=leader, follower=follower, talon=talon, previous=None
         )
         sgpe = SchnapsenGamePlayEngine()
         lgs = LeaderGameState(state=gs, engine=sgpe)
@@ -371,14 +371,15 @@ class GameTest(TestCase):
         talon = Talon(cards=[Card.ACE_HEARTS], trump_suit=Suit.HEARTS)
 
         gs = GameState(
-            leader=leader, follower=follower, talon=talon, previous="previous"
+            leader=leader, follower=follower, talon=talon, previous=None
         )
         sgpe = SchnapsenGamePlayEngine()
 
         te = Trump_Exchange(jack=Card.JACK_SPADES)
         mv = RegularMove(Card.ACE_CLUBS)
         pt = PartialTrick(trump_exchange=te, leader_move=mv)
-        lgs = LeaderGameState(state=gs, engine=sgpe)
+        # TODO lgs should be tested as well
+        # lgs = LeaderGameState(state=gs, engine=sgpe)
         fgs = FollowerGameState(state=gs, engine=sgpe, partial_trick=pt)
         self.assertEqual(
             fgs.valid_moves(),
