@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
 from random import Random
-from typing import Iterable, List, Optional, Tuple, Union, cast
+from typing import Iterable, List, Optional, Tuple, Union, cast, Any
 from .deck import CardCollection, OrderedCardCollection, Card, Rank, Suit
 
 
@@ -28,11 +28,11 @@ class Move(ABC):
     def is_trump_exchange(self) -> bool:
         return False
 
-    def __getattribute__(self, name):
-        if name == "cards":
+    def __getattribute__(self, __name: str) -> Any:
+        if __name == "cards":
             # We call the method to compute the card list
             return object.__getattribute__(self, "_cards")()
-        return object.__getattribute__(self, name)
+        return object.__getattribute__(self, __name)
 
     @abstractmethod
     def _cards(self) -> Iterable[Card]:
