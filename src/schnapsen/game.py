@@ -312,6 +312,9 @@ class Score:
 
 
 class GamePhase(Enum):
+    """
+    An indicator about the phase of the game. This is used because in Schnapsen, the rules change when the game enters the second phase.
+    """
     ONE = 1
     TWO = 2
 
@@ -327,12 +330,24 @@ class BotState:
     won_cards: List[Card] = field(default_factory=list)
 
     def get_move(self, state: 'PlayerGameState') -> Move:
+        """
+        Gets the next move from the bot itself, passing it the state.
+        Does a quick check to make sure that the hand has the cards which are played. More advanced checks are performed outside of this call.
+
+        :param state: The PlayerGameState which contains the information on the current state of the game from the perspective of this player
+        :returns: The move the both played
+        """
         move = self.implementation.get_move(state)
         assert self.hand.has_cards(move.cards), \
             f"Tried to play a move for which the player does not have the cards. Played {move.cards}, but has {self.hand}"
         return move
 
     def copy(self) -> 'BotState':
+        """
+        Makes a deep copy of the current state.
+
+        :returns: The deep copy.
+        """
         new_bot = BotState(
             implementation=self.implementation,
             hand=self.hand.copy(),
@@ -349,12 +364,23 @@ class BotState:
 
 @dataclass
 class GameState:
+    """
+    The current state of the game, as seen by the game engine. 
+    This contains all information about the positions of the cards, bots, scores, etc.
+    The bot must not get direct access to this information because it would allow it to cheat.
+    """
     leader: BotState
+    """The current leader, i.e., the one who will play the first move in the next trick"""
     follower: BotState
+    """The current follower, i.e., the one who will play the second move in the next trick"""
     trump_suit: Suit = field(init=False)
+    """The trump suit in this game. This information is also in the Talon."""
     talon: Talon
-    previous: Optional['GameState']
+    """The talon, containing the cars not yet in the hand of the player and the trump card at the bottom"""
+    previous: Optional[Tuple[Trick, 'GameState']]
+    """The previous state of the game, before the current trick started"""
     played_trick: Optional[Trick] = None
+
     # TODO it might be that we have to include the ongoing trick here, such that a bot can implement things like rdeep easily
     # ongoing_trick: PartialTrick
     # TODO it is probably a good idea to keep the seen cards here
