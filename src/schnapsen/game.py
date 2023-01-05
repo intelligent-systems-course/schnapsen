@@ -253,8 +253,13 @@ class Talon(OrderedCardCollection):
 
 @dataclass(frozen=True)
 class PartialTrick:
+    """
+    A partial trick is the move(s) played by the leading player.
+    """
     trump_exchange: Optional[Trump_Exchange]
+    """A trump exchange in case the leading player started with a trump exchange"""
     leader_move: Union[RegularMove, Marriage]
+    """The move played by the leader of the trick"""
 
     def __repr__(self) -> str:
         return f"PartialTrick(trump_exchange={self.trump_exchange}, leader_move={self.leader_move})"
@@ -262,7 +267,11 @@ class PartialTrick:
 
 @dataclass(frozen=True)
 class Trick(PartialTrick):
+    """
+    A complete trick. This is, the move(s) of the leader and the move of the follower.
+    """
     follower_move: RegularMove
+    """The move played by the follower"""
 
     def __repr__(self) -> str:
         return f"Trick(trump_exchange={self.trump_exchange}, leader_move={self.leader_move}, follower_move={self.follower_move})"
@@ -270,18 +279,32 @@ class Trick(PartialTrick):
 
 @dataclass(frozen=True)
 class Score:
+    """
+    The score of one of the bots. This consists of the current points and potential pending points because of an earlier played marriage.
+    Note that the socre object is immutable and supports the `+` operator, so it can be used somewhat as a usual number.
+    """
     direct_points: int = 0
+    """The current number of points"""
     pending_points: int = 0
+    """Points to be applied in the future because of a past marriage"""
 
     def __add__(self, other: 'Score') -> 'Score':
+        """
+        Adds two scores together. Direct points and pending points are added separately.
+
+        :param other:  The score to be added to the current one.
+        :returns: A new score object with the points of the current score and the other combined
+        """
         total_direct_points = self.direct_points + other.direct_points
         total_pending_points = self.pending_points + other.pending_points
         return Score(total_direct_points, total_pending_points)
 
-    def copy(self) -> 'Score':
-        return Score(direct_points=self.direct_points, pending_points=self.pending_points)
-
     def redeem_pending_points(self) -> 'Score':
+        """
+        Redeem the pending points
+
+        :returns: A new score object with the pending points added to the direct points and the pending points set to zero.
+        """
         return Score(direct_points=self.direct_points + self.pending_points, pending_points=0)
 
     def __repr__(self) -> str:
@@ -313,7 +336,7 @@ class BotState:
         new_bot = BotState(
             implementation=self.implementation,
             hand=self.hand.copy(),
-            score=self.score.copy(),
+            score=self.score,  # does not need a copy because it is not mutable
             won_cards=list(self.won_cards),
             bot_id=self.bot_id
         )
