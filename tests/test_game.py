@@ -21,29 +21,30 @@ import random
 class MoveTest(TestCase):
     """Tests the different move types"""
 
-    def test_trump_exchange_creation(self) -> None:
-        jacks = []
+    def setUp(self) -> None:
+        self.jacks = []
         for suit in Suit:
             jack = Card.get_card(Rank.JACK, suit)
-            jacks.append(jack)
-        for jack in jacks:
+            self.jacks.append(jack)
+
+    def test_trump_exchange_creation(self) -> None:
+        for jack in self.jacks:
             exchange = Trump_Exchange(jack=jack)
             self.assertTrue(exchange.is_trump_exchange())
             self.assertFalse(exchange.is_marriage())
-            self.assertEquals (len(exchange.cards), 1)
+            self.assertEquals(len(exchange.cards), 1)
             self.assertEquals(exchange.cards[0], jack)
-        
+
     def test_trump_creation_fails(self) -> None:
         for card in Card:
-            if not card in jacks:
+            if not card in self.jacks:
                 with self.assertRaises(AssertionError):
                     Trump_Exchange(jack=card)
-
 
     def test_marriage_creation_fails(self) -> None:
         for card1 in Card:
             for card2 in Card:
-                if not (card1.suit == card2.suit and card1.rank==Rank.QUEEN, card2.rank == Rank.KING):                    
+                if not (card1.suit == card2.suit and card1.rank == Rank.QUEEN, card2.rank == Rank.KING):
                     with self.assertRaises(AssertionError):
                         Marriage(queen_card=card1, king_card=card2)
 
@@ -58,57 +59,115 @@ class MoveTest(TestCase):
             self.assertEqual(marriage.cards, [queen, king])
 
 
-class GameTest(TestCase):
+class HandTest(TestCase):
 
-    def test_Hand(self) -> None:
-        with self.assertRaises(AssertionError):
-            foo = Hand(
-                cards=[Card.FIVE_CLUBS, Card.JACK_HEARTS, Card.ACE_SPADES], max_size=2
-            )
-        foo = Hand(
-            cards=[
+    def setUp(self) -> None:
+        self.ten_cards = [
+            Card.FIVE_CLUBS,
+            Card.JACK_HEARTS,
+            Card.ACE_SPADES,
+            Card.TWO_HEARTS,
+            Card.QUEEN_HEARTS,
+            # intentional repetition. Hand should not assume uniqueness
+            Card.QUEEN_HEARTS,
+            Card.JACK_SPADES,
+            Card.ACE_HEARTS,
+            Card.TWO_CLUBS,
+            Card.QUEEN_DIAMONDS,
+        ]
+
+    def test_too_large_creation_fail(self) -> None:
+        for max_size in range(len(self.ten_cards)):
+            for too_large in range(max_size + 1, len(self.ten_cards)):
+                too_many_cards = self.ten_cards[:too_large]
+                with self.assertRaises(AssertionError):
+                    Hand(cards=too_many_cards, max_size=max_size)
+
+    def test_creation(self) -> None:
+        for max_size in range(len(self.ten_cards)):
+            for created_size in range(max_size):
+                start_cards = self.ten_cards[:created_size]
+                hand = Hand(start_cards, max_size=max_size)
+                if created_size == 0:
+                    self.assertTrue(hand.is_empty())
+                else:
+                    self.assertFalse(hand.is_empty())
+
+    def test_removal_unique(self) -> None:
+        hand = Hand(self.ten_cards[:5])
+        self.assertIn(Card.FIVE_CLUBS, hand)
+        hand.remove(Card.FIVE_CLUBS)
+        self.assertNotIn(Card.FIVE_CLUBS, hand)
+
+    def test_removal_duplicate(self) -> None:
+        hand = Hand(self.ten_cards, max_size=10)
+        self.assertIn(Card.QUEEN_HEARTS, hand)
+        hand.remove(Card.QUEEN_HEARTS)
+        self.assertIn(Card.QUEEN_HEARTS, hand)
+        # remove the second one
+        hand.remove(Card.QUEEN_HEARTS)
+        self.assertNotIn(Card.QUEEN_HEARTS, hand)
+
+    def test_remove_non_existing(self) -> None:
+        hand = Hand(self.ten_cards, max_size=10)
+        for card in Card:
+            if card not in self.ten_cards:
+                with self.assertRaises(Exception):
+                    hand.remove(card)
+
+    def test_add(self) -> None:
+        hand = Hand(self.ten_cards[:4], max_size=5)
+        hand.add(Card.KING_SPADES)
+        self.assertEqual(
+            hand.cards,
+            [
                 Card.FIVE_CLUBS,
                 Card.JACK_HEARTS,
                 Card.ACE_SPADES,
                 Card.TWO_HEARTS,
-                Card.QUEEN_HEARTS,
-            ]
-        )
-        bar = foo.remove(Card.FIVE_CLUBS)
-        self.assertIsNone(bar)
-        with self.assertRaises(Exception):
-            bar = foo.remove(Card.KING_CLUBS)
-
-        foo.add(Card.KING_SPADES)
-        self.assertEqual(
-            foo.cards,
-            [
-                Card.JACK_HEARTS,
-                Card.ACE_SPADES,
-                Card.TWO_HEARTS,
-                Card.QUEEN_HEARTS,
                 Card.KING_SPADES,
             ],
         )
-        self.assertTrue(foo.has_cards([Card.JACK_HEARTS, Card.TWO_HEARTS]))
-        self.assertEqual(foo.copy().cards, foo.get_cards())
-        self.assertFalse(foo.is_empty())
 
+    def test_add_too_much(self) -> None:
+        hand = Hand(self.ten_cards[:4], max_size=5)
+        hand.add(Card.EIGHT_CLUBS)
+        with self.assertRaises(AssertionError):
+            hand.add(Card.FIVE_HEARTS)
+
+    def test_has_cards(self) -> None:
+        hand = Hand(self.ten_cards, max_size=10)
+        self.assertTrue(hand.has_cards([Card.JACK_HEARTS, Card.TWO_HEARTS]))
+
+    def test_copy(self) -> None:
+        hand = Hand(self.ten_cards, max_size=10)
+        copy = hand.copy()
+        self.assertEqual(copy.get_cards(), hand.get_cards())
+        # modifying the copy must not modify the original
+        copy.remove(Card.FIVE_CLUBS)
+        self.assertEqual(hand.get_cards(), self.ten_cards)
+
+    def test_filter_suit(self) -> None:
+        hand = Hand(self.ten_cards, max_size=10)
         self.assertEqual(
-            foo.filter_suit(Suit.HEARTS),
-            [Card.JACK_HEARTS, Card.TWO_HEARTS, Card.QUEEN_HEARTS],
+            hand.filter_suit(Suit.HEARTS),
+            [Card.JACK_HEARTS, Card.TWO_HEARTS, Card.QUEEN_HEARTS, Card.QUEEN_HEARTS, Card.ACE_HEARTS],
         )
-        self.assertEqual(
-            foo.filter_suit(Suit.SPADES), [Card.ACE_SPADES, Card.KING_SPADES]
-        )
-        self.assertEqual(foo.filter_suit(Suit.CLUBS), [])
-        self.assertEqual(foo.filter_suit(Suit.DIAMONDS), [])
-        self.assertEqual(foo.filter_rank(Rank.ACE)[0], Card.ACE_SPADES)
-        self.assertEqual(foo.filter_rank(Rank.TWO)[0], Card.TWO_HEARTS)
-        self.assertEqual(foo.filter_rank(Rank.JACK)[0], Card.JACK_HEARTS)
-        self.assertEqual(foo.filter_rank(Rank.QUEEN)[0], Card.QUEEN_HEARTS)
-        self.assertEqual(foo.filter_rank(Rank.KING)[0], Card.KING_SPADES)
-        self.assertEqual(foo.filter_rank(Rank.THREE), [])
+        self.assertEqual(hand.filter_suit(Suit.SPADES), [Card.ACE_SPADES, Card.JACK_SPADES])
+        self.assertEqual(hand.filter_suit(Suit.CLUBS), [Card.FIVE_CLUBS, Card.TWO_CLUBS])
+        self.assertEqual(hand.filter_suit(Suit.DIAMONDS), [Card.QUEEN_DIAMONDS])
+
+    def test_filter_rank(self) -> None:
+        hand = Hand(self.ten_cards, max_size=10)
+        self.assertEqual(hand.filter_rank(Rank.ACE), [Card.ACE_SPADES, Card.ACE_HEARTS])
+        self.assertEqual(hand.filter_rank(Rank.TWO), [Card.TWO_HEARTS, Card.TWO_CLUBS])
+        self.assertEqual(hand.filter_rank(Rank.JACK), [Card.JACK_HEARTS, Card.JACK_SPADES])
+        self.assertEqual(hand.filter_rank(Rank.QUEEN), [Card.QUEEN_HEARTS, Card.QUEEN_HEARTS, Card.QUEEN_DIAMONDS])
+        self.assertEqual(hand.filter_rank(Rank.KING), [])
+        self.assertEqual(hand.filter_rank(Rank.THREE), [])
+
+
+class GameTest(TestCase):
 
     def test_Talon(self) -> None:
         foo = Talon(cards=[Card.ACE_CLUBS], trump_suit=Suit.CLUBS)
@@ -316,7 +375,7 @@ class GameTest(TestCase):
         )
         sgpe = SchnapsenGamePlayEngine()
 
-        te = Trump_Exchange(jack=Suit.SPADES)
+        te = Trump_Exchange(jack=Card.JACK_SPADES)
         mv = RegularMove(Card.ACE_CLUBS)
         pt = PartialTrick(trump_exchange=te, leader_move=mv)
         lgs = LeaderGameState(state=gs, engine=sgpe)

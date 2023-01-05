@@ -100,7 +100,7 @@ class Hand(CardCollection):
         try:
             self.cards.remove(card)
         except ValueError:
-            raise Exception(f"Trying to play a card from the hand which is not in the hand. Hand is {self.cards}, trying to play {card}")
+            raise Exception(f"Trying to remove a card from the hand which is not in the hand. Hand is {self.cards}, trying to remove {card}")
 
     def add(self, card: Card) -> None:
         assert len(self.cards) < self.max_size, "Adding one more card to the hand will cause a hand with too many cards"
@@ -110,7 +110,7 @@ class Hand(CardCollection):
         return all([card in self.cards for card in cards])
 
     def copy(self) -> 'Hand':
-        return Hand(list(self.cards))
+        return Hand(list(self.cards), max_size=self.max_size)
 
     def is_empty(self) -> bool:
         return len(self.cards) == 0
