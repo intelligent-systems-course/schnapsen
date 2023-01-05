@@ -15,7 +15,6 @@ from schnapsen.game import (
     FollowerGameState,
 )
 from schnapsen.cli import RandBot
-import random
 
 
 class MoveTest(TestCase):
@@ -221,27 +220,29 @@ class TalonTest(TestCase):
             t.draw_cards(11)
 
 
+class ScoreTest(TestCase):
+
+    def test_add(self) -> None:
+        for direct1 in range(-10, 10):
+            for pending1 in range(-10, 10):
+                score1 = Score(direct_points=direct1, pending_points=pending1)
+                for direct2 in range(-1, 10):
+                    for pending2 in range(-1, 10):
+                        score2 = Score(direct_points=direct2, pending_points=pending2)
+                        for together in [score1 + score2, score2 + score1]:  # the sum must be invariant to order
+                            self.assertEqual(together.direct_points, direct1 + direct2)
+                            self.assertEqual(together.pending_points, pending1 + pending2)
+
+    def test_redeem_pending_points(self) -> 'None':
+        for direct1 in range(-10, 10):
+            for pending1 in range(-10, 10):
+                score = Score(direct_points=direct1, pending_points=pending1)
+                redeemed = score.redeem_pending_points()
+                self.assertEqual(redeemed.pending_points, 0)
+                self.assertEqual(redeemed.direct_points, direct1 + pending1)
+
+
 class GameTest(TestCase):
-
-    def test_Score(self) -> None:
-
-        randnum0 = random.randint(0, 10)
-        randnum1 = random.randint(0, 10)
-        randnum2 = random.randint(0, 10)
-        randnum3 = random.randint(0, 10)
-
-        foo = Score(direct_points=randnum0, pending_points=randnum1)
-        bar = Score(direct_points=randnum2, pending_points=randnum3)
-
-        baz = foo.__add__(bar)
-        self.assertEqual(baz.direct_points, randnum0 + randnum2)
-        self.assertEqual(baz.pending_points, randnum1 + randnum3)
-
-        qux = baz.copy()
-        self.assertEqual(baz, qux)
-        quux = qux.redeem_pending_points()
-        self.assertEqual(quux.direct_points, randnum0 + randnum1 + randnum2 + randnum3)
-        self.assertEqual(quux.pending_points, 0)
 
     def test_BotState(self) -> None:
         bot = RandBot(seed=42)
