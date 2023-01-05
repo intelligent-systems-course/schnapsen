@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
 from random import Random
-from typing import Iterable, List, Optional, Tuple, Union, cast, Any
+from typing import Iterable, List, Optional, Tuple, Union, cast, Any, Annotated
 from .deck import CardCollection, OrderedCardCollection, Card, Rank, Suit
 
 
@@ -15,17 +15,26 @@ class Bot(ABC):
 
 class Move(ABC):
     """
-    A single move during a game. There are several concreate moves possible. They are classes inheriting from this class.
-
-    Attributes:
-        cards: list(Card) The cards played in this move
-
+    A single move during a game. There are several types of move possible: normal moves, trump exchanges, and marriages. They are implmented in classes inheriting from this class.
     """
 
+    cards: Iterable[Card]  # implementation detail: The creation of this list is defered to the derived classes in _cards()
+    """The cards played in this move"""
+
     def is_marriage(self) -> bool:
+        """
+        Is this Move a marriage?
+
+        :returns: a bool indicating whether this move is a marriage
+        """
         return False
 
     def is_trump_exchange(self) -> bool:
+        """
+        Is this Move a trump exchange move?
+
+        :returns: a bool indicating whether this move is a trump exchange
+        """
         return False
 
     def __getattribute__(self, __name: str) -> Any:
@@ -41,7 +50,10 @@ class Move(ABC):
 
 @dataclass(frozen=True)
 class Trump_Exchange(Move):
+    """A move that implements the exchange of the trump card for a Jack of the same suit."""
+
     jack: Card
+    """The Jack which will be placed at the bottom of the Talon"""
 
     def __post_init__(self) -> None:
         assert self.jack.rank is Rank.JACK
@@ -58,13 +70,17 @@ class Trump_Exchange(Move):
 
 @dataclass(frozen=True)
 class RegularMove(Move):
+    """A regular move in the game"""
+
     card: Card
+    """The card which is played"""
 
     def _cards(self) -> Iterable[Card]:
         return [self.card]
 
     @staticmethod
     def from_cards(cards: Iterable[Card]) -> Iterable[Move]:
+        """Create an iterable of Moves from an iterable of cards."""
         return [RegularMove(card) for card in cards]
 
     def __repr__(self) -> str:
@@ -73,9 +89,18 @@ class RegularMove(Move):
 
 @dataclass(frozen=True)
 class Marriage(Move):
+    """
+    A Move representing a marriage in the game. This move has two cards, a king and a queen of the same suit.
+    Right after the marriage is played, the player must play either the queen or the king. 
+    Because it can only be beneficial to play the queen, it is chosen automatically.
+    This Regular move is part of this Move already and does not have to be played separatly.
+    """
     queen_card: Card
+    """The queen card of this marriage"""
     king_card: Card
+    """The king card of this marriage"""
     suit: Suit = field(init=False, repr=False, hash=False)
+    """The suit of this marriage, gets derived from the suit of the queen and king."""
 
     def __post_init__(self) -> None:
         assert self.queen_card.rank is Rank.QUEEN
@@ -98,6 +123,7 @@ class Marriage(Move):
 
 
 class Hand(CardCollection):
+
     def __init__(self, cards: Iterable[Card], max_size: int = 5) -> None:
         self.max_size = max_size
         cards = list(cards)
