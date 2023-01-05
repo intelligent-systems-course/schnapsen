@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
 from random import Random
-from typing import Iterable, List, Optional, Tuple, Union, cast, Any, Annotated
+from typing import Iterable, List, Optional, Tuple, Union, cast, Any
 from .deck import CardCollection, OrderedCardCollection, Card, Rank, Suit
 
 
@@ -18,7 +18,7 @@ class Move(ABC):
     A single move during a game. There are several types of move possible: normal moves, trump exchanges, and marriages. They are implmented in classes inheriting from this class.
     """
 
-    cards: Iterable[Card]  # implementation detail: The creation of this list is defered to the derived classes in _cards()
+    cards: List[Card]  # implementation detail: The creation of this list is defered to the derived classes in _cards()
     """The cards played in this move"""
 
     def is_marriage(self) -> bool:
@@ -91,7 +91,7 @@ class RegularMove(Move):
 class Marriage(Move):
     """
     A Move representing a marriage in the game. This move has two cards, a king and a queen of the same suit.
-    Right after the marriage is played, the player must play either the queen or the king. 
+    Right after the marriage is played, the player must play either the queen or the king.
     Because it can only be beneficial to play the queen, it is chosen automatically.
     This Regular move is part of this Move already and does not have to be played separatly.
     """
@@ -123,8 +123,15 @@ class Marriage(Move):
 
 
 class Hand(CardCollection):
+    """Representing the cards in the hand of a player. These are the cards which the player can see and which he can play with in the turn."""
 
     def __init__(self, cards: Iterable[Card], max_size: int = 5) -> None:
+        """
+        Create a hand containing the cards.
+
+        :param cards: The cards to be added to the hand
+        :param max_size: The maximum number of cards the hand can contain. If the number of cards goes beyond, an Exception is raised.
+        """
         self.max_size = max_size
         cards = list(cards)
         assert len(cards) <= max_size, f"The number of cards {len(cards)} is larger than the maximum number fo allowed cards {max_size}"
@@ -138,53 +145,66 @@ class Hand(CardCollection):
             raise Exception(f"Trying to remove a card from the hand which is not in the hand. Hand is {self.cards}, trying to remove {card}")
 
     def add(self, card: Card) -> None:
+        """
+        Add a card to the Hand
+
+        :param card:  The card to be added to the hand
+        """
         assert len(self.cards) < self.max_size, "Adding one more card to the hand will cause a hand with too many cards"
         self.cards.append(card)
 
     def has_cards(self, cards: Iterable[Card]) -> bool:
+        """
+        Are all the cards contained in this Hand?
+
+        :param cards: An iterable of cards which need to be checked
+        :returns: Whether all cards in the provided iterable are in this Hand
+        """
         return all([card in self.cards for card in cards])
 
     def copy(self) -> 'Hand':
+        """
+        Create a deep copy of this Hand
+
+        :returns: A deep copy of this hand. Changes to the original will not affect the copy and vice versa.
+        """
         return Hand(list(self.cards), max_size=self.max_size)
 
     def is_empty(self) -> bool:
+        """
+        Is the Hand emoty?
+
+        :returns: A bool indicating whether the hand is empty
+        """
         return len(self.cards) == 0
 
     def get_cards(self) -> Iterable[Card]:
         return list(self.cards)
 
     def filter_suit(self, suit: Suit) -> Iterable[Card]:
-        """Returns an Iterable with in it all cards which have the provided suit"""
         results = [card for card in self.cards if card.suit is suit]
         return results
 
     def filter_rank(self, rank: Rank) -> Iterable[Card]:
-        """Returns an Iterable with in it all cards which have the provided rank"""
         results = [card for card in self.cards if card.rank is rank]
         return results
 
     def __repr__(self) -> str:
         return f"Hand(cards={self.cards}, max_size={self.max_size})"
 
-# Do we need this???
-# class HandWithoutDuplicates(Hand):
-#     def __init__(self, cards: Iterable[Card], max_size: int = 5) -> None:
-#         assert len(set(cards)) == len(list(cards)), "A HandWithoutDuplicates was initialized with a set of cards containing duplicates"
-#         super().__init__(cards, max_size=max_size)
-
-#     def add(self, card: Card) -> None:
-#         assert card not in self.cards, "Adding a card to a hand, but there is already such a a card"
-#         super().add(card)
-
-#     def copy(self) -> 'HandWithoutDuplicates':
-#         return HandWithoutDuplicates(self.cards, self.max_size)
-
 
 class Talon(OrderedCardCollection):
 
     def __init__(self, cards: Iterable[Card], trump_suit: Optional[Suit] = None) -> None:
-        """The cards of the Talon. The last card is the bottommost card. The first one is the top card (which will be taken is a card is drawn)
-            The Trump card is at the bottom of the Talon.
+        """
+        The cards of the Talon. The last card of the iterable is the bottommost card.
+        The first one is the top card (which will be taken is a card is drawn)
+        The Trump card is at the bottom of the Talon.
+        The trump_suit can also be specified explicitly, which is important when the Talon is empty.
+        If the trump_suit is specified and there are cards, then the suit of the bottommost card must be the same.
+
+        :param cards: The cards to be put on this talon
+        :param trump_suit: The trump suit of the Talon, important if there are no more cards to be taken.
         """
         if cards:
             trump_card_suit = list(cards)[-1].suit
@@ -197,20 +217,24 @@ class Talon(OrderedCardCollection):
         super().__init__(cards)
 
     def copy(self) -> 'Talon':
+        # We do not need to make a copy of the cards as this happend in the constructor of Talon.
         return Talon(self._cards, self.__trump_suit)
 
     def trump_exchange(self, new_trump: Card) -> Card:
-        """ perfom a trump-jack exchange. The card to be put as the trump card must be a Jack of the same suit.
-        As a result, this Talon changed: the old trump is removed and the new_trump is at the bottom of the Talon"""
+        """
+        perfom a trump-jack exchange. The card to be put as the trump card must be a Jack of the same suit.
+        As a result, this Talon changed: the old trump is removed and the new_trump is at the bottom of the Talon
+
+        We also require that there must be two cards on the Talon, which is always the case in a normal game of Schnapsen
+
+        :param new_trump: The card to be put. It must be a Jack of the same suit as the card at the bottom
+
+        """
         assert new_trump.rank is Rank.JACK
         assert len(self._cards) >= 2
         assert new_trump.suit is self._cards[-1].suit
         old_trump = self._cards.pop(len(self._cards) - 1)
         self._cards.append(new_trump)
-
-# question: wouldn t this put the new trump at the top of the deck ?
-# and also remove the card at the top too
-
         return old_trump
 
     def draw_cards(self, amount: int) -> Iterable[Card]:

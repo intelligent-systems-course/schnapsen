@@ -167,26 +167,61 @@ class HandTest(TestCase):
         self.assertEqual(hand.filter_rank(Rank.THREE), [])
 
 
+class TalonTest(TestCase):
+
+    def setUp(self) -> None:
+        self.ten_cards = [
+            Card.FIVE_CLUBS,
+            Card.JACK_HEARTS,
+            Card.ACE_SPADES,
+            Card.TWO_HEARTS,
+            Card.QUEEN_HEARTS,
+            # intentional repetition. Talon should not assume uniqueness
+            Card.QUEEN_HEARTS,
+            Card.JACK_SPADES,
+            Card.ACE_HEARTS,
+            Card.TWO_CLUBS,
+            Card.QUEEN_DIAMONDS,
+        ]
+
+    def test_creation_and_trump_suit(self) -> None:
+        t = Talon([], Suit.HEARTS)
+        self.assertEqual(t.trump_suit(), Suit.HEARTS)
+        t = Talon(self.ten_cards)
+        self.assertEqual(t.trump_suit(), Suit.DIAMONDS)
+        t = Talon(self.ten_cards, Suit.DIAMONDS)
+        self.assertEqual(t.trump_suit(), Suit.DIAMONDS)
+
+    def test_wrong_suit_creation(self) -> None:
+        with self.assertRaises(AssertionError):
+            Talon(self.ten_cards, Suit.CLUBS)
+        with self.assertRaises(AssertionError):
+            Talon([], None)
+
+    def test_correct_trump_exchange(self) -> None:
+        t = Talon(self.ten_cards)
+        old_trump = t.trump_exchange(Card.JACK_DIAMONDS)
+        self.assertEqual(old_trump, Card.QUEEN_DIAMONDS)
+        self.assertEqual(len(list(t.get_cards())), 10)
+        copy = list(self.ten_cards)
+        copy[9] = Card.JACK_DIAMONDS
+        self.assertEqual(t.get_cards(), copy)
+        self.assertEqual(t.trump_suit(), Suit.DIAMONDS)
+
+    def test_draw_cards(self) -> None:
+        t = Talon(self.ten_cards)
+        drawn = list(t.draw_cards(4))
+        self.assertEqual(drawn, self.ten_cards[0:4])
+        rest = list(t.get_cards())
+        self.assertEqual(rest, self.ten_cards[4:10])
+
+    def test_overdraw_cards(self) -> None:
+        t = Talon(self.ten_cards)
+        with self.assertRaises(AssertionError):
+            t.draw_cards(11)
+
+
 class GameTest(TestCase):
-
-    def test_Talon(self) -> None:
-        foo = Talon(cards=[Card.ACE_CLUBS], trump_suit=Suit.CLUBS)
-        with self.assertRaises(AssertionError):
-            foo.trump_exchange(Card.JACK_CLUBS)
-
-        foo = Talon(cards=[Card.ACE_CLUBS, Card.TWO_CLUBS], trump_suit=Suit.CLUBS)
-        with self.assertRaises(AssertionError):
-            foo.trump_exchange(Card.JACK_DIAMONDS)
-
-        foo = Talon(cards=[Card.ACE_CLUBS, Card.TWO_CLUBS], trump_suit=Suit.CLUBS)
-        bar = foo.trump_exchange(new_trump=Card.JACK_CLUBS)
-        self.assertEqual(bar, Card.TWO_CLUBS)
-        with self.assertRaises(AssertionError):
-            foo.draw_cards(3)
-        baz = list(foo.draw_cards(1))
-        self.assertEqual(baz[0], Card.ACE_CLUBS)
-        self.assertEqual(foo._cards, [Card.JACK_CLUBS])
-        self.assertEqual(foo.trump_suit(), Suit.CLUBS)
 
     def test_Score(self) -> None:
 
