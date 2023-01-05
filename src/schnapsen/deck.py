@@ -118,6 +118,7 @@ class _CardCache:
 
 
 class CardCollection(ABC):
+    """A collection of cards for which the order is not significant and not guaranteed."""
 
     @abstractmethod
     def get_cards(self) -> Iterable[Card]:
