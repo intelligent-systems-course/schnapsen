@@ -175,12 +175,12 @@ class OrderedCardCollection(CardCollection):
 
     def filter_suit(self, suit: Suit) -> Iterable[Card]:
         """Returns an Iterable with in it all cards which have the provided suit"""
+        assert suit in Suit
         results = [card for card in self._cards if card.suit is suit]
         return results
 
     def filter_rank(self, rank: Rank) -> Iterable[Card]:
         """Returns an Iterable with in it all cards which have the provided rank"""
+        assert rank in Rank
         results = [card for card in self._cards if card.rank is rank]
         return results
-
-# TODO: some more thinking is needed for the class hierarchy for the different collections of cards
