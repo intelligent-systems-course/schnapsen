@@ -10,8 +10,9 @@ class Suit(Enum):
     CLUBS = auto()
     SPADES = auto()
     DIAMONDS = auto()
-
-# TODO these are now all cards, so we can esily extend the game.
+    
+    def __str__(self):
+        return self.name
 
 
 class Rank(Enum):
@@ -28,6 +29,9 @@ class Rank(Enum):
     JACK = auto()
     QUEEN = auto()
     KING = auto()
+
+    def __str__(self):
+        return self.name
 
 
 @enum.unique
@@ -104,10 +108,10 @@ class Card(Enum):
     @staticmethod
     def get_card(rank: Rank, suit: Suit) -> 'Card':
         return _CardCache._CARD_CACHE[(rank, suit)]
-#        return _CARD_CACHE[(rank, suit)]
 
-    def __str__(self) -> str:
-        return f"{self.rank.name} of {self.suit.name} ({self.value[2]} )"
+    def __repr__(self) -> str:
+        return f"Card.{self.name}"
+
 
 
 class _CardCache:

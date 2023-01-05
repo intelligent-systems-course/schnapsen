@@ -20,10 +20,13 @@ from schnapsen.game import (
 
 class ReprTest(TestCase):
     def test_OrderedCardCollection(self) -> None:
-        print(OrderedCardCollection([Card.ACE_CLUBS, Card.ACE_SPADES]))
+        output = str(OrderedCardCollection([Card.ACE_CLUBS, Card.ACE_SPADES]))
+        assert output == "OrderedCardCollection(cards=[Card.ACE_CLUBS, Card.ACE_SPADES])"
+
 
     def test_Marriage(self) -> None:
-        print(Marriage(Card.QUEEN_CLUBS, Card.KING_CLUBS))
+        output = str(Marriage(Card.QUEEN_CLUBS, Card.KING_CLUBS))
+        assert output == "Marriage(queen_card=Card.QUEEN_CLUBS, king_card=Card.KING_CLUBS)"
 
     def test_Trick(self) -> None:
         te = Trump_Exchange(jack=Suit.SPADES)
