@@ -30,12 +30,16 @@ def load_schnapsen_bot(module_name: str) -> None:
 
 class RandBot(schnapsen.game.Bot):
     def __init__(self, seed: int) -> None:
-        self.rng = random.Random(seed)
+        self.seed = seed
+        self.rng = random.Random(self.seed)
 
     def get_move(self, state: schnapsen.game.PlayerGameState) -> schnapsen.game.Move:
         moves = state.valid_moves()
         move = self.rng.choice(list(moves))
         return move
+
+    def __repr__(self) -> str:
+        return f"RandBot(seed={self.seed})"
 
 
 @main.command()

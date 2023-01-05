@@ -52,6 +52,9 @@ class Trump_Exchange(Move):
     def _cards(self) -> Iterable[Card]:
         return [self.jack]
 
+    def __repr__(self) -> str:
+        return f"Trump_Exchange(jack={self.jack})"
+
 
 @dataclass(frozen=True)
 class RegularMove(Move):
@@ -63,6 +66,9 @@ class RegularMove(Move):
     @staticmethod
     def from_cards(cards: Iterable[Card]) -> Iterable[Move]:
         return [RegularMove(card) for card in cards]
+
+    def __repr__(self) -> str:
+        return f"RegularMove(card={self.card})"
 
 
 @dataclass(frozen=True)
@@ -86,6 +92,9 @@ class Marriage(Move):
 
     def _cards(self) -> Iterable[Card]:
         return [self.queen_card, self.king_card]
+
+    def __repr__(self) -> str:
+        return f"Marriage(queen_card={self.queen_card}, king_card={self.king_card})"
 
 
 class Hand(CardCollection):
@@ -127,6 +136,9 @@ class Hand(CardCollection):
         """Returns an Iterable with in it all cards which have the provided rank"""
         results = [card for card in self.cards if card.rank is rank]
         return results
+
+    def __repr__(self) -> str:
+        return f"Hand(cards={self.cards}, max_size={self.max_size})"
 
 # Do we need this???
 # class HandWithoutDuplicates(Hand):
@@ -185,16 +197,25 @@ class Talon(OrderedCardCollection):
     def trump_suit(self) -> Suit:
         return self.__trump_suit
 
+    def __repr__(self) -> str:
+        return f"Talon(cards={self._cards}, trump_suit={self.__trump_suit})"
+
 
 @dataclass(frozen=True)
 class PartialTrick:
     trump_exchange: Optional[Trump_Exchange]
     leader_move: Union[RegularMove, Marriage]
 
+    def __repr__(self) -> str:
+        return f"PartialTrick(trump_exchange={self.trump_exchange}, leader_move={self.leader_move})"
+
 
 @dataclass(frozen=True)
 class Trick(PartialTrick):
     follower_move: RegularMove
+
+    def __repr__(self) -> str:
+        return f"Trick(trump_exchange={self.trump_exchange}, leader_move={self.leader_move}, follower_move={self.follower_move})"
 
 
 @dataclass(frozen=True)
@@ -212,6 +233,9 @@ class Score:
 
     def redeem_pending_points(self) -> 'Score':
         return Score(direct_points=self.direct_points + self.pending_points, pending_points=0)
+
+    def __repr__(self) -> str:
+        return f"Score(direct_points={self.direct_points}, pending_points={self.pending_points})"
 
 
 class GamePhase(Enum):
@@ -244,6 +268,10 @@ class BotState:
             bot_id=self.bot_id
         )
         return new_bot
+
+    def __repr__(self) -> str:
+        return f"BotState(implementation={self.implementation}, hand={self.hand}, "\
+               f"bot_id={self.bot_id}, score={self.score}, won_cards={self.won_cards})"
 
 
 @dataclass
@@ -278,6 +306,11 @@ class GameState:
 
     def all_cards_played(self) -> bool:
         return self.leader.hand.is_empty() and self.follower.hand.is_empty() and self.talon.is_empty()
+
+    def __repr__(self) -> str:
+        return f"GameState(leader={self.leader}, follower={self.follower}, "\
+               f"talon={self.talon}, previous={self.previous}, "\
+               f"played_trick={self.played_trick})"
 
 
 class PlayerGameState(ABC):
@@ -368,6 +401,9 @@ class LeaderGameState(PlayerGameState):
         assert self.get_phase() == GamePhase.TWO
         return self.__game_state.follower.hand.copy()
 
+    def __repr__(self) -> str:
+        return f"LeaderGameState(state={self.__game_state}, engine={self.__engine})"
+
 
 class FollowerGameState(PlayerGameState):
     def __init__(self, state: 'GameState', engine: 'GamePlayEngine', partial_trick: PartialTrick) -> None:
@@ -391,6 +427,10 @@ class FollowerGameState(PlayerGameState):
     def get_opponent_hand_in_phase_two(self) -> Hand:
         assert self.get_phase() == GamePhase.TWO
         return self.__game_state.leader.hand.copy()
+
+    def __repr__(self) -> str:
+        return f"FollowerGameState(state={self.__game_state}, engine={self.__engine}, "\
+               f"partial_trick={self.partial_trick})"
 
 
 class DeckGenerator(ABC):
@@ -785,6 +825,14 @@ class GamePlayEngine:
     def play_game_from_state(self, bot1: BotState, bot2: BotState, game_state: GameState) -> None:
         raise NotImplementedError()
 
+    def __repr__(self) -> str:
+        return f"GamePlayEngine(deck_generator={self.deck_generator}, "\
+               f"hand_generator={self.hand_generator}, "\
+               f"trick_implementer={self.trick_implementer}, "\
+               f"move_requester={self.move_requester}, "\
+               f"move_validator={self.move_validator}, "\
+               f"trick_scorer={self.trick_scorer})"
+
 
 class SchnapsenGamePlayEngine(GamePlayEngine):
     def __init__(self) -> None:
@@ -796,6 +844,9 @@ class SchnapsenGamePlayEngine(GamePlayEngine):
             move_validator=SchnapsenMoveValidator(),
             trick_scorer=SchnapsenTrickScorer()
         )
+
+    def __repr__(self) -> str:
+        return super().__repr__()
 
 
 # class FirstMovePhaseOneState:
