@@ -12,9 +12,6 @@ from schnapsen.game import (
     Score,
     BotState,
     GameState,
-    SchnapsenGamePlayEngine,
-    LeaderGameState,
-    FollowerGameState,
 )
 
 
@@ -32,13 +29,13 @@ class ReprTest(TestCase):
         )
 
     def test_Trick(self) -> None:
-        te = Trump_Exchange(jack=Suit.SPADES)
+        te = Trump_Exchange(jack=Card.JACK_SPADES)
         mv = RegularMove(Card.ACE_CLUBS)
         mv_ = RegularMove(Card.ACE_HEARTS)
         output = str(Trick(trump_exchange=te, leader_move=mv, follower_move=mv_))
         self.assertEqual(
             output,
-            "Trick(trump_exchange=Trump_Exchange(jack=SPADES), leader_move=RegularMove(card=Card.ACE_CLUBS), follower_move=RegularMove(card=Card.ACE_HEARTS))",
+            "Trick(trump_exchange=Trump_Exchange(jack=Card.JACK_SPADES), leader_move=RegularMove(card=Card.ACE_CLUBS), follower_move=RegularMove(card=Card.ACE_HEARTS))",
         )
 
     def test_GameState(self) -> None:
@@ -113,25 +110,17 @@ class ReprTest(TestCase):
         )
 
         gs = GameState(
-            leader=leader, follower=follower, talon=talon, previous="previous"
+            leader=leader, follower=follower, talon=talon, previous=None
         )
         output_gs = str(gs)
         self.assertEqual(
             output_gs,
-            "GameState(leader=BotState(implementation=RandBot(seed=42), hand=Hand(cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS], max_size=5), bot_id=0, score=Score(direct_points=4, pending_points=2), won_cards=[Card.ACE_DIAMONDS]), follower=BotState(implementation=RandBot(seed=43), hand=Hand(cards=[Card.ACE_SPADES, Card.FIVE_HEARTS, Card.NINE_CLUBS, Card.SEVEN_SPADES], max_size=5), bot_id=1, score=Score(direct_points=2, pending_points=4), won_cards=[Card.NINE_DIAMONDS]), talon=Talon(cards=[Card.ACE_HEARTS], trump_suit=HEARTS), previous=previous, played_trick=None)",
+            "GameState(leader=BotState(implementation=RandBot(seed=42), hand=Hand(cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS], max_size=5), bot_id=0, score=Score(direct_points=4, pending_points=2), won_cards=[Card.ACE_DIAMONDS]), follower=BotState(implementation=RandBot(seed=43), hand=Hand(cards=[Card.ACE_SPADES, Card.FIVE_HEARTS, Card.NINE_CLUBS, Card.SEVEN_SPADES], max_size=5), bot_id=1, score=Score(direct_points=2, pending_points=4), won_cards=[Card.NINE_DIAMONDS]), talon=Talon(cards=[Card.ACE_HEARTS], trump_suit=HEARTS), previous=None, played_trick=None)",
         )
 
-        sgpe = SchnapsenGamePlayEngine()
-        output_sgpe = str(sgpe)
-        # below can't be tested since the memory locations are different.
-        # self.assertEqual(
-        #     output_sgpe,
-        #     "GamePlayEngine(deck_generator=<schnapsen.game.SchnapsenDeckGenerator object at 0x7fb20754f940>, hand_generator=<schnapsen.game.SchnapsenHandGenerator object at 0x7fb20754f700>, trick_implementer=<schnapsen.game.SchnapsenTrickImplementer object at 0x7fb20754f8e0>, move_requester=<schnapsen.game.SimpleMoveRequester object at 0x7fb20754f5b0>, move_validator=<schnapsen.game.SchnapsenMoveValidator object at 0x7fb20754fe20>, trick_scorer=<schnapsen.game.SchnapsenTrickScorer object at 0x7fb20754faf0>)",
-        # )
-
-        te = Trump_Exchange(jack=Suit.SPADES)
+        te = Trump_Exchange(jack=Card.JACK_SPADES)
         output_te = str(te)
-        self.assertEqual(output_te, "Trump_Exchange(jack=SPADES)")
+        self.assertEqual(output_te, "Trump_Exchange(jack=Card.JACK_SPADES)")
 
         mv = RegularMove(Card.ACE_CLUBS)
         output_mv = str(mv)
@@ -141,20 +130,5 @@ class ReprTest(TestCase):
         output_pt = str(pt)
         self.assertEqual(
             output_pt,
-            "PartialTrick(trump_exchange=Trump_Exchange(jack=SPADES), leader_move=RegularMove(card=Card.ACE_CLUBS))",
+            "PartialTrick(trump_exchange=Trump_Exchange(jack=Card.JACK_SPADES), leader_move=RegularMove(card=Card.ACE_CLUBS))",
         )
-
-        lgs = LeaderGameState(state=gs, engine=sgpe)
-        output_lgs = str(lgs)
-        # below can't be tested since the memory locations are different.
-        # self.assertEqual(
-        #     output_lgs,
-        #     "LeaderGameState(state=GameState(leader=BotState(implementation=RandBot(seed=42), hand=Hand(cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS], max_size=5), bot_id=0, score=Score(direct_points=4, pending_points=2), won_cards=[Card.ACE_DIAMONDS]), follower=BotState(implementation=RandBot(seed=43), hand=Hand(cards=[Card.ACE_SPADES, Card.FIVE_HEARTS, Card.NINE_CLUBS, Card.SEVEN_SPADES], max_size=5), bot_id=1, score=Score(direct_points=2, pending_points=4), won_cards=[Card.NINE_DIAMONDS]), talon=Talon(cards=[Card.ACE_HEARTS], trump_suit=HEARTS), previous=previous, played_trick=None), engine=GamePlayEngine(deck_generator=<schnapsen.game.SchnapsenDeckGenerator object at 0x7fa68cffca00>, hand_generator=<schnapsen.game.SchnapsenHandGenerator object at 0x7fa68cffc730>, trick_implementer=<schnapsen.game.SchnapsenTrickImplementer object at 0x7fa68cffc9d0>, move_requester=<schnapsen.game.SimpleMoveRequester object at 0x7fa68cffc580>, move_validator=<schnapsen.game.SchnapsenMoveValidator object at 0x7fa68cffcf40>, trick_scorer=<schnapsen.game.SchnapsenTrickScorer object at 0x7fa68cffc550>)",
-        # )
-        fgs = FollowerGameState(state=gs, engine=sgpe, partial_trick=pt)
-        output_fgs = str(fgs)
-        # below can't be tested since the memory locations are different.
-        # self.assertEqual(
-        #     output_fgs,
-        #     "FollowerGameState(state=GameState(leader=BotState(implementation=RandBot(seed=42), hand=Hand(cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS], max_size=5), bot_id=0, score=Score(direct_points=4, pending_points=2), won_cards=[Card.ACE_DIAMONDS]), follower=BotState(implementation=RandBot(seed=43), hand=Hand(cards=[Card.ACE_SPADES, Card.FIVE_HEARTS, Card.NINE_CLUBS, Card.SEVEN_SPADES], max_size=5), bot_id=1, score=Score(direct_points=2, pending_points=4), won_cards=[Card.NINE_DIAMONDS]), talon=Talon(cards=[Card.ACE_HEARTS], trump_suit=HEARTS), previous=previous, played_trick=None), engine=GamePlayEngine(deck_generator=<schnapsen.game.SchnapsenDeckGenerator object at 0x7f4342d92a00>, hand_generator=<schnapsen.game.SchnapsenHandGenerator object at 0x7f4342d92730>, trick_implementer=<schnapsen.game.SchnapsenTrickImplementer object at 0x7f4342d929d0>, move_requester=<schnapsen.game.SimpleMoveRequester object at 0x7f4342d92580>, move_validator=<schnapsen.game.SchnapsenMoveValidator object at 0x7f4342d92f40>, trick_scorer=<schnapsen.game.SchnapsenTrickScorer object at 0x7f4342d92550>), partial_trick=PartialTrick(trump_exchange=Trump_Exchange(jack=SPADES), leader_move=RegularMove(card=Card.ACE_CLUBS)))",
-        # )

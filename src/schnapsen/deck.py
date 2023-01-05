@@ -10,8 +10,8 @@ class Suit(Enum):
     CLUBS = auto()
     SPADES = auto()
     DIAMONDS = auto()
-    
-    def __str__(self):
+
+    def __str__(self) -> str:
         return self.name
 
 
@@ -30,7 +30,7 @@ class Rank(Enum):
     QUEEN = auto()
     KING = auto()
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.name
 
 
@@ -113,7 +113,6 @@ class Card(Enum):
         return f"Card.{self.name}"
 
 
-
 class _CardCache:
     _CARD_CACHE = {(card_rank, card_suit): Card._get_card(card_rank, card_suit) for (card_rank, card_suit) in itertools.product(Rank, Suit)}
 
@@ -179,15 +178,15 @@ class OrderedCardCollection(CardCollection):
 
     def filter_suit(self, suit: Suit) -> Iterable[Card]:
         """Returns an Iterable with in it all cards which have the provided suit"""
+        assert suit in Suit
         results = [card for card in self._cards if card.suit is suit]
         return results
 
     def filter_rank(self, rank: Rank) -> Iterable[Card]:
         """Returns an Iterable with in it all cards which have the provided rank"""
+        assert rank in Rank
         results = [card for card in self._cards if card.rank is rank]
         return results
 
     def __repr__(self) -> str:
         return f"OrderedCardCollection(cards={self._cards})"
-
-# TODO: some more thinking is needed for the class hierarchy for the different collections of cards

@@ -15,6 +15,13 @@ To get started, and be able to edit the code run:
 pip install -e .
 ```
 
+To run the tests, run:
+
+```sh
+pytest ./tests
+```
+
+
 what we would like to be able to do:
 
 ```bash

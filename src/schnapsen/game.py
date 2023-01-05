@@ -2,15 +2,11 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
 from random import Random
-from typing import Iterable, List, Optional, Tuple, Union, cast
+from typing import Iterable, List, Optional, Tuple, Union, cast, Any
 from .deck import CardCollection, OrderedCardCollection, Card, Rank, Suit
 
 
 class Bot(ABC):
-
-    # def __init_subclass__(cls) -> None:
-    #     super().__init_subclass__()
-    #     # we have a hook to the class here and could get rid of the other way of registering bots, however this is likely not working for sub-sub classes!
 
     @abstractmethod
     def get_move(self, state: 'PlayerGameState') -> 'Move':
@@ -18,6 +14,13 @@ class Bot(ABC):
 
 
 class Move(ABC):
+    """
+    A single move during a game. There are several concreate moves possible. They are classes inheriting from this class.
+
+    Attributes:
+        cards: list(Card) The cards played in this move
+
+    """
 
     def is_marriage(self) -> bool:
         return False
@@ -25,8 +28,14 @@ class Move(ABC):
     def is_trump_exchange(self) -> bool:
         return False
 
+    def __getattribute__(self, __name: str) -> Any:
+        if __name == "cards":
+            # We call the method to compute the card list
+            return object.__getattribute__(self, "_cards")()
+        return object.__getattribute__(self, __name)
+
     @abstractmethod
-    def cards(self) -> Iterable[Card]:
+    def _cards(self) -> Iterable[Card]:
         pass
 
 
@@ -34,13 +43,13 @@ class Move(ABC):
 class Trump_Exchange(Move):
     jack: Card
 
-    def _post_init__(self) -> None:
+    def __post_init__(self) -> None:
         assert self.jack.rank is Rank.JACK
 
     def is_trump_exchange(self) -> bool:
         return True
 
-    def cards(self) -> Iterable[Card]:
+    def _cards(self) -> Iterable[Card]:
         return [self.jack]
 
     def __repr__(self) -> str:
@@ -51,7 +60,7 @@ class Trump_Exchange(Move):
 class RegularMove(Move):
     card: Card
 
-    def cards(self) -> Iterable[Card]:
+    def _cards(self) -> Iterable[Card]:
         return [self.card]
 
     @staticmethod
@@ -81,7 +90,7 @@ class Marriage(Move):
         # TODO this limits you to only have the queen to play after a marriage, while in general you would ahve a choice
         return RegularMove(self.queen_card)
 
-    def cards(self) -> Iterable[Card]:
+    def _cards(self) -> Iterable[Card]:
         return [self.queen_card, self.king_card]
 
     def __repr__(self) -> str:
@@ -100,7 +109,7 @@ class Hand(CardCollection):
         try:
             self.cards.remove(card)
         except ValueError:
-            raise Exception(f"Trying to play a card from the hand which is not in the hand. Hand is {self.cards}, trying to play {card}")
+            raise Exception(f"Trying to remove a card from the hand which is not in the hand. Hand is {self.cards}, trying to remove {card}")
 
     def add(self, card: Card) -> None:
         assert len(self.cards) < self.max_size, "Adding one more card to the hand will cause a hand with too many cards"
@@ -110,7 +119,7 @@ class Hand(CardCollection):
         return all([card in self.cards for card in cards])
 
     def copy(self) -> 'Hand':
-        return Hand(list(self.cards))
+        return Hand(list(self.cards), max_size=self.max_size)
 
     def is_empty(self) -> bool:
         return len(self.cards) == 0
@@ -246,7 +255,7 @@ class BotState:
 
     def get_move(self, state: 'PlayerGameState') -> Move:
         move = self.implementation.get_move(state)
-        assert self.hand.has_cards(move.cards()), \
+        assert self.hand.has_cards(move.cards), \
             f"Tried to play a move for which the player does not have the cards. Played {move.cards}, but has {self.hand}"
         return move
 
