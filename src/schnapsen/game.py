@@ -8,16 +8,19 @@ from .deck import CardCollection, OrderedCardCollection, Card, Rank, Suit
 
 class Bot(ABC):
 
-    # def __init_subclass__(cls) -> None:
-    #     super().__init_subclass__()
-    #     # we have a hook to the class here and could get rid of the other way of registering bots, however this is likely not working for sub-sub classes!
-
     @abstractmethod
     def get_move(self, state: 'PlayerGameState') -> 'Move':
         pass
 
 
 class Move(ABC):
+    """ 
+    A single move during a game. There are several concreate moves possible. They are classes inheriting from this class.
+
+    Attributes:
+        cards: list(Card) The cards played in this move
+    
+    """
 
     def is_marriage(self) -> bool:
         return False
@@ -25,8 +28,14 @@ class Move(ABC):
     def is_trump_exchange(self) -> bool:
         return False
 
+    def __getattribute__(self, name):
+        if name == "cards":
+            # We call the method to compute the card list
+            return object.__getattribute__(self, "_cards")()
+        return object.__getattribute__(self, name)
+    
     @abstractmethod
-    def cards(self) -> Iterable[Card]:
+    def _cards(self) -> Iterable[Card]:
         pass
 
 
@@ -34,13 +43,13 @@ class Move(ABC):
 class Trump_Exchange(Move):
     jack: Card
 
-    def _post_init__(self) -> None:
+    def __post_init__(self) -> None:
         assert self.jack.rank is Rank.JACK
 
     def is_trump_exchange(self) -> bool:
         return True
 
-    def cards(self) -> Iterable[Card]:
+    def _cards(self) -> Iterable[Card]:
         return [self.jack]
 
 
@@ -48,7 +57,7 @@ class Trump_Exchange(Move):
 class RegularMove(Move):
     card: Card
 
-    def cards(self) -> Iterable[Card]:
+    def _cards(self) -> Iterable[Card]:
         return [self.card]
 
     @staticmethod
@@ -75,7 +84,7 @@ class Marriage(Move):
         # TODO this limits you to only have the queen to play after a marriage, while in general you would ahve a choice
         return RegularMove(self.queen_card)
 
-    def cards(self) -> Iterable[Card]:
+    def _cards(self) -> Iterable[Card]:
         return [self.queen_card, self.king_card]
 
 
@@ -222,7 +231,7 @@ class BotState:
 
     def get_move(self, state: 'PlayerGameState') -> Move:
         move = self.implementation.get_move(state)
-        assert self.hand.has_cards(move.cards()), \
+        assert self.hand.has_cards(move.cards), \
             f"Tried to play a move for which the player does not have the cards. Played {move.cards}, but has {self.hand}"
         return move
 

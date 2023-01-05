@@ -18,24 +18,47 @@ from schnapsen.cli import RandBot
 import random
 
 
+class MoveTest(TestCase):
+    """Tests the different move types"""
+
+    def test_trump_exchange_creation(self) -> None:
+        jacks = []
+        for suit in Suit:
+            jack = Card.get_card(Rank.JACK, suit)
+            jacks.append(jack)
+        for jack in jacks:
+            exchange = Trump_Exchange(jack=jack)
+            self.assertTrue(exchange.is_trump_exchange())
+            self.assertFalse(exchange.is_marriage())
+            self.assertEquals (len(exchange.cards), 1)
+            self.assertEquals(exchange.cards[0], jack)
+        
+    def test_trump_creation_fails(self) -> None:
+        for card in Card:
+            if not card in jacks:
+                with self.assertRaises(AssertionError):
+                    Trump_Exchange(jack=card)
+
+
+    def test_marriage_creation_fails(self) -> None:
+        for card1 in Card:
+            for card2 in Card:
+                if not (card1.suit == card2.suit and card1.rank==Rank.QUEEN, card2.rank == Rank.KING):                    
+                    with self.assertRaises(AssertionError):
+                        Marriage(queen_card=card1, king_card=card2)
+
+    def test_marriage_creation(self) -> None:
+        for suit in Suit:
+            queen = Card.get_card(Rank.QUEEN, suit)
+            king = Card.get_card(Rank.KING, suit)
+            marriage = Marriage(queen_card=queen, king_card=king)
+            self.assertTrue(marriage.is_marriage())
+            self.assertFalse(marriage.is_trump_exchange())
+            self.assertEqual(marriage.as_regular_move().cards[0], queen)
+            self.assertEqual(marriage.cards, [queen, king])
+
+
 class GameTest(TestCase):
-    def test_Trump_Exchange(self) -> None:
-        foo = Trump_Exchange(jack=Card.JACK_CLUBS)
-        self.assertIsNone(foo._post_init__())
-        foo = Trump_Exchange(jack=Card.TWO_SPADES)
-        with self.assertRaises(AssertionError):
-            foo._post_init__()
-
-    def test_Marriage(self) -> None:
-        with self.assertRaises(AssertionError):
-            foo = Marriage(queen_card=Card.QUEEN_DIAMONDS, king_card=Card.KING_CLUBS)
-            foo = Marriage(queen_card=Card.THREE_SPADES, king_card=Card.KING_CLUBS)
-            foo = Marriage(queen_card=Card.QUEEN_DIAMONDS, king_card=Card.QUEEN_SPADES)
-
-        foo = Marriage(queen_card=Card.QUEEN_CLUBS, king_card=Card.KING_CLUBS)
-        self.assertTrue(foo.is_marriage())
-        self.assertEqual(foo.as_regular_move().cards()[0], Card.QUEEN_CLUBS)
-        self.assertEqual(foo.cards(), [Card.QUEEN_CLUBS, Card.KING_CLUBS])
 
     def test_Hand(self) -> None:
         with self.assertRaises(AssertionError):
