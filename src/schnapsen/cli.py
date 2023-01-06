@@ -59,3 +59,28 @@ def try_24_game() -> None:
     bot2 = RandBot(464566)
     for i in range(1000):
         engine.play_game(bot1, bot2, random.Random(i))
+
+
+class HistoryBot(schnapsen.game.Bot):
+    def __init__(self, seed: int) -> None:
+        self.seed = seed
+        self.rng = random.Random(self.seed)
+
+    def get_move(self, state: schnapsen.game.PlayerGameState, leader_move: Optional[schnapsen.game.PartialTrick]) -> schnapsen.game.Move:
+        history = state.get_game_history()
+        print(history)
+
+        moves = state.valid_moves()
+        move = self.rng.choice(list(moves))
+        return move
+
+    def __repr__(self) -> str:
+        return f"HistoryBot(seed={self.seed})"
+
+
+@main.command()
+def try_history() -> None:
+    engine = schnapsen.game.SchnapsenGamePlayEngine()
+    bot1 = HistoryBot(12112121)
+    bot2 = HistoryBot(464566)
+    engine.play_game(bot1, bot2, random.Random(1))
