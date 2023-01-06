@@ -635,6 +635,7 @@ class SchnapsenTrickImplementer(TrickImplementer):
         # apply the trick to the next_game_state
         # The next game state will be modified during this trick. We start from the previous state
         next_game_state = old_game_state.copy_for_next()
+        next_game_state.previous_trick = trick
 
         if trick.leader_move.is_marriage():
             marriage_move: Marriage = cast(Marriage, trick.leader_move)
@@ -648,7 +649,7 @@ class SchnapsenTrickImplementer(TrickImplementer):
         next_game_state.follower.hand.remove(trick.follower_move.card)
 
         # We set the leader for the next state based on what the scorer decides
-        next_game_state.leader, next_game_state.follower = game_engine.trick_scorer.score(trick, old_game_state.leader, old_game_state.follower, old_game_state.trump_suit)
+        next_game_state.leader, next_game_state.follower = game_engine.trick_scorer.score(trick, next_game_state.leader, next_game_state.follower, next_game_state.trump_suit)
 
         # important: the winner takes the first card of the talon, the loser the second one.
         # this also ensures that the loser of the last trick of the first phase gets the face up trump
