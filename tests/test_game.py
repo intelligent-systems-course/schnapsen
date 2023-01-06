@@ -304,7 +304,7 @@ class GameTest(TestCase):
         talon = Talon(cards=[Card.ACE_HEARTS], trump_suit=Suit.HEARTS)
 
         gs = GameState(
-            leader=leader, follower=follower, talon=talon, previous_state=None, previous_trick=None
+            leader=leader, follower=follower, talon=talon, previous=None
         )
         self.assertFalse(gs.are_all_cards_played())
 
@@ -346,7 +346,7 @@ class GameTest(TestCase):
         talon = Talon(cards=[Card.ACE_HEARTS], trump_suit=Suit.HEARTS)
 
         gs = GameState(
-            leader=leader, follower=follower, talon=talon, previous_state=None, previous_trick=None
+            leader=leader, follower=follower, talon=talon, previous=None
         )
         sgpe = SchnapsenGamePlayEngine()
         lgs = LeaderGameState(state=gs, engine=sgpe)
@@ -407,7 +407,7 @@ class GameTest(TestCase):
         talon = Talon(cards=[Card.ACE_HEARTS], trump_suit=Suit.HEARTS)
 
         gs = GameState(
-            leader=leader, follower=follower, talon=talon, previous_state=None, previous_trick=None
+            leader=leader, follower=follower, talon=talon, previous=None
         )
         sgpe = SchnapsenGamePlayEngine()
 
