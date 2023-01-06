@@ -304,9 +304,9 @@ class GameTest(TestCase):
         talon = Talon(cards=[Card.ACE_HEARTS], trump_suit=Suit.HEARTS)
 
         gs = GameState(
-            leader=leader, follower=follower, talon=talon, previous=None
+            leader=leader, follower=follower, talon=talon, previous_state=None, previous_trick=None
         )
-        self.assertFalse(gs.all_cards_played())
+        self.assertFalse(gs.are_all_cards_played())
 
     def test_LeaderGameState(self) -> None:
         bot0 = RandBot(seed=42)
@@ -346,7 +346,7 @@ class GameTest(TestCase):
         talon = Talon(cards=[Card.ACE_HEARTS], trump_suit=Suit.HEARTS)
 
         gs = GameState(
-            leader=leader, follower=follower, talon=talon, previous=None
+            leader=leader, follower=follower, talon=talon, previous_state=None, previous_trick=None
         )
         sgpe = SchnapsenGamePlayEngine()
         lgs = LeaderGameState(state=gs, engine=sgpe)
@@ -407,13 +407,12 @@ class GameTest(TestCase):
         talon = Talon(cards=[Card.ACE_HEARTS], trump_suit=Suit.HEARTS)
 
         gs = GameState(
-            leader=leader, follower=follower, talon=talon, previous=None
+            leader=leader, follower=follower, talon=talon, previous_state=None, previous_trick=None
         )
         sgpe = SchnapsenGamePlayEngine()
 
-        te = Trump_Exchange(jack=Card.JACK_SPADES)
         mv = RegularMove(Card.ACE_CLUBS)
-        pt = PartialTrick(trump_exchange=te, leader_move=mv)
+        pt = PartialTrick(leader_move=mv)
         # TODO lgs should be tested as well
         # lgs = LeaderGameState(state=gs, engine=sgpe)
         fgs = FollowerGameState(state=gs, engine=sgpe, partial_trick=pt)
