@@ -4,11 +4,11 @@ from schnapsen.deck import Card, Suit, OrderedCardCollection
 from schnapsen.game import (
     Trump_Exchange,
     RegularMove,
+    RegularTrick,
     Marriage,
     Hand,
     Talon,
     PartialTrick,
-    Trick,
     Score,
     BotState,
     GameState,
@@ -29,13 +29,12 @@ class ReprTest(TestCase):
         )
 
     def test_Trick(self) -> None:
-        te = Trump_Exchange(jack=Card.JACK_SPADES)
         mv = RegularMove(Card.ACE_CLUBS)
         mv_ = RegularMove(Card.ACE_HEARTS)
-        output = str(Trick(trump_exchange=te, leader_move=mv, follower_move=mv_))
+        output = str(RegularTrick(leader_move=mv, follower_move=mv_))
         self.assertEqual(
             output,
-            "Trick(trump_exchange=Trump_Exchange(jack=Card.JACK_SPADES), leader_move=RegularMove(card=Card.ACE_CLUBS), follower_move=RegularMove(card=Card.ACE_HEARTS))",
+            "RegularTrick(leader_move=RegularMove(card=Card.ACE_CLUBS), follower_move=RegularMove(card=Card.ACE_HEARTS))",
         )
 
     def test_GameState(self) -> None:
@@ -110,12 +109,12 @@ class ReprTest(TestCase):
         )
 
         gs = GameState(
-            leader=leader, follower=follower, talon=talon, previous=None
+            leader=leader, follower=follower, talon=talon, previous_state=None, previous_trick=None
         )
         output_gs = str(gs)
         self.assertEqual(
             output_gs,
-            "GameState(leader=BotState(implementation=RandBot(seed=42), hand=Hand(cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS], max_size=5), bot_id=0, score=Score(direct_points=4, pending_points=2), won_cards=[Card.ACE_DIAMONDS]), follower=BotState(implementation=RandBot(seed=43), hand=Hand(cards=[Card.ACE_SPADES, Card.FIVE_HEARTS, Card.NINE_CLUBS, Card.SEVEN_SPADES], max_size=5), bot_id=1, score=Score(direct_points=2, pending_points=4), won_cards=[Card.NINE_DIAMONDS]), talon=Talon(cards=[Card.ACE_HEARTS], trump_suit=HEARTS), previous=None, played_trick=None)",
+            "GameState(leader=BotState(implementation=RandBot(seed=42), hand=Hand(cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS], max_size=5), bot_id=0, score=Score(direct_points=4, pending_points=2), won_cards=[Card.ACE_DIAMONDS]), follower=BotState(implementation=RandBot(seed=43), hand=Hand(cards=[Card.ACE_SPADES, Card.FIVE_HEARTS, Card.NINE_CLUBS, Card.SEVEN_SPADES], max_size=5), bot_id=1, score=Score(direct_points=2, pending_points=4), won_cards=[Card.NINE_DIAMONDS]), talon=Talon(cards=[Card.ACE_HEARTS], trump_suit=HEARTS), previous_state=None, previous_trick=None)",
         )
 
         te = Trump_Exchange(jack=Card.JACK_SPADES)
@@ -126,9 +125,9 @@ class ReprTest(TestCase):
         output_mv = str(mv)
         self.assertEqual(output_mv, "RegularMove(card=Card.ACE_CLUBS)")
 
-        pt = PartialTrick(trump_exchange=te, leader_move=mv)
+        pt = PartialTrick(leader_move=mv)
         output_pt = str(pt)
         self.assertEqual(
             output_pt,
-            "PartialTrick(trump_exchange=Trump_Exchange(jack=Card.JACK_SPADES), leader_move=RegularMove(card=Card.ACE_CLUBS))",
+            "PartialTrick(leader_move=RegularMove(card=Card.ACE_CLUBS))",
         )

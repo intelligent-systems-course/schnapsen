@@ -3,6 +3,7 @@ import click
 import schnapsen.game
 import schnapsen.twenty_four_card_schnapsen
 import random
+from typing import Optional
 
 
 @click.group()
@@ -33,7 +34,7 @@ class RandBot(schnapsen.game.Bot):
         self.seed = seed
         self.rng = random.Random(self.seed)
 
-    def get_move(self, state: schnapsen.game.PlayerGameState) -> schnapsen.game.Move:
+    def get_move(self, state: schnapsen.game.PlayerGameState, leader_move: Optional[schnapsen.game.PartialTrick]) -> schnapsen.game.Move:
         moves = state.valid_moves()
         move = self.rng.choice(list(moves))
         return move
