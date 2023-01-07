@@ -4,6 +4,7 @@ from enum import Enum
 from random import Random
 from typing import Iterable, List, Optional, Tuple, Union, cast, Any
 from .deck import CardCollection, OrderedCardCollection, Card, Rank, Suit
+import itertools
 
 
 class Bot(ABC):
@@ -249,7 +250,19 @@ class Talon(OrderedCardCollection):
         return draw
 
     def trump_suit(self) -> Suit:
+        """Return the suit of the trump card, i.e., the bottommost card. 
+        This still works, even when the Talon has become empty.
+        """
         return self.__trump_suit
+
+    def trump_card(self) -> Optional[Card]:
+        """Returns the current trump card, i.e., the bottommost card.
+        Or None in case this Talon is empty
+        """
+        if len(self._cards) > 0:
+            return self._cards[-1]
+        else:
+            return None
 
     def __repr__(self) -> str:
         return f"Talon(cards={self._cards}, trump_suit={self.__trump_suit})"
@@ -260,6 +273,8 @@ class Trick(ABC):
     """
     A complete trick. This is, the move of the leader and if that was not an exchange, the move of the follower.
     """
+
+    cards: Iterable[Card]
 
     @abstractmethod
     def is_trump_exchange(self) -> bool:
@@ -275,6 +290,16 @@ class Trick(ABC):
         Returns the first part of this trick. Raises an Exceptption if this is not a Trick with two parts
         """
 
+    def __getattribute__(self, __name: str) -> Any:
+        if __name == "cards":
+            # We call the method to compute the card list
+            return object.__getattribute__(self, "_cards")()
+        return object.__getattribute__(self, __name)
+
+    @abstractmethod
+    def _cards(self) -> Iterable[Card]:
+        pass
+
 
 @dataclass(frozen=True)
 class ExchangeTrick(Trick):
@@ -286,6 +311,9 @@ class ExchangeTrick(Trick):
 
     def as_partial(self) -> 'PartialTrick':
         raise Exception("An Exchange Trick does not have a first part")
+
+    def _cards(self) -> Iterable[Card]:
+        return self.exchange.cards
 
 
 @dataclass(frozen=True)
@@ -316,6 +344,9 @@ class RegularTrick(Trick, PartialTrick):
 
     def as_partial(self) -> PartialTrick:
         return PartialTrick(self.leader_move)
+
+    def _cards(self) -> Iterable[Card]:
+        return itertools.chain(self.leader_move.cards, self.follower_move.cards)
 
     def __repr__(self) -> str:
         return f"RegularTrick(leader_move={self.leader_move}, follower_move={self.follower_move})"
@@ -549,6 +580,9 @@ class PlayerGameState(ABC):
     def get_trump_suit(self) -> Suit:
         return self.__game_state.trump_suit
 
+    def get_trump_card(self) -> Optional[Card]:
+        return self.__game_state.talon.trump_card()
+
     def get_talon_size(self) -> int:
         return len(self.__game_state.talon)
 
@@ -562,6 +596,39 @@ class PlayerGameState(ABC):
     @abstractmethod
     def am_i_leader(self) -> bool:
         pass
+
+    @abstractmethod
+    def get_won_cards(self) -> CardCollection:
+        pass
+
+    @abstractmethod
+    def get_opponent_won_cards(self) -> CardCollection:
+        pass
+
+    def seen_cards(self) -> CardCollection:
+        bot: BotState
+        if self.am_i_leader:
+            bot = self.__game_state.leader
+        else:
+            bot = self.__game_state.follower
+
+        seen_cards: set[Card] = set()  # We make it a set to remove duplicates
+
+        # in own hand
+        seen_cards.update(bot.hand)
+
+        # the trump card
+        trump = self.get_trump_card()
+        if trump:
+            seen_cards.add(trump)
+
+        # all cards which were played in Tricks (icludes marriages and Trump exchanges)
+        prev = self.__game_state.previous
+        while prev:
+            seen_cards.update(prev.trick.cards)
+            prev = prev.state.previous
+
+        return OrderedCardCollection(seen_cards)
 
     def make_assumption(self) -> 'GameState':
         """
@@ -600,6 +667,12 @@ class LeaderGameState(PlayerGameState):
     def am_i_leader(self) -> bool:
         return True
 
+    def get_won_cards(self) -> CardCollection:
+        return OrderedCardCollection(self.__game_state.leader.won_cards)
+
+    def get_opponent_won_cards(self) -> CardCollection:
+        return OrderedCardCollection(self.__game_state.follower.won_cards)
+
     def __repr__(self) -> str:
         return f"LeaderGameState(state={self.__game_state}, engine={self.__engine})"
 
@@ -629,6 +702,12 @@ class FollowerGameState(PlayerGameState):
 
     def am_i_leader(self) -> bool:
         return False
+
+    def get_won_cards(self) -> CardCollection:
+        return OrderedCardCollection(self.__game_state.follower.won_cards)
+
+    def get_opponent_won_cards(self) -> CardCollection:
+        return OrderedCardCollection(self.__game_state.leader.won_cards)
 
     def __repr__(self) -> str:
         return f"FollowerGameState(state={self.__game_state}, engine={self.__engine}, "\
