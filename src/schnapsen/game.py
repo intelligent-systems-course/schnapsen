@@ -607,7 +607,7 @@ class PlayerGameState(ABC):
 
     def seen_cards(self) -> CardCollection:
         bot: BotState
-        if self.am_i_leader:
+        if self.am_i_leader():
             bot = self.__game_state.leader
         else:
             bot = self.__game_state.follower
