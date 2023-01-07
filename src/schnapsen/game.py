@@ -274,7 +274,7 @@ class Trick(ABC):
     A complete trick. This is, the move of the leader and if that was not an exchange, the move of the follower.
     """
 
-    cards: Iterable[Card]
+    cards: Iterable[Card] = field(init=False, repr=False, hash=False)
 
     @abstractmethod
     def is_trump_exchange(self) -> bool:
@@ -746,6 +746,12 @@ class ExchangeFollowerGameState(PlayerGameState):
     def get_opponent_hand_in_phase_two(self) -> Hand:
         assert self.get_phase() == GamePhase.TWO
         return super().__game_state.leader.hand.copy()
+
+    def get_opponent_won_cards(self) -> CardCollection:
+        return OrderedCardCollection(self.__game_state.leader.won_cards)
+
+    def get_won_cards(self) -> CardCollection:
+        return OrderedCardCollection(self.__game_state.follower.won_cards)
 
     def am_i_leader(self) -> bool:
         return False
