@@ -275,6 +275,7 @@ class Trick(ABC):
     """
 
     cards: Iterable[Card] = field(init=False, repr=False, hash=False)
+    """All cards used as part of this trick. This includes cards used in marriages"""
 
     @abstractmethod
     def is_trump_exchange(self) -> bool:
@@ -605,12 +606,25 @@ class PlayerGameState(ABC):
     def get_opponent_won_cards(self) -> CardCollection:
         pass
 
-    def seen_cards(self) -> CardCollection:
+    def __get_own_bot_state(self) -> BotState:
         bot: BotState
         if self.am_i_leader():
             bot = self.__game_state.leader
         else:
             bot = self.__game_state.follower
+        return bot
+
+    def __get_opponent_bot_state(self) -> BotState:
+        bot: BotState
+        if self.am_i_leader():
+            bot = self.__game_state.follower
+        else:
+            bot = self.__game_state.leader
+        return bot
+
+    def seen_cards(self) -> CardCollection:
+
+        bot = self.__get_own_bot_state()
 
         seen_cards: set[Card] = set()  # We make it a set to remove duplicates
 
@@ -623,12 +637,26 @@ class PlayerGameState(ABC):
             seen_cards.add(trump)
 
         # all cards which were played in Tricks (icludes marriages and Trump exchanges)
-        prev = self.__game_state.previous
-        while prev:
-            seen_cards.update(prev.trick.cards)
-            prev = prev.state.previous
+
+        seen_cards.update(self.__past_tricks_cards())
 
         return OrderedCardCollection(seen_cards)
+
+    def __past_tricks_cards(self) -> set[Card]:
+        past_cards: set[Card] = set()
+        prev = self.__game_state.previous
+        while prev:
+            past_cards.update(prev.trick.cards)
+            prev = prev.state.previous
+        return past_cards
+
+    def get_known_cards_of_opponent_hand(self) -> CardCollection:
+        opponent_hand = self.__get_opponent_bot_state().hand
+        if self.get_phase() == GamePhase.TWO:
+            return opponent_hand
+        # We only disclose cards which have been part of a move, i.e., an Exchange or a Marriage
+        past_trick_cards = self.__past_tricks_cards()
+        return OrderedCardCollection(filter(lambda c: c in past_trick_cards, opponent_hand))
 
     def make_assumption(self) -> 'GameState':
         """
