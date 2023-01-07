@@ -250,7 +250,7 @@ class Talon(OrderedCardCollection):
         return draw
 
     def trump_suit(self) -> Suit:
-        """Return the suit of the trump card, i.e., the bottommost card. 
+        """Return the suit of the trump card, i.e., the bottommost card.
         This still works, even when the Talon has become empty.
         """
         return self.__trump_suit
