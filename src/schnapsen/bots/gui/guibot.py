@@ -1,16 +1,15 @@
-from schnapsen.game import Bot, PlayerGameState, PartialTrick, Move, RegularTrick, SchnapsenDeckGenerator, GamePhase, Hand, RegularMove, Trump_Exchange, Marriage
-from schnapsen.deck import Card, Rank, Suit
-from typing import Optional, cast, Tuple, Type
-from types import TracebackType
-from flask import Flask, render_template, abort, request
+from dataclasses import dataclass
 from json import dumps
-from schnapsen.bots.rand import RandBot
-from threading import Thread, Event
-import uuid
-from dataclasses import dataclass, field
+from threading import Event, Thread
+from types import TracebackType
+from typing import Optional, Tuple, Type, cast
 
-import signal
-import time
+from flask import Flask, abort, render_template, request
+
+from schnapsen.deck import Card, Rank, Suit
+from schnapsen.game import (Bot, GamePhase, Marriage, Move, PartialTrick,
+                            PlayerGameState, RegularMove, RegularTrick,
+                            Trump_Exchange)
 
 
 class GUIBot(Bot):
@@ -20,9 +19,7 @@ class GUIBot(Bot):
         self.server = server
 
     def get_move(self, state: PlayerGameState, leader_move: Optional[PartialTrick]) -> Move:
-        return self.server.get_move(self.name, state, leader_move)
-
-        data = request.get_json(force=True)
+        return self.server.__get_move(self.name, state, leader_move)
 
 
 @dataclass
@@ -56,26 +53,26 @@ class SchnapsenServer:
 
     def __init__(self, host_name: str = "0.0.0.0", port: int = 8080) -> None:
         """Creates and starts the schnapsen server"""
-        self.host_name = host_name
-        self.port = port
-        self.bots: dict[str, _StateExchange] = {}
+        self.__host_name = host_name
+        self.__port = port
+        self.__bots: dict[str, _StateExchange] = {}
 
         app = Flask(__name__, template_folder='template')
         app.config.update(
             PROPAGATE_EXCEPTIONS=True
         )
-        self._setup_routes(app)
-        self.process = Thread(target=app.run, kwargs={"host": host_name, "port": port, "use_reloader": False, "debug": True})
-        print(f"Starting the server on {self.host_name}:{self.port}")
-        self.process.start()
+        self.__setup_routes(app)
+        self.__process = Thread(target=app.run, kwargs={"host": host_name, "port": port, "use_reloader": False, "debug": True})
+        print(f"Starting the server on {self.__host_name}:{self.__port}")
+        self.__process.start()
 
     def make_gui_bot(self, name: str) -> Bot:
         bot = GUIBot(name, self)
-        self.bots[name] = _StateExchange(bot=bot, browser_game_started=False, is_state_ready=Event(), is_move_ready=Event(), state=None, leader_move=None, browser_move=None)
+        self.__bots[name] = _StateExchange(bot=bot, browser_game_started=False, is_state_ready=Event(), is_move_ready=Event(), state=None, leader_move=None, browser_move=None)
         return bot
 
-    def get_move(self, botname: str, state: PlayerGameState, leader_move: Optional[PartialTrick]) -> Move:
-        state_exchange = self.bots[botname]
+    def __get_move(self, botname: str, state: PlayerGameState, leader_move: Optional[PartialTrick]) -> Move:
+        state_exchange = self.__bots[botname]
         state_exchange.is_move_ready.clear()
         state_exchange.state = state
         state_exchange.leader_move = leader_move
@@ -86,19 +83,19 @@ class SchnapsenServer:
         assert move is not None
         return move
 
-    def sendmove(self, botname: str) -> str:
+    def __sendmove(self, botname: str) -> str:
         data = cast(Tuple[Optional[int], Optional[int]], request.get_json(force=True))
         old_move: Tuple[Optional[int], Optional[int]] = (data[0], data[1])
         move = _Old_GUI_Compatibility.convert_move(old_move)
 
-        state_exchange = self.bots[botname]
+        state_exchange = self.__bots[botname]
         state_exchange.browser_move = move
         state_exchange.is_state_ready.clear()
         state_exchange.is_move_ready.set()
-        return self.generate(botname=botname)
+        return self.__generate(botname=botname)
 
-    def generate(self, botname: str) -> str:
-        state_exchange = self.bots[botname]
+    def __generate(self, botname: str) -> str:
+        state_exchange = self.__bots[botname]
         state_exchange.is_state_ready.wait()
 
         state = state_exchange.state
@@ -107,21 +104,21 @@ class SchnapsenServer:
         json = _Old_GUI_Compatibility.player_game_state_to_json(state=state, leader_move=leader_move)
         return json
 
-    def _setup_routes(self, app: Flask) -> None:
-        app.route('/', methods=['GET'])(self.index)
-        app.route('/game/<botname>', methods=['GET'])(self.game)
-        app.route('/generate/<botname>', methods=['GET'])(self.generate)
-        app.route('/sendmove/<botname>', methods=['POST'])(self.sendmove)
+    def __setup_routes(self, app: Flask) -> None:
+        app.route('/', methods=['GET'])(self._index)
+        app.route('/game/<botname>', methods=['GET'])(self.__game)
+        app.route('/generate/<botname>', methods=['GET'])(self.__generate)
+        app.route('/sendmove/<botname>', methods=['POST'])(self.__sendmove)
 
-    def index(self) -> str:
-        bots = [(botname, state.browser_game_started) for botname, state in self.bots.items()]
+    def _index(self) -> str:
+        bots = [(botname, state.browser_game_started) for botname, state in self.__bots.items()]
         return render_template("gamechooser.html", bots=bots)
 
-    def game(self, botname: str) -> str:
-        if self.bots[botname].browser_game_started:
+    def __game(self, botname: str) -> str:
+        if self.__bots[botname].browser_game_started:
             abort(409, "This game has already started")
 
-        self.bots[botname].browser_game_started = True
+        self.__bots[botname].browser_game_started = True
         return render_template("index_interactive.html", botname=botname)
 
 
