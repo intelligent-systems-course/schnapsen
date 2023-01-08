@@ -1,6 +1,6 @@
 from typing import Optional
 
-from ..game import Bot, Move, PlayerGameState
+from schnapsen.game import Bot, Move, PlayerGameState
 
 
 class AlphaBetaBot(Bot):
