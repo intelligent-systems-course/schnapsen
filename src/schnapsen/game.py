@@ -88,6 +88,9 @@ class RegularMove(Move):
         """Create an iterable of Moves from an iterable of cards."""
         return [RegularMove(card) for card in cards]
 
+    def as_regular_move(self) -> 'RegularMove':
+        return self
+
     def __repr__(self) -> str:
         return f"RegularMove(card={self.card})"
 
@@ -414,8 +417,7 @@ class BotState:
         :returns: The move the both played
         """
         move = self.implementation.get_move(state, leader_move=leader_move)
-        assert self.hand.has_cards(move.cards), \
-            f"Tried to play a move for which the player does not have the cards. Played {move.cards}, but has {self.hand}"
+        # All checks for move are removed from here. There is a chance the implementation returns something wrong, these issues should be captured by the callee, not by this wrapper.
         return move
 
     def copy(self) -> 'BotState':
