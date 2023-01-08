@@ -17,7 +17,7 @@
             {% if started %}
             <li>{{ botname }} started </li>
             {% else %}
-            <li><a target="_blank" href="{{ url_for('game', botname=botname) }}">{{ botname }}</a></li>
+            <li><a target="_blank" href="{{ url_for('__game', botname=botname) }}">{{ botname }}</a></li>
             {% endif %}
             {% endfor %}
         </ul>

@@ -7,9 +7,8 @@ from typing import Optional, Tuple, Type, cast
 from flask import Flask, abort, render_template, request
 
 from schnapsen.deck import Card, Rank, Suit
-from schnapsen.game import (Bot, GamePhase, Marriage, Move, PartialTrick,
-                            PlayerGameState, RegularMove, RegularTrick,
-                            Trump_Exchange)
+from schnapsen.game import (Bot, GamePhase, Marriage, Move, PlayerGameState,
+                            RegularMove, RegularTrick, Trump_Exchange)
 
 
 class GUIBot(Bot):
@@ -18,8 +17,8 @@ class GUIBot(Bot):
         self.name = name
         self.server = server
 
-    def get_move(self, state: PlayerGameState, leader_move: Optional[PartialTrick]) -> Move:
-        return self.server.__get_move(self.name, state, leader_move)
+    def get_move(self, state: PlayerGameState, leader_move: Optional[Move]) -> Move:
+        return self.server._SchnapsenServer__get_move(self.name, state, leader_move)
 
 
 @dataclass
@@ -29,7 +28,7 @@ class _StateExchange:
     is_state_ready: Event
     is_move_ready: Event
     state: Optional[PlayerGameState]
-    leader_move: Optional[PartialTrick]
+    leader_move: Optional[Move]
     browser_move: Optional[Move]
 
 
@@ -71,7 +70,7 @@ class SchnapsenServer:
         self.__bots[name] = _StateExchange(bot=bot, browser_game_started=False, is_state_ready=Event(), is_move_ready=Event(), state=None, leader_move=None, browser_move=None)
         return bot
 
-    def __get_move(self, botname: str, state: PlayerGameState, leader_move: Optional[PartialTrick]) -> Move:
+    def __get_move(self, botname: str, state: PlayerGameState, leader_move: Optional[Move]) -> Move:
         state_exchange = self.__bots[botname]
         state_exchange.is_move_ready.clear()
         state_exchange.state = state
@@ -166,7 +165,7 @@ class _Old_GUI_Compatibility:
         return Marriage(queen_card=_Old_GUI_Compatibility.old_engine_order[old_move[0]], king_card=_Old_GUI_Compatibility.old_engine_order[old_move[1]])
 
     @staticmethod
-    def player_game_state_to_json(state: PlayerGameState, leader_move: Optional[PartialTrick]) -> str:
+    def player_game_state_to_json(state: PlayerGameState, leader_move: Optional[Move]) -> str:
 
         # Deck.convert_to_json
         # return {"card_state":self.__card_state, "p1_perspective":self.__p1_perspective,
@@ -188,8 +187,8 @@ class _Old_GUI_Compatibility:
 
         opponent_known_cards = state.get_known_cards_of_opponent_hand()
 
-        partial_move_cards = leader_move.leader_move.cards if leader_move else []
-        partial_move_down = leader_move.leader_move.as_regular_move().card if leader_move else None
+        partial_move_cards = leader_move.cards if leader_move else []
+        partial_move_down = leader_move.as_regular_move().card if leader_move else None
 
         card_state: list[str] = ["None"] * 20
         p1_perspective: list[str] = ["None"] * 20
