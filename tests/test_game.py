@@ -11,7 +11,6 @@ from schnapsen.game import (
     SchnapsenGamePlayEngine,
     LeaderGameState,
     RegularMove,
-    PartialTrick,
     FollowerGameState,
 )
 from schnapsen.bots.rand import RandBot
@@ -397,10 +396,10 @@ class GameTest(TestCase):
         sgpe = SchnapsenGamePlayEngine()
 
         mv = RegularMove(Card.ACE_CLUBS)
-        pt = PartialTrick(leader_move=mv)
+
         # TODO lgs should be tested as well
         # lgs = LeaderGameState(state=gs, engine=sgpe)
-        fgs = FollowerGameState(state=gs, engine=sgpe, partial_trick=pt)
+        fgs = FollowerGameState(state=gs, engine=sgpe, partial_trick=mv)
         self.assertEqual(
             fgs.valid_moves(),
             [

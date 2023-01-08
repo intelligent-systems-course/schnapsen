@@ -1,6 +1,6 @@
 import random
 from typing import Optional
-from ..game import Bot, PlayerGameState, PartialTrick, Move
+from ..game import Bot, PlayerGameState, Move
 
 
 class RandBot(Bot):
@@ -11,7 +11,7 @@ class RandBot(Bot):
     def get_move(
         self,
         state: PlayerGameState,
-        leader_move: Optional[PartialTrick],
+        leader_move: Optional[Move],
     ) -> Move:
         moves = state.valid_moves()
         move = self.rng.choice(list(moves))

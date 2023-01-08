@@ -7,9 +7,8 @@ from typing import Optional, Tuple, Type, cast
 from flask import Flask, abort, render_template, request
 
 from schnapsen.deck import Card, Rank, Suit
-from schnapsen.game import (Bot, GamePhase, Marriage, Move, PartialTrick,
-                            PlayerGameState, RegularMove, RegularTrick,
-                            Trump_Exchange)
+from schnapsen.game import (Bot, GamePhase, Marriage, Move, PlayerGameState,
+                            RegularMove, RegularTrick, Trump_Exchange)
 
 
 class GUIBot(Bot):
@@ -18,8 +17,11 @@ class GUIBot(Bot):
         self.name = name
         self.server = server
 
-    def get_move(self, state: PlayerGameState, leader_move: Optional[PartialTrick]) -> Move:
-        return self.server.__get_move(self.name, state, leader_move)
+    def get_move(self, state: PlayerGameState, leader_move: Optional[Move]) -> Move:
+        return self.server._get_move(self.name, state, leader_move)
+
+    def notify_game_end(self, won: bool, state: 'PlayerGameState') -> None:
+        self.server._post_final_state(self.name, state)
 
 
 @dataclass
@@ -29,8 +31,9 @@ class _StateExchange:
     is_state_ready: Event
     is_move_ready: Event
     state: Optional[PlayerGameState]
-    leader_move: Optional[PartialTrick]
+    leader_move: Optional[Move]
     browser_move: Optional[Move]
+    is_game_over: bool = False
 
 
 class SchnapsenServer:
@@ -71,7 +74,13 @@ class SchnapsenServer:
         self.__bots[name] = _StateExchange(bot=bot, browser_game_started=False, is_state_ready=Event(), is_move_ready=Event(), state=None, leader_move=None, browser_move=None)
         return bot
 
-    def __get_move(self, botname: str, state: PlayerGameState, leader_move: Optional[PartialTrick]) -> Move:
+    def _post_final_state(self, botname: str, state: PlayerGameState) -> None:
+        state_exchange = self.__bots[botname]
+        state_exchange.state = state
+        state_exchange.is_game_over = True
+        state_exchange.is_state_ready.set()
+
+    def _get_move(self, botname: str, state: PlayerGameState, leader_move: Optional[Move]) -> Move:
         state_exchange = self.__bots[botname]
         state_exchange.is_move_ready.clear()
         state_exchange.state = state
@@ -101,7 +110,7 @@ class SchnapsenServer:
         state = state_exchange.state
         assert state  # cannot be None, because we waited for it.
         leader_move = state_exchange.leader_move
-        json = _Old_GUI_Compatibility.player_game_state_to_json(state=state, leader_move=leader_move)
+        json = _Old_GUI_Compatibility.player_game_state_to_json(state=state, leader_move=leader_move, game_over=state_exchange.is_game_over)
         return json
 
     def __setup_routes(self, app: Flask) -> None:
@@ -166,7 +175,7 @@ class _Old_GUI_Compatibility:
         return Marriage(queen_card=_Old_GUI_Compatibility.old_engine_order[old_move[0]], king_card=_Old_GUI_Compatibility.old_engine_order[old_move[1]])
 
     @staticmethod
-    def player_game_state_to_json(state: PlayerGameState, leader_move: Optional[PartialTrick]) -> str:
+    def player_game_state_to_json(state: PlayerGameState, leader_move: Optional[Move], game_over: bool) -> str:
 
         # Deck.convert_to_json
         # return {"card_state":self.__card_state, "p1_perspective":self.__p1_perspective,
@@ -188,8 +197,8 @@ class _Old_GUI_Compatibility:
 
         opponent_known_cards = state.get_known_cards_of_opponent_hand()
 
-        partial_move_cards = leader_move.leader_move.cards if leader_move else []
-        partial_move_down = leader_move.leader_move.as_regular_move().card if leader_move else None
+        partial_move_cards = leader_move.cards if leader_move else []
+        partial_move_down = leader_move.as_regular_move().card if leader_move else None
 
         card_state: list[str] = ["None"] * 20
         p1_perspective: list[str] = ["None"] * 20
@@ -293,21 +302,20 @@ class _Old_GUI_Compatibility:
 
         # TODO implement with legal moves
         moves: list[Tuple[Optional[int], Optional[int]]] = []
+        if not game_over:
+            for move in state.valid_moves():
+                if move.is_trump_exchange():
+                    trump_move = cast(Trump_Exchange, move)
+                    moves.append((None, _Old_GUI_Compatibility.old_engine_order.index(trump_move.jack)))
+                elif move.is_marriage():
+                    marriage_move = cast(Marriage, move)
+                    moves.append((_Old_GUI_Compatibility.old_engine_order.index(marriage_move.queen_card), _Old_GUI_Compatibility.old_engine_order.index(marriage_move.king_card)))
+                else:
+                    # regular move
+                    regular_move = cast(RegularMove, move)
+                    moves.append((_Old_GUI_Compatibility.old_engine_order.index(regular_move.card), None))
 
-        for move in state.valid_moves():
-            if move.is_trump_exchange():
-                trump_move = cast(Trump_Exchange, move)
-                moves.append((None, _Old_GUI_Compatibility.old_engine_order.index(trump_move.jack)))
-            elif move.is_marriage():
-                marriage_move = cast(Marriage, move)
-                moves.append((_Old_GUI_Compatibility.old_engine_order.index(marriage_move.queen_card), _Old_GUI_Compatibility.old_engine_order.index(marriage_move.king_card)))
-            else:
-                # regular move
-                regular_move = cast(RegularMove, move)
-                moves.append((_Old_GUI_Compatibility.old_engine_order.index(regular_move.card), None))
-
-        # TODO the agent does not know that a game has ended. It does not get to see the final state
-        finished = False
+        finished = game_over
         phase = 1 if state.get_phase() == GamePhase.ONE else 2
         leads_turn = state.am_i_leader()
         # it is always the turn of the browser player!
