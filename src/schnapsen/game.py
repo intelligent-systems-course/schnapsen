@@ -17,6 +17,23 @@ class Bot(ABC):
         """
         pass
 
+    def notify_trump_exchange(self, move: 'Trump_Exchange') -> None:
+        """
+        Overide this method to get notified about trump exchanges. Note that this only notifies about the other bots exchanges.
+
+        :param move: the Trump Exchange move that was played.
+        """
+        pass
+
+    def notify_game_end(self, won: bool, state: 'PlayerGameState') -> None:
+        """
+        Override this method to get notified about the end of the game.
+
+        :param won: Did this bot win the game?
+        :param state: The final state of the game.
+        """
+        pass
+
 
 class Move(ABC):
     """
@@ -708,14 +725,15 @@ class LeaderGameState(PlayerGameState):
 
 
 class FollowerGameState(PlayerGameState):
-    def __init__(self, state: 'GameState', engine: 'GamePlayEngine', partial_trick: PartialTrick) -> None:
+    def __init__(self, state: 'GameState', engine: 'GamePlayEngine', partial_trick: Optional[PartialTrick]) -> None:
         super().__init__(state, engine)
         self.__game_state = state
         self.__engine = engine
-        self.partial_trick = partial_trick
+        self.__partial_trick = partial_trick
 
     def valid_moves(self) -> List[Move]:
-        return list(self.__engine.move_validator.get_legal_follower_moves(self.__engine, self.__game_state, self.partial_trick))
+        assert self.__partial_trick, "There is no partial trick for this follower, so no valid moves."
+        return list(self.__engine.move_validator.get_legal_follower_moves(self.__engine, self.__game_state, self.__partial_trick))
 
     def get_hand(self) -> Hand:
         return self.__game_state.follower.hand.copy()
@@ -741,7 +759,7 @@ class FollowerGameState(PlayerGameState):
 
     def __repr__(self) -> str:
         return f"FollowerGameState(state={self.__game_state}, engine={self.__engine}, "\
-               f"partial_trick={self.partial_trick})"
+               f"partial_trick={self.__partial_trick})"
 
 
 class ExchangeFollowerGameState(PlayerGameState):
@@ -785,6 +803,36 @@ class ExchangeFollowerGameState(PlayerGameState):
 
     def am_i_leader(self) -> bool:
         return False
+
+
+class WinnerGameState(LeaderGameState):
+    """The gamestate given to the winner of the game at the very end"""
+
+    def __init__(self, state: 'GameState', engine: 'GamePlayEngine') -> None:
+        self.__game_state = state
+        self.__engine = engine
+        super().__init__(state, engine)
+
+    def valid_moves(self) -> List[Move]:
+        raise Exception("Cannot request valid moves from the final PlayerGameState because the game is over")
+
+    def __repr__(self) -> str:
+        return f"WinnerGameState(state={self.__game_state}, engine={self.__engine})"
+
+
+class LoserGameState(FollowerGameState):
+    """The gamestate given to the loser of the game at the very end"""
+
+    def __init__(self, state: 'GameState', engine: 'GamePlayEngine') -> None:
+        self.__game_state = state
+        self.__engine = engine
+        super().__init__(state, engine, None)
+
+    def valid_moves(self) -> List[Move]:
+        raise Exception("Cannot request valid moves from the final PlayerGameState because the game is over")
+
+    def __repr__(self) -> str:
+        return f"LoserGameState(state={self.__game_state}, engine={self.__engine})"
 
 
 class DeckGenerator(ABC):
@@ -841,6 +889,7 @@ class SchnapsenTrickImplementer(TrickImplementer):
         if played_cards.is_trump_exchange():
             next_game_state = old_game_state.copy_for_next()
             exchangeTrick = cast(ExchangeTrick, played_cards)
+
             self.play_trump_exchange(next_game_state, exchangeTrick.exchange)
             # remember the previous state
             next_game_state.previous = Previous(old_game_state, exchangeTrick, True)
@@ -901,13 +950,15 @@ class SchnapsenTrickImplementer(TrickImplementer):
             # This is a PartialTrick
             return PartialTrick(leader_move=cast(Union[Marriage, RegularMove], first_move))
 
-    def play_trump_exchange(self, game_state: GameState, trump_exhange: Trump_Exchange) -> None:
-        assert trump_exhange.jack.suit is game_state.trump_suit, \
-            f"A trump exchange can only be done with a Jack of the same suit as the current trump. Got a {trump_exhange.jack} while the  Trump card is a {game_state.trump_suit}"
+    def play_trump_exchange(self, game_state: GameState, trump_exchange: Trump_Exchange) -> None:
+        assert trump_exchange.jack.suit is game_state.trump_suit, \
+            f"A trump exchange can only be done with a Jack of the same suit as the current trump. Got a {trump_exchange.jack} while the  Trump card is a {game_state.trump_suit}"
         # apply the changes in the gamestate
-        game_state.leader.hand.remove(trump_exhange.jack)
-        old_trump = game_state.talon.trump_exchange(trump_exhange.jack)
+        game_state.leader.hand.remove(trump_exchange.jack)
+        old_trump = game_state.talon.trump_exchange(trump_exchange.jack)
         game_state.leader.hand.add(old_trump)
+        # We notify the other bot that an exchange happened
+        game_state.follower.implementation.notify_trump_exchange(trump_exchange)
 
     def _play_marriage(self, game_engine: 'GamePlayEngine', game_state: GameState, marriage_move: Marriage) -> None:
         score = game_engine.trick_scorer.marriage(marriage_move, game_state)
@@ -1176,6 +1227,13 @@ class GamePlayEngine:
         while not winner:
             game_state = self.trick_implementer.play_trick(self, game_state)
             winner, points = self.trick_scorer.declare_winner(game_state) or (None, -1)
+
+        winner_state = WinnerGameState(game_state, self)
+        winner.implementation.notify_game_end(won=True, state=winner_state)
+
+        loser_state = LoserGameState(game_state, self)
+        game_state.follower.implementation.notify_game_end(False, state=loser_state)
+
         winner_id = winner.bot_id
         print(f"Game ended. Winner is {winner_id} with {points} points")
 
