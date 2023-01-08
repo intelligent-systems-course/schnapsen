@@ -1,7 +1,7 @@
 """Alpha–beta pruning is basically an optimized version of minimax."""
 from typing import Optional
 
-from ..game import Bot, Move, PartialTrick, PlayerGameState
+from schnapsen.game import Bot, Move, PlayerGameState
 
 
 class AlphaBetaBot(Bot):
@@ -12,7 +12,5 @@ class AlphaBetaBot(Bot):
         self.__randomize = randomize
         self.__max_depth = depth
 
-    def get_move(
-        self, state: PlayerGameState, leader_move: Optional[PartialTrick]
-    ) -> Move:
+    def get_move(self, state: PlayerGameState, leader_move: Optional[Move]) -> Move:
         raise NotImplementedError()
