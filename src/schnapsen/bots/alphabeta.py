@@ -1,3 +1,4 @@
+"""Alpha–beta pruning is basically an optimized version of minimax."""
 from typing import Optional
 
 from ..game import Bot, Move, PartialTrick, PlayerGameState
