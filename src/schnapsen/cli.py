@@ -39,6 +39,14 @@ class RandBot(schnapsen.game.Bot):
         move = self.rng.choice(list(moves))
         return move
 
+    def notify_game_end(self, won: bool, state: schnapsen.game.PlayerGameState) -> None:
+        history = state.get_game_history()
+        print(f'result {"win" if won else "lost"}')
+        print(history)
+
+    def notify_trump_exchange(self, move: schnapsen.game.Trump_Exchange) -> None:
+        print(f"That trump exchanged! {move.jack}")
+
     def __repr__(self) -> str:
         return f"RandBot(seed={self.seed})"
 
