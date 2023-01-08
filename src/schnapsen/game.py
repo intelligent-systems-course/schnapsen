@@ -809,14 +809,30 @@ class WinnerGameState(LeaderGameState):
     """The gamestate given to the winner of the game at the very end"""
 
     def __init__(self, state: 'GameState', engine: 'GamePlayEngine') -> None:
+        self.__game_state = state
+        self.__engine = engine
         super().__init__(state, engine)
+
+    def valid_moves(self) -> List[Move]:
+        raise Exception("Cannot request valid moves from the final PlayerGameState because the game is over")
+
+    def __repr__(self) -> str:
+        return f"WinnerGameState(state={self.__game_state}, engine={self.__engine})"
 
 
 class LoserGameState(FollowerGameState):
     """The gamestate given to the loser of the game at the very end"""
 
     def __init__(self, state: 'GameState', engine: 'GamePlayEngine') -> None:
+        self.__game_state = state
+        self.__engine = engine
         super().__init__(state, engine, None)
+
+    def valid_moves(self) -> List[Move]:
+        raise Exception("Cannot request valid moves from the final PlayerGameState because the game is over")
+
+    def __repr__(self) -> str:
+        return f"LoserGameState(state={self.__game_state}, engine={self.__engine})"
 
 
 class DeckGenerator(ABC):
