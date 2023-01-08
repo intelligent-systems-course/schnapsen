@@ -203,7 +203,7 @@ class Hand(CardCollection):
         """
         return len(self.cards) == 0
 
-    def get_cards(self) -> Iterable[Card]:
+    def get_cards(self) -> List[Card]:
         return list(self.cards)
 
     def filter_suit(self, suit: Suit) -> Iterable[Card]:
@@ -421,7 +421,6 @@ class BotState:
 
     implementation: Bot
     hand: Hand
-    bot_id: str
     score: Score = field(default_factory=Score)
     won_cards: List[Card] = field(default_factory=list)
 
@@ -448,16 +447,15 @@ class BotState:
             hand=self.hand.copy(),
             score=self.score,  # does not need a copy because it is not mutable
             won_cards=list(self.won_cards),
-            bot_id=self.bot_id
         )
         return new_bot
 
     def __repr__(self) -> str:
         return f"BotState(implementation={self.implementation}, hand={self.hand}, "\
-               f"bot_id={self.bot_id}, score={self.score}, won_cards={self.won_cards})"
+               f"score={self.score}, won_cards={self.won_cards})"
 
 
-@dataclass
+@dataclass(frozen=True)
 class Previous:
     """
     Information about the previous GameState.
@@ -508,6 +506,21 @@ class GameState:
             talon=self.talon.copy(),
             previous=None
         )
+        return new_state
+
+    def copy_with_other_bots(self, new_leader: Bot, new_follower: Bot) -> 'GameState':
+        """
+        Make a copy of the gamestate, modified such that the bots are replaced by the provided ones.
+        This is used to continue playing an existing GameState with different bots.
+        """
+        new_state = GameState(
+            leader=self.leader.copy(),
+            follower=self.follower.copy(),
+            talon=self.talon.copy(),
+            previous=self.previous
+        )
+        new_state.leader.implementation = new_leader
+        new_state.follower.implementation = new_follower
         return new_state
 
     def game_phase(self) -> GamePhase:
@@ -879,17 +892,23 @@ class TrickImplementer(ABC):
     def play_trick(self, game_engine: 'GamePlayEngine', game_state: GameState) -> GameState:
         pass
 
+    @abstractmethod
+    def play_trick_with_fixed_leader_move(self, game_engine: 'GamePlayEngine', game_state: GameState,
+                                          leader_move: Union[PartialTrick, ExchangeTrick]) -> GameState:
+        pass
+
 
 class SchnapsenTrickImplementer(TrickImplementer):
 
     def play_trick(self, game_engine: 'GamePlayEngine', old_game_state: GameState) -> GameState:
+        leader_move = self.get_leader_move(game_engine, old_game_state)
+        return self.play_trick_with_fixed_leader_move(game_engine=game_engine, old_game_state=old_game_state, leader_move=leader_move)
 
-        played_cards = self.get_leader_move(game_engine, old_game_state)
-
-        if played_cards.is_trump_exchange():
+    def play_trick_with_fixed_leader_move(self, game_engine: 'GamePlayEngine', old_game_state: GameState,
+                                          leader_move: Union[PartialTrick, ExchangeTrick]) -> GameState:
+        if leader_move.is_trump_exchange():
             next_game_state = old_game_state.copy_for_next()
-            exchangeTrick = cast(ExchangeTrick, played_cards)
-
+            exchangeTrick = cast(ExchangeTrick, leader_move)
             self.play_trump_exchange(next_game_state, exchangeTrick.exchange)
             # remember the previous state
             next_game_state.previous = Previous(old_game_state, exchangeTrick, True)
@@ -897,7 +916,7 @@ class SchnapsenTrickImplementer(TrickImplementer):
             return next_game_state
 
         # We have a PartialTrick, ask the follower for its move
-        partial_trick = cast(PartialTrick, played_cards)
+        partial_trick = cast(PartialTrick, leader_move)
         follower_move = self.get_follower_move(game_engine, old_game_state, partial_trick)
 
         trick = RegularTrick(leader_move=partial_trick.leader_move, follower_move=follower_move)
@@ -1207,13 +1226,13 @@ class GamePlayEngine:
     move_validator: MoveValidator
     trick_scorer: TrickScorer
 
-    def play_game(self, bot1: Bot, bot2: Bot, rng: Random) -> None:
+    def play_game(self, bot1: Bot, bot2: Bot, rng: Random) -> Tuple[Bot, int, Score]:
         cards = self.deck_generator.get_initial_deck()
         shuffled = self.deck_generator.shuffle_deck(cards, rng)
         hand1, hand2, talon = self.hand_generator.generateHands(shuffled)
 
-        leader_state = BotState(implementation=bot1, hand=hand1, bot_id="bot1")
-        follower_state = BotState(implementation=bot2, hand=hand2, bot_id="bot2")
+        leader_state = BotState(implementation=bot1, hand=hand1)
+        follower_state = BotState(implementation=bot2, hand=hand2)
 
         game_state = GameState(
             leader=leader_state,
@@ -1221,11 +1240,25 @@ class GamePlayEngine:
             talon=talon,
             previous=None
         )
+        winner, points, score = self.play_game_from_state(game_state=game_state, leader_move=None)
+        return winner, points, score
+
+    def play_game_from_state_with_new_bots(self, game_state: GameState, new_leader: Bot, new_follower: Bot, leader_move: Optional[Union[ExchangeTrick, PartialTrick]]) -> Tuple[Bot, int, Score]:
+
+        game_state_copy = game_state.copy_with_other_bots(new_leader=new_leader, new_follower=new_follower)
+        return self.play_game_from_state(game_state_copy, leader_move=leader_move)
+
+    def play_game_from_state(self, game_state: GameState, leader_move: Optional[Union[ExchangeTrick, PartialTrick]]) -> Tuple[Bot, int, Score]:
 
         winner: Optional[BotState] = None
         points: int = -1
         while not winner:
-            game_state = self.trick_implementer.play_trick(self, game_state)
+            if leader_move is not None:
+                # we continues from a game where the leading bot already did a move, we immitate that
+                game_state = self.trick_implementer.play_trick_with_fixed_leader_move(self, game_state=game_state, leader_move=leader_move)
+                leader_move = None
+            else:
+                game_state = self.trick_implementer.play_trick(self, game_state)
             winner, points = self.trick_scorer.declare_winner(game_state) or (None, -1)
 
         winner_state = WinnerGameState(game_state, self)
@@ -1234,16 +1267,7 @@ class GamePlayEngine:
         loser_state = LoserGameState(game_state, self)
         game_state.follower.implementation.notify_game_end(False, state=loser_state)
 
-        winner_id = winner.bot_id
-        print(f"Game ended. Winner is {winner_id} with {points} points")
-
-        # raise NotImplementedError("This should return something reasonable")
-
-    # TODO the idea of the following method is to be able to implementsomething like rdeep
-    # we still need to figure out how to let it play from an intermediate state with only one move played
-
-    def play_game_from_state(self, bot1: BotState, bot2: BotState, game_state: GameState) -> None:
-        raise NotImplementedError()
+        return winner.implementation, points, winner.score
 
     def __repr__(self) -> str:
         return f"GamePlayEngine(deck_generator={self.deck_generator}, "\

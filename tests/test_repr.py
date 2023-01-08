@@ -50,7 +50,6 @@ class ReprTest(TestCase):
             output_hand0,
             "Hand(cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS], max_size=5)",
         )
-        bot_id0 = "0"
         score0 = Score(direct_points=4, pending_points=2)
         output_score0 = str(score0)
         self.assertEqual(output_score0, "Score(direct_points=4, pending_points=2)")
@@ -59,14 +58,13 @@ class ReprTest(TestCase):
         leader = BotState(
             implementation=bot0,
             hand=hand0,
-            bot_id=bot_id0,
             score=score0,
             won_cards=won_cards0,
         )
         output_leader = str(leader)
         self.assertEqual(
             output_leader,
-            "BotState(implementation=RandBot(seed=42), hand=Hand(cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS], max_size=5), bot_id=0, score=Score(direct_points=4, pending_points=2), won_cards=[Card.ACE_DIAMONDS])",
+            "BotState(implementation=RandBot(seed=42), hand=Hand(cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS], max_size=5), score=Score(direct_points=4, pending_points=2), won_cards=[Card.ACE_DIAMONDS])",
         )
 
         bot1 = RandBot(seed=43)
@@ -86,13 +84,11 @@ class ReprTest(TestCase):
             "Hand(cards=[Card.ACE_SPADES, Card.FIVE_HEARTS, Card.NINE_CLUBS, Card.SEVEN_SPADES], max_size=5)",
         )
 
-        bot_id1 = "1"
         score1 = Score(direct_points=2, pending_points=4)
         won_cards1 = [Card.NINE_DIAMONDS]
         follower = BotState(
             implementation=bot1,
             hand=hand1,
-            bot_id=bot_id1,
             score=score1,
             won_cards=won_cards1,
         )
@@ -105,7 +101,7 @@ class ReprTest(TestCase):
         output_follower = str(follower)
         self.assertEqual(
             output_follower,
-            "BotState(implementation=RandBot(seed=43), hand=Hand(cards=[Card.ACE_SPADES, Card.FIVE_HEARTS, Card.NINE_CLUBS, Card.SEVEN_SPADES], max_size=5), bot_id=1, score=Score(direct_points=2, pending_points=4), won_cards=[Card.NINE_DIAMONDS])",
+            "BotState(implementation=RandBot(seed=43), hand=Hand(cards=[Card.ACE_SPADES, Card.FIVE_HEARTS, Card.NINE_CLUBS, Card.SEVEN_SPADES], max_size=5), score=Score(direct_points=2, pending_points=4), won_cards=[Card.NINE_DIAMONDS])",
         )
 
         gs = GameState(
@@ -114,7 +110,7 @@ class ReprTest(TestCase):
         output_gs = str(gs)
         self.assertEqual(
             output_gs,
-            "GameState(leader=BotState(implementation=RandBot(seed=42), hand=Hand(cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS], max_size=5), bot_id=0, score=Score(direct_points=4, pending_points=2), won_cards=[Card.ACE_DIAMONDS]), follower=BotState(implementation=RandBot(seed=43), hand=Hand(cards=[Card.ACE_SPADES, Card.FIVE_HEARTS, Card.NINE_CLUBS, Card.SEVEN_SPADES], max_size=5), bot_id=1, score=Score(direct_points=2, pending_points=4), won_cards=[Card.NINE_DIAMONDS]), talon=Talon(cards=[Card.ACE_HEARTS], trump_suit=HEARTS), previous=None)",
+            "GameState(leader=BotState(implementation=RandBot(seed=42), hand=Hand(cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS], max_size=5), score=Score(direct_points=4, pending_points=2), won_cards=[Card.ACE_DIAMONDS]), follower=BotState(implementation=RandBot(seed=43), hand=Hand(cards=[Card.ACE_SPADES, Card.FIVE_HEARTS, Card.NINE_CLUBS, Card.SEVEN_SPADES], max_size=5), score=Score(direct_points=2, pending_points=4), won_cards=[Card.NINE_DIAMONDS]), talon=Talon(cards=[Card.ACE_HEARTS], trump_suit=HEARTS), previous=None)",
         )
 
         te = Trump_Exchange(jack=Card.JACK_SPADES)
