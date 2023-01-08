@@ -178,7 +178,10 @@ function arrangeCards(visualDeck, backEndState) {
     var card_states = getCardStateArray(backEndState);
     var perspective = getCardStateArray(backEndState, true);
 
-
+    if (backEndState.phase == 2) {
+        $("#trump").show();
+        $("#trump").text("Trump suit: " + properTrumpSuitName(backEndState.deck.trump_suit));
+    }
 
     card_states.forEach(function (card_state, card_index) {
 
@@ -269,18 +272,6 @@ function getCardStateArray(backEndState, perspective = false) {
     // full card state directly because that is the extend of both player's information in phase 2
     var card_state = (perspective && backEndState.phase == 1) ? backEndState.deck.p1_perspective : backEndState.deck.card_state;
 
-    var trick = backEndState.deck.trick;
-
-    if (backEndState.phase == 2) {
-        $("#trump").show();
-        $("#trump").text("Trump suit: " + properTrumpSuitName(backEndState.deck.trump_suit));
-    }
-
-    for (var i = 0; i < 2; i++) {
-        if (trick[i] != null) {
-            card_state[trick[i]] = "P" + parseInt(i + 1) + "D";
-        }
-    }
     return card_state;
 }
 
@@ -407,7 +398,7 @@ function submitMove() {
     }
 
     $.ajax({
-        url: '/sendmove',
+        url: '/sendmove/' + schnapsen_game_id,
         type: 'POST',
         data: JSON.stringify(move),
         dataType: "json",
@@ -516,7 +507,7 @@ function newGame(deck) {
     $("#p1_points").css("color", "#ffffff");
     $("#p2_points").css("color", "#ffffff");
     $.ajax({
-        url: '/generate',
+        url: '/generate/' + schnapsen_game_id,
         type: 'GET',
         success: function (response) {
             var stateObject = JSON.parse(response);
