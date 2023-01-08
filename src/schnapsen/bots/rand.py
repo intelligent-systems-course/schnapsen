@@ -4,6 +4,7 @@ from ..game import Bot, PlayerGameState, PartialTrick, Move
 
 
 class RandBot(Bot):
+    # TODO: This class should replace the RandBot class defined in src/schnapsen/cli.py
     def __init__(self, seed: int) -> None:
         self.seed = seed
         self.rng = random.Random(self.seed)
