@@ -1,4 +1,6 @@
-from ..game import Bot
+from typing import Optional
+
+from ..game import Bot, Move, PartialTrick, PlayerGameState
 
 
 class AlphaBetaBot(Bot):
@@ -9,7 +11,7 @@ class AlphaBetaBot(Bot):
         self.__randomize = randomize
         self.__max_depth = depth
 
-    def get_move(self, state):
-        val, move = self.value(state)
-
-        return move
+    def get_move(
+        self, state: PlayerGameState, leader_move: Optional[PartialTrick]
+    ) -> Move:
+        raise NotImplementedError()
