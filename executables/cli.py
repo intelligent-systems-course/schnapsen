@@ -34,7 +34,8 @@ def random_game() -> None:
     bot1 = RandBot(12112121)
     bot2 = RandBot(464566)
     for i in range(1000):
-        engine.play_game(bot1, bot2, random.Random(i))
+        winner_id, points = engine.play_game(bot1, bot2, random.Random(i))
+        print(f"Game ended. Winner is {winner_id} with {points} points")
 
 
 class NotificationExampleBot(Bot):
@@ -81,7 +82,8 @@ def game_24() -> None:
     bot1 = RandBot(12112121)
     bot2 = RandBot(464566)
     for i in range(1000):
-        engine.play_game(bot1, bot2, random.Random(i))
+        winner_id, points = engine.play_game(bot1, bot2, random.Random(i))
+        print(f"Game ended. Winner is {winner_id} with {points} points")
 
 
 if __name__ == "__main__":

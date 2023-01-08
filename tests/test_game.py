@@ -249,13 +249,11 @@ class GameTest(TestCase):
         hand = Hand(
             cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS]
         )
-        bot_id = "foo"
         score = Score(direct_points=4, pending_points=2)
         won_cards = [Card.ACE_DIAMONDS]
         foo = BotState(
             implementation=bot,
             hand=hand,
-            bot_id=bot_id,
             score=score,
             won_cards=won_cards,
         )
@@ -270,13 +268,11 @@ class GameTest(TestCase):
         hand0 = Hand(
             cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS]
         )
-        bot_id0 = "0"
         score0 = Score(direct_points=4, pending_points=2)
         won_cards0 = [Card.ACE_DIAMONDS]
         leader = BotState(
             implementation=bot0,
             hand=hand0,
-            bot_id=bot_id0,
             score=score0,
             won_cards=won_cards0,
         )
@@ -290,13 +286,11 @@ class GameTest(TestCase):
                 Card.SEVEN_SPADES,
             ]
         )
-        bot_id1 = "1"
         score1 = Score(direct_points=2, pending_points=4)
         won_cards1 = [Card.NINE_DIAMONDS]
         follower = BotState(
             implementation=bot1,
             hand=hand1,
-            bot_id=bot_id1,
             score=score1,
             won_cards=won_cards1,
         )
@@ -312,13 +306,11 @@ class GameTest(TestCase):
         hand0 = Hand(
             cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS]
         )
-        bot_id0 = "0"
         score0 = Score(direct_points=4, pending_points=2)
         won_cards0 = [Card.ACE_DIAMONDS]
         leader = BotState(
             implementation=bot0,
             hand=hand0,
-            bot_id=bot_id0,
             score=score0,
             won_cards=won_cards0,
         )
@@ -332,13 +324,11 @@ class GameTest(TestCase):
                 Card.SEVEN_SPADES,
             ]
         )
-        bot_id1 = "1"
         score1 = Score(direct_points=2, pending_points=4)
         won_cards1 = [Card.NINE_DIAMONDS]
         follower = BotState(
             implementation=bot1,
             hand=hand1,
-            bot_id=bot_id1,
             score=score1,
             won_cards=won_cards1,
         )
@@ -373,13 +363,11 @@ class GameTest(TestCase):
         hand0 = Hand(
             cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS]
         )
-        bot_id0 = "0"
         score0 = Score(direct_points=4, pending_points=2)
         won_cards0 = [Card.ACE_DIAMONDS]
         leader = BotState(
             implementation=bot0,
             hand=hand0,
-            bot_id=bot_id0,
             score=score0,
             won_cards=won_cards0,
         )
@@ -393,13 +381,11 @@ class GameTest(TestCase):
                 Card.SEVEN_SPADES,
             ]
         )
-        bot_id1 = "1"
         score1 = Score(direct_points=2, pending_points=4)
         won_cards1 = [Card.NINE_DIAMONDS]
         follower = BotState(
             implementation=bot1,
             hand=hand1,
-            bot_id=bot_id1,
             score=score1,
             won_cards=won_cards1,
         )
