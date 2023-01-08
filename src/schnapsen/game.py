@@ -183,7 +183,7 @@ class Hand(CardCollection):
         """
         return len(self.cards) == 0
 
-    def get_cards(self) -> Iterable[Card]:
+    def get_cards(self) -> List[Card]:
         return list(self.cards)
 
     def filter_suit(self, suit: Suit) -> Iterable[Card]:
@@ -330,6 +330,15 @@ class PartialTrick:
 
     def __repr__(self) -> str:
         return f"PartialTrick(leader_move={self.leader_move})"
+
+    def get_move(self) -> Move:
+        '''
+        returns the Move variable encapsulated in this PartialTrick object
+        '''
+        if self.is_trump_exchange():
+            return self.exchange
+        else:
+            return self.leader_move
 
 
 @dataclass(frozen=True)
@@ -561,6 +570,7 @@ class PlayerGameState(ABC):
                 else:
                     current_player_state = FollowerGameState(current.state, self.__engine, current.trick.as_partial())
             history_record = (current_player_state, current.trick)
+            # from this trick I can get both the leader and the follower move.
             game_state_history.insert(0, history_record)
 
             current = current.state.previous

@@ -1,7 +1,11 @@
 import importlib
 import click
-import schnapsen.game
-import schnapsen.twenty_four_card_schnapsen
+from src.schnapsen.game import Bot, PlayerGameState, PartialTrick, Move, SchnapsenGamePlayEngine
+from src.schnapsen.bots.RandBot import RandBot
+from src.schnapsen.bots.MLDataBot import MLDataBot
+from src.schnapsen.bots.MLPlayingBot import MLPlayingBot
+# from src.schnapsen.bots.RandBot import RandBot
+# import schnapsen.twenty_four_card_schnapsen
 import random
 from typing import Optional
 
@@ -29,44 +33,31 @@ def load_schnapsen_bot(module_name: str) -> None:
     sys.path.pop(0)
 
 
-class RandBot(schnapsen.game.Bot):
-    def __init__(self, seed: int) -> None:
-        self.seed = seed
-        self.rng = random.Random(self.seed)
-
-    def get_move(self, state: schnapsen.game.PlayerGameState, leader_move: Optional[schnapsen.game.PartialTrick]) -> schnapsen.game.Move:
-        moves = state.valid_moves()
-        move = self.rng.choice(list(moves))
-        return move
-
-    def __repr__(self) -> str:
-        return f"RandBot(seed={self.seed})"
-
 
 @main.command()
 def try_game() -> None:
-    engine = schnapsen.game.SchnapsenGamePlayEngine()
+    engine = SchnapsenGamePlayEngine()
     bot1 = RandBot(12112121)
     bot2 = RandBot(464566)
     for i in range(1000):
         engine.play_game(bot1, bot2, random.Random(i))
 
+#
+# @main.command()
+# def try_24_game() -> None:
+#     engine = schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine()
+#     bot1 = RandBot(12112121)
+#     bot2 = RandBot(464566)
+#     for i in range(1000):
+#         engine.play_game(bot1, bot2, random.Random(i))
 
-@main.command()
-def try_24_game() -> None:
-    engine = schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine()
-    bot1 = RandBot(12112121)
-    bot2 = RandBot(464566)
-    for i in range(1000):
-        engine.play_game(bot1, bot2, random.Random(i))
 
-
-class HistoryBot(schnapsen.game.Bot):
+class HistoryBot(Bot):
     def __init__(self, seed: int) -> None:
         self.seed = seed
         self.rng = random.Random(self.seed)
 
-    def get_move(self, state: schnapsen.game.PlayerGameState, leader_move: Optional[schnapsen.game.PartialTrick]) -> schnapsen.game.Move:
+    def get_move(self, state: PlayerGameState, leader_move: Optional[PartialTrick]) -> Move:
         history = state.get_game_history()
         print(history)
 
@@ -77,10 +68,25 @@ class HistoryBot(schnapsen.game.Bot):
     def __repr__(self) -> str:
         return f"HistoryBot(seed={self.seed})"
 
+#
+# @main.command()
+# def try_history() -> None:
+#     engine = SchnapsenGamePlayEngine()
+#     bot1 = HistoryBot(12112121)
+#     bot2 = HistoryBot(464566)
+#     engine.play_game(bot1, bot2, random.Random(1))
+
+
+
 
 @main.command()
 def try_history() -> None:
-    engine = schnapsen.game.SchnapsenGamePlayEngine()
-    bot1 = HistoryBot(12112121)
-    bot2 = HistoryBot(464566)
+    engine = SchnapsenGamePlayEngine()
+    bot1 = MLDataBot(RandBot(12112121))
+    bot2 = MLDataBot(RandBot(464566))
     engine.play_game(bot1, bot2, random.Random(1))
+    # bot1.history <-
+    # dataset done
+    # train a classifier
+
+
