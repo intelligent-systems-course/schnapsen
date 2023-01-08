@@ -1,5 +1,4 @@
 from unittest import TestCase
-from schnapsen.cli import RandBot
 from schnapsen.deck import Card, Suit, OrderedCardCollection
 from schnapsen.game import (
     Trump_Exchange,
@@ -13,6 +12,7 @@ from schnapsen.game import (
     BotState,
     GameState,
 )
+from schnapsen.bots.rand import RandBot
 
 
 class ReprTest(TestCase):
