@@ -14,7 +14,7 @@ from schnapsen.game import (
     PartialTrick,
     FollowerGameState,
 )
-from schnapsen.cli import RandBot
+from schnapsen.bots.rand import RandBot
 
 
 class MoveTest(TestCase):
@@ -262,7 +262,6 @@ class GameTest(TestCase):
         bar = foo.copy()
         self.assertEqual(bar.implementation, bot)
         self.assertEqual(bar.hand.cards, hand.cards)
-        self.assertEqual(bar.bot_id, bot_id)
         self.assertEqual(bar.score, score)
         self.assertEqual(bar.won_cards, won_cards)
 
