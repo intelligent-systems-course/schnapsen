@@ -34,8 +34,8 @@ def random_game() -> None:
     bot1 = RandBot(12112121)
     bot2 = RandBot(464566)
     for i in range(1000):
-        winner_id, points = engine.play_game(bot1, bot2, random.Random(i))
-        print(f"Game ended. Winner is {winner_id} with {points} points")
+        winner_id, game_points, score = engine.play_game(bot1, bot2, random.Random(i))
+        print(f"Game ended. Winner is {winner_id} with {game_points} points, score {score}")
 
 
 class NotificationExampleBot(Bot):
@@ -57,7 +57,7 @@ def notification_game() -> None:
     engine = TwentyFourSchnapsenGamePlayEngine()
     bot1 = NotificationExampleBot()
     bot2 = RandBot(464566)
-    engine.play_game(bot1, bot2, random.Random(5))
+    engine.play_game(bot1, bot2, random.Random(94))
 
 
 class HistoryBot(Bot):
@@ -69,7 +69,7 @@ class HistoryBot(Bot):
 
 
 @main.command()
-def try_history() -> None:
+def history_game() -> None:
     engine = SchnapsenGamePlayEngine()
     bot1 = HistoryBot()
     bot2 = HistoryBot()
@@ -82,8 +82,8 @@ def game_24() -> None:
     bot1 = RandBot(12112121)
     bot2 = RandBot(464566)
     for i in range(1000):
-        winner_id, points = engine.play_game(bot1, bot2, random.Random(i))
-        print(f"Game ended. Winner is {winner_id} with {points} points")
+        winner_id, game_points, score = engine.play_game(bot1, bot2, random.Random(i))
+        print(f"Game ended. Winner is {winner_id} with {game_points} points, score {score}")
 
 
 if __name__ == "__main__":

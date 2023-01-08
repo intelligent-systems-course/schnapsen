@@ -1226,7 +1226,7 @@ class GamePlayEngine:
     move_validator: MoveValidator
     trick_scorer: TrickScorer
 
-    def play_game(self, bot1: Bot, bot2: Bot, rng: Random) -> Tuple[Bot, int]:
+    def play_game(self, bot1: Bot, bot2: Bot, rng: Random) -> Tuple[Bot, int, Score]:
         cards = self.deck_generator.get_initial_deck()
         shuffled = self.deck_generator.shuffle_deck(cards, rng)
         hand1, hand2, talon = self.hand_generator.generateHands(shuffled)
@@ -1240,15 +1240,15 @@ class GamePlayEngine:
             talon=talon,
             previous=None
         )
-        winner, points = self.play_game_from_state(game_state=game_state, leader_move=None)
-        return winner, points
+        winner, points, score = self.play_game_from_state(game_state=game_state, leader_move=None)
+        return winner, points, score
 
-    def play_game_from_state_with_new_bots(self, game_state: GameState, new_leader: Bot, new_follower: Bot, leader_move: Optional[Union[ExchangeTrick, PartialTrick]]) -> Tuple[Bot, int]:
+    def play_game_from_state_with_new_bots(self, game_state: GameState, new_leader: Bot, new_follower: Bot, leader_move: Optional[Union[ExchangeTrick, PartialTrick]]) -> Tuple[Bot, int, Score]:
 
         game_state_copy = game_state.copy_with_other_bots(new_leader=new_leader, new_follower=new_follower)
         return self.play_game_from_state(game_state_copy, leader_move=leader_move)
 
-    def play_game_from_state(self, game_state: GameState, leader_move: Optional[Union[ExchangeTrick, PartialTrick]]) -> Tuple[Bot, int]:
+    def play_game_from_state(self, game_state: GameState, leader_move: Optional[Union[ExchangeTrick, PartialTrick]]) -> Tuple[Bot, int, Score]:
 
         winner: Optional[BotState] = None
         points: int = -1
@@ -1267,7 +1267,7 @@ class GamePlayEngine:
         loser_state = LoserGameState(game_state, self)
         game_state.follower.implementation.notify_game_end(False, state=loser_state)
 
-        return winner.implementation, points
+        return winner.implementation, points, winner.score
 
     def __repr__(self) -> str:
         return f"GamePlayEngine(deck_generator={self.deck_generator}, "\
