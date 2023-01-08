@@ -19,7 +19,7 @@ class Bot(ABC):
 
     def notify_trump_exchange(self, move: 'Trump_Exchange') -> None:
         """
-        Overide this method to get notified about trump exchanges. Note that this also notifies about this bots own exchanges.
+        Overide this method to get notified about trump exchanges. Note that this only notifies about the other bots exchanges.
 
         :param move: the Trump Exchange move that was played.
         """
