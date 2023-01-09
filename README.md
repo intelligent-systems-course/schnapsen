@@ -12,7 +12,8 @@ pip install -e .
 To run the tests, run:
 
 ```sh
-pip install pytest
+pip install -e '.[test]'
+
 pytest ./tests
 ```
 If above doesn't work, try deactivating your python and activating again (or just turn off and back on your console).
