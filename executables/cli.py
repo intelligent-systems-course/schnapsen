@@ -2,6 +2,7 @@ import random
 from typing import Optional
 
 import click
+from src.schnapsen.bots.ML_Bot import MLDataBot, train_ML_model, MLPlayingBot
 
 from schnapsen.game import (Bot, Move, PlayerPerspective,
                             SchnapsenGamePlayEngine, Trump_Exchange)
@@ -19,8 +20,8 @@ class RandBot(Bot):
         self.seed = seed
         self.rng = random.Random(self.seed)
 
-    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
-        moves = state.valid_moves()
+    def get_move(self, player_perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+        moves = player_perspective.valid_moves()
         move = self.rng.choice(list(moves))
         return move
 
@@ -40,8 +41,8 @@ def random_game() -> None:
 
 class NotificationExampleBot(Bot):
 
-    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
-        moves = state.valid_moves()
+    def get_move(self, player_perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+        moves = player_perspective.valid_moves()
         return moves[0]
 
     def notify_game_end(self, won: bool, state: PlayerPerspective) -> None:
@@ -61,19 +62,32 @@ def notification_game() -> None:
 
 
 class HistoryBot(Bot):
-    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
-        history = state.get_game_history()
+    def get_move(self, player_perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+        history = player_perspective.get_game_history()
         print(f'the initial state of this game was {history[0][0]}')
-        moves = state.valid_moves()
+        moves = player_perspective.valid_moves()
         return moves[0]
 
 
 @main.command()
-def history_game() -> None:
+def create_ML_database(num_of_games=100) -> None:
     engine = SchnapsenGamePlayEngine()
-    bot1 = HistoryBot()
-    bot2 = HistoryBot()
+    bot1 = MLDataBot(RandBot(5234243), replay_memory_filename="test_replay_memory")
+    bot2 = MLDataBot(RandBot(54354), replay_memory_filename="test_replay_memory")
+    for i in range(num_of_games):
+        engine.play_game(bot1, bot2, random.Random(1))
+
+
+def try_ML_bot_game() -> None:
+    engine = SchnapsenGamePlayEngine()
+    bot1 = MLPlayingBot(model_name='test_model', model_dir="ML_models")
+    bot2 = RandBot(464566)
     engine.play_game(bot1, bot2, random.Random(1))
+
+
+create_ML_database()
+train_ML_model()
+try_ML_bot_game()
 
 
 @main.command()
