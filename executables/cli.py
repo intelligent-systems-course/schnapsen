@@ -84,7 +84,7 @@ def try_ML_bot_game() -> None:
     bot2 = RandBot(464566)
     engine.play_game(bot1, bot2, random.Random(1))
 
-
+# these 3 should do it:
 create_ML_database()
 train_ML_model()
 try_ML_bot_game()
