@@ -690,14 +690,82 @@ class PlayerPerspective(ABC):
         past_trick_cards = self.__past_tricks_cards()
         return OrderedCardCollection(filter(lambda c: c in past_trick_cards, opponent_hand))
 
-    def make_assumption(self) -> 'GameState':
+    def get_state_in_phase_two(self) -> GameState:
         """
-        Takes the current imperfect information state and makes a random guess as to the states of the unknown cards.
+        In phase TWO of the game, all information is known, so you can get the complete state
+
+        This removes the real bots from the GameState. If you want to continue the game, provide new Bots. See copy_with_other_bots in the GameState class.
+        """
+
+        if self.get_phase() == GamePhase.TWO:
+            return self.__game_state.copy_with_other_bots(_DummyBot(), _DummyBot())
+        else:
+            raise AssertionError("You cannot get the state in phase one")
+
+    def make_assumption(self, rand: Random) -> GameState:
+        """
+        Takes the current imperfect information state and makes a random guess as to the position of the unknown cards.
         This also takes into account cards seen earlier during marriages played by the opponent, as well as potential trump jack exchanges
+
+        This removes the real bots from the GameState. If you want to continue the game, provide new Bots. See copy_with_other_bots in the GameState class.
 
         :returns: A perfect information state object.
         """
-        raise NotImplementedError()
+        full_state = self.__game_state.copy_with_other_bots(_DummyBot(), _DummyBot())
+        if self.get_phase() == GamePhase.TWO:
+            return full_state
+
+        seen_cards = self.seen_cards()
+        full_deck = self.__engine.deck_generator.get_initial_deck()
+
+        opponent_hand = self.__get_opponent_bot_state().hand.copy()
+        unseen_opponent_hand = list(filter(lambda card: card not in seen_cards, opponent_hand))
+
+        talon = full_state.talon
+        unseen_talon = list(filter(lambda card: card not in seen_cards, talon))
+
+        unseen_cards = list(filter(lambda card: card not in seen_cards, full_deck))
+        rand.shuffle(unseen_cards)
+
+        assert len(unseen_talon) + len(unseen_opponent_hand) == len(unseen_cards), "Logical error. The number of unseen cards in the opponents hand and in the talon must be equal to the number of unseen cards"
+
+        new_talon = []
+        for card in talon:
+            if card in unseen_talon:
+                # take one of the random cards
+                new_talon.append(unseen_cards.pop())
+            else:
+                new_talon.append(card)
+
+        full_state.talon = Talon(new_talon)
+
+        new_opponent_hand = []
+        for card in opponent_hand:
+            if card in unseen_opponent_hand:
+                new_opponent_hand.append(unseen_cards.pop())
+            else:
+                new_opponent_hand.append(card)
+        if self.am_i_leader():
+            full_state.follower.hand = Hand(new_opponent_hand)
+        else:
+            full_state.leader.hand = Hand(new_opponent_hand)
+
+        assert len(unseen_cards) == 0, "All cards must be consumed by wither the opponent hand or talon by now"
+
+        return full_state
+
+
+class _DummyBot(Bot):
+    """A bit used by PlayerPerspective.make_assumption to replace the real bots. This bot cannot play and will throw an Exception for everything"""
+
+    def get_move(self, state: 'PlayerPerspective', leader_move: Optional['Move']) -> 'Move':
+        raise Exception("The GameState from make_assumption removes the real bots from the Game. If you want to continue the game, provide new Bots. See copy_with_other_bots in the GameState class.")
+
+    def notify_game_end(self, won: bool, state: 'PlayerPerspective') -> None:
+        raise Exception("The GameState from make_assumption removes the real bots from the Game. If you want to continue the game, provide new Bots. See copy_with_other_bots in the GameState class.")
+
+    def notify_trump_exchange(self, move: 'Trump_Exchange') -> None:
+        raise Exception("The GameState from make_assumption removes the real bots from the Game. If you want to continue the game, provide new Bots. See copy_with_other_bots in the GameState class.")
 
 
 class LeaderPerspective(PlayerPerspective):
