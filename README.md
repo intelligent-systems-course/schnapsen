@@ -15,6 +15,7 @@ To run the tests, run:
 pip install pytest
 pytest ./tests
 ```
+If above doesn't work, try deactivating your python and activating again (or just turn off and back on your console).
 
 To test run the GUI, run:
 ```sh
