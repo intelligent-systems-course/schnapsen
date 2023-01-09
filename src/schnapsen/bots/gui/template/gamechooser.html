@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/game.css') }}">
+    <link href="{{ url_for('static', filename='css/font.css') }}" rel="stylesheet" type="text/css">
+    <link rel="shortcut icon" href="{{ url_for('static', filename='favicon.ico') }}">
+    <meta http-equiv="refresh" content="5; URL=.">
+
+</head>
+
+<body>
+    <div id="container">
+        Start a game with a bot:
+        <ul>
+            {% for botname, started in bots %}
+            {% if started %}
+            <li>{{ botname }} started </li>
+            {% else %}
+            <li><a target="_blank" href="{{ url_for('__game', botname=botname) }}">{{ botname }}</a></li>
+            {% endif %}
+            {% endfor %}
+        </ul>
+    </div>
+</body>
+
+</html>

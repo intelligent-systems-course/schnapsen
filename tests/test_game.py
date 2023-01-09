@@ -9,12 +9,11 @@ from schnapsen.game import (
     BotState,
     GameState,
     SchnapsenGamePlayEngine,
-    LeaderGameState,
+    LeaderPerspective,
     RegularMove,
-    PartialTrick,
-    FollowerGameState,
+    FollowerPerspective,
 )
-from schnapsen.cli import RandBot
+from schnapsen.bots.rand import RandBot
 
 
 class MoveTest(TestCase):
@@ -249,20 +248,17 @@ class GameTest(TestCase):
         hand = Hand(
             cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS]
         )
-        bot_id = "foo"
         score = Score(direct_points=4, pending_points=2)
         won_cards = [Card.ACE_DIAMONDS]
         foo = BotState(
             implementation=bot,
             hand=hand,
-            bot_id=bot_id,
             score=score,
             won_cards=won_cards,
         )
         bar = foo.copy()
         self.assertEqual(bar.implementation, bot)
         self.assertEqual(bar.hand.cards, hand.cards)
-        self.assertEqual(bar.bot_id, bot_id)
         self.assertEqual(bar.score, score)
         self.assertEqual(bar.won_cards, won_cards)
 
@@ -271,13 +267,11 @@ class GameTest(TestCase):
         hand0 = Hand(
             cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS]
         )
-        bot_id0 = "0"
         score0 = Score(direct_points=4, pending_points=2)
         won_cards0 = [Card.ACE_DIAMONDS]
         leader = BotState(
             implementation=bot0,
             hand=hand0,
-            bot_id=bot_id0,
             score=score0,
             won_cards=won_cards0,
         )
@@ -291,13 +285,11 @@ class GameTest(TestCase):
                 Card.SEVEN_SPADES,
             ]
         )
-        bot_id1 = "1"
         score1 = Score(direct_points=2, pending_points=4)
         won_cards1 = [Card.NINE_DIAMONDS]
         follower = BotState(
             implementation=bot1,
             hand=hand1,
-            bot_id=bot_id1,
             score=score1,
             won_cards=won_cards1,
         )
@@ -313,13 +305,11 @@ class GameTest(TestCase):
         hand0 = Hand(
             cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS]
         )
-        bot_id0 = "0"
         score0 = Score(direct_points=4, pending_points=2)
         won_cards0 = [Card.ACE_DIAMONDS]
         leader = BotState(
             implementation=bot0,
             hand=hand0,
-            bot_id=bot_id0,
             score=score0,
             won_cards=won_cards0,
         )
@@ -333,13 +323,11 @@ class GameTest(TestCase):
                 Card.SEVEN_SPADES,
             ]
         )
-        bot_id1 = "1"
         score1 = Score(direct_points=2, pending_points=4)
         won_cards1 = [Card.NINE_DIAMONDS]
         follower = BotState(
             implementation=bot1,
             hand=hand1,
-            bot_id=bot_id1,
             score=score1,
             won_cards=won_cards1,
         )
@@ -349,7 +337,7 @@ class GameTest(TestCase):
             leader=leader, follower=follower, talon=talon, previous=None
         )
         sgpe = SchnapsenGamePlayEngine()
-        lgs = LeaderGameState(state=gs, engine=sgpe)
+        lgs = LeaderPerspective(state=gs, engine=sgpe)
         self.assertEqual(
             lgs.valid_moves(),
             [
@@ -374,13 +362,11 @@ class GameTest(TestCase):
         hand0 = Hand(
             cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS]
         )
-        bot_id0 = "0"
         score0 = Score(direct_points=4, pending_points=2)
         won_cards0 = [Card.ACE_DIAMONDS]
         leader = BotState(
             implementation=bot0,
             hand=hand0,
-            bot_id=bot_id0,
             score=score0,
             won_cards=won_cards0,
         )
@@ -394,13 +380,11 @@ class GameTest(TestCase):
                 Card.SEVEN_SPADES,
             ]
         )
-        bot_id1 = "1"
         score1 = Score(direct_points=2, pending_points=4)
         won_cards1 = [Card.NINE_DIAMONDS]
         follower = BotState(
             implementation=bot1,
             hand=hand1,
-            bot_id=bot_id1,
             score=score1,
             won_cards=won_cards1,
         )
@@ -412,10 +396,10 @@ class GameTest(TestCase):
         sgpe = SchnapsenGamePlayEngine()
 
         mv = RegularMove(Card.ACE_CLUBS)
-        pt = PartialTrick(leader_move=mv)
+
         # TODO lgs should be tested as well
         # lgs = LeaderGameState(state=gs, engine=sgpe)
-        fgs = FollowerGameState(state=gs, engine=sgpe, partial_trick=pt)
+        fgs = FollowerPerspective(state=gs, engine=sgpe, partial_trick=mv)
         self.assertEqual(
             fgs.valid_moves(),
             [
