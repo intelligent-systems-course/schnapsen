@@ -10,10 +10,10 @@ class RandBot(Bot):
 
     def get_move(
         self,
-        state: PlayerPerspective,
+        player_perspective: PlayerPerspective,
         leader_move: Optional[Move],
     ) -> Move:
-        moves = state.valid_moves()
+        moves = player_perspective.valid_moves()
         move = self.rng.choice(list(moves))
         return move
 

@@ -14,7 +14,7 @@ class Bot(ABC):
     Besides the get_move method, it is also possible to override notify_trump_exchange and notify_game_end to get notified when these events happen.
     """
     @abstractmethod
-    def get_move(self, state: 'PlayerPerspective', leader_move: Optional['Move']) -> 'Move':
+    def get_move(self, player_perspective: 'PlayerPerspective', leader_move: Optional['Move']) -> 'Move':
         """
         Get the move this Bot wants to play.
         If this Bot is leading, the leader_move will be None. If this both is following, the leader_move will contain the move the opponent just played
@@ -29,7 +29,7 @@ class Bot(ABC):
         """
         pass
 
-    def notify_game_end(self, won: bool, state: 'PlayerPerspective') -> None:
+    def notify_game_end(self, won: bool, player_perspective: 'PlayerPerspective') -> None:
         """
         Override this method to get notified about the end of the game.
 
@@ -437,15 +437,15 @@ class BotState:
     score: Score = field(default_factory=Score)
     won_cards: List[Card] = field(default_factory=list)
 
-    def get_move(self, state: 'PlayerPerspective', leader_move: Optional[Move]) -> Move:
+    def get_move(self, player_perspective: 'PlayerPerspective', leader_move: Optional[Move]) -> Move:
         """
         Gets the next move from the bot itself, passing it the state.
         Does a quick check to make sure that the hand has the cards which are played. More advanced checks are performed outside of this call.
 
-        :param state: The PlayerGameState which contains the information on the current state of the game from the perspective of this player
+        :param player_perspective: The PlayerPerspective which contains the information on the current state of the game from the perspective of this player
         :returns: The move the both played
         """
-        move = self.implementation.get_move(state, leader_move=leader_move)
+        move = self.implementation.get_move(player_perspective, leader_move=leader_move)
         # All checks for move are removed from here. There is a chance the implementation returns something wrong, these issues should be captured by the callee, not by this wrapper.
         return move
 
@@ -798,7 +798,7 @@ class PlayerPerspective(ABC):
 class _DummyBot(Bot):
     """A bit used by PlayerPerspective.make_assumption to replace the real bots. This bot cannot play and will throw an Exception for everything"""
 
-    def get_move(self, state: 'PlayerPerspective', leader_move: Optional['Move']) -> 'Move':
+    def get_move(self, player_perspective: 'PlayerPerspective', leader_move: Optional['Move']) -> 'Move':
         raise Exception("The GameState from make_assumption removes the real bots from the Game. If you want to continue the game, provide new Bots. See copy_with_other_bots in the GameState class.")
 
     def notify_game_end(self, won: bool, state: 'PlayerPerspective') -> None:
@@ -1063,8 +1063,8 @@ class SchnapsenTrickImplementer(TrickImplementer):
 
     def get_leader_move(self, game_engine: 'GamePlayEngine', old_game_state: 'GameState') -> Move:
         # ask first players move trough the requester
-        leader_game_state = LeaderPerspective(old_game_state, game_engine)
-        leader_move = game_engine.move_requester.get_move(old_game_state.leader, leader_game_state, None)
+        leader_perspective = LeaderPerspective(old_game_state, game_engine)
+        leader_move = game_engine.move_requester.get_move(old_game_state.leader, leader_perspective, None)
         if not game_engine.move_validator.is_legal_leader_move(game_engine, old_game_state, leader_move):
             raise Exception("Leader played an illegal move")
 
@@ -1098,7 +1098,7 @@ class MoveRequester:
     This logic also determines what happens in case the bot is to slow, throws an exception during operation, etc"""
 
     @ abstractmethod
-    def get_move(self, bot: BotState, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+    def get_move(self, bot: BotState, player_perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         pass
 
 
@@ -1106,8 +1106,8 @@ class SimpleMoveRequester(MoveRequester):
 
     """The simplest just asks the move"""
 
-    def get_move(self, bot: BotState, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
-        return bot.get_move(state, leader_move=leader_move)
+    def get_move(self, bot: BotState, player_perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+        return bot.get_move(player_perspective, leader_move=leader_move)
 
 
 class MoveValidator(ABC):
@@ -1363,10 +1363,10 @@ class GamePlayEngine:
             winner, points = self.trick_scorer.declare_winner(game_state) or (None, -1)
 
         winner_state = WinnerPerspective(game_state, self)
-        winner.implementation.notify_game_end(won=True, state=winner_state)
+        winner.implementation.notify_game_end(won=True, player_perspective=winner_state)
 
         loser_state = LoserPerspective(game_state, self)
-        game_state.follower.implementation.notify_game_end(False, state=loser_state)
+        game_state.follower.implementation.notify_game_end(False, player_perspective=loser_state)
 
         return winner.implementation, points, winner.score
 

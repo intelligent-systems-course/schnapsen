@@ -1,4 +1,4 @@
-from src.schnapsen.game import Bot, PlayerGameState, PartialTrick, Move
+from src.schnapsen.game import Bot, PlayerPerspective, PartialTrick, Move
 from typing import Optional
 import random
 
@@ -8,8 +8,8 @@ class RandBot(Bot):
         self.seed = seed
         self.rng = random.Random(self.seed)
 
-    def get_move(self, state: PlayerGameState, leader_move: Optional[PartialTrick]) -> Move:
-        moves = state.valid_moves()
+    def get_move(self, player_perspective: PlayerPerspective, leader_move: Optional[PartialTrick]) -> Move:
+        moves = player_perspective.valid_moves()
         move = self.rng.choice(list(moves))
         return move
 
