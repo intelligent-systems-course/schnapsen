@@ -3,7 +3,7 @@ from typing import Optional
 
 import click
 
-from schnapsen.game import (Bot, Move, PlayerGameState,
+from schnapsen.game import (Bot, Move, PlayerPerspective,
                             SchnapsenGamePlayEngine, Trump_Exchange)
 from schnapsen.twenty_four_card_schnapsen import \
     TwentyFourSchnapsenGamePlayEngine
@@ -19,7 +19,7 @@ class RandBot(Bot):
         self.seed = seed
         self.rng = random.Random(self.seed)
 
-    def get_move(self, state: PlayerGameState, leader_move: Optional[Move]) -> Move:
+    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         moves = state.valid_moves()
         move = self.rng.choice(list(moves))
         return move
@@ -40,11 +40,11 @@ def random_game() -> None:
 
 class NotificationExampleBot(Bot):
 
-    def get_move(self, state: PlayerGameState, leader_move: Optional[Move]) -> Move:
+    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         moves = state.valid_moves()
         return moves[0]
 
-    def notify_game_end(self, won: bool, state: PlayerGameState) -> None:
+    def notify_game_end(self, won: bool, state: PlayerPerspective) -> None:
         print(f'result {"win" if won else "lost"}')
         print(f'I still have {len(state.get_hand())} cards left')
 
@@ -61,7 +61,7 @@ def notification_game() -> None:
 
 
 class HistoryBot(Bot):
-    def get_move(self, state: PlayerGameState, leader_move: Optional[Move]) -> Move:
+    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         history = state.get_game_history()
         print(f'the initial state of this game was {history[0][0]}')
         moves = state.valid_moves()

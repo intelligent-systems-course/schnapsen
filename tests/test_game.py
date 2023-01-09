@@ -9,9 +9,9 @@ from schnapsen.game import (
     BotState,
     GameState,
     SchnapsenGamePlayEngine,
-    LeaderGameState,
+    LeaderPerspective,
     RegularMove,
-    FollowerGameState,
+    FollowerPerspective,
 )
 from schnapsen.bots.rand import RandBot
 
@@ -337,7 +337,7 @@ class GameTest(TestCase):
             leader=leader, follower=follower, talon=talon, previous=None
         )
         sgpe = SchnapsenGamePlayEngine()
-        lgs = LeaderGameState(state=gs, engine=sgpe)
+        lgs = LeaderPerspective(state=gs, engine=sgpe)
         self.assertEqual(
             lgs.valid_moves(),
             [
@@ -399,7 +399,7 @@ class GameTest(TestCase):
 
         # TODO lgs should be tested as well
         # lgs = LeaderGameState(state=gs, engine=sgpe)
-        fgs = FollowerGameState(state=gs, engine=sgpe, partial_trick=mv)
+        fgs = FollowerPerspective(state=gs, engine=sgpe, partial_trick=mv)
         self.assertEqual(
             fgs.valid_moves(),
             [

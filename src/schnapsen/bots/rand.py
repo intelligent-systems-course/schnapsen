@@ -1,6 +1,6 @@
 import random
 from typing import Optional
-from schnapsen.game import Bot, PlayerGameState, Move
+from schnapsen.game import Bot, PlayerPerspective, Move
 
 
 class RandBot(Bot):
@@ -10,7 +10,7 @@ class RandBot(Bot):
 
     def get_move(
         self,
-        state: PlayerGameState,
+        state: PlayerPerspective,
         leader_move: Optional[Move],
     ) -> Move:
         moves = state.valid_moves()

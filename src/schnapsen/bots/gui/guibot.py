@@ -7,7 +7,7 @@ from typing import Optional, Tuple, Type, cast
 from flask import Flask, abort, render_template, request
 
 from schnapsen.deck import Card, Rank, Suit
-from schnapsen.game import (Bot, GamePhase, Marriage, Move, PlayerGameState,
+from schnapsen.game import (Bot, GamePhase, Marriage, Move, PlayerPerspective,
                             RegularMove, RegularTrick, Trump_Exchange)
 
 
@@ -17,10 +17,10 @@ class GUIBot(Bot):
         self.name = name
         self.server = server
 
-    def get_move(self, state: PlayerGameState, leader_move: Optional[Move]) -> Move:
+    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         return self.server._get_move(self.name, state, leader_move)
 
-    def notify_game_end(self, won: bool, state: 'PlayerGameState') -> None:
+    def notify_game_end(self, won: bool, state: 'PlayerPerspective') -> None:
         self.server._post_final_state(self.name, state)
 
 
@@ -30,7 +30,7 @@ class _StateExchange:
     browser_game_started: bool
     is_state_ready: Event
     is_move_ready: Event
-    state: Optional[PlayerGameState]
+    state: Optional[PlayerPerspective]
     leader_move: Optional[Move]
     browser_move: Optional[Move]
     is_game_over: bool = False
@@ -74,13 +74,13 @@ class SchnapsenServer:
         self.__bots[name] = _StateExchange(bot=bot, browser_game_started=False, is_state_ready=Event(), is_move_ready=Event(), state=None, leader_move=None, browser_move=None)
         return bot
 
-    def _post_final_state(self, botname: str, state: PlayerGameState) -> None:
+    def _post_final_state(self, botname: str, state: PlayerPerspective) -> None:
         state_exchange = self.__bots[botname]
         state_exchange.state = state
         state_exchange.is_game_over = True
         state_exchange.is_state_ready.set()
 
-    def _get_move(self, botname: str, state: PlayerGameState, leader_move: Optional[Move]) -> Move:
+    def _get_move(self, botname: str, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         state_exchange = self.__bots[botname]
         state_exchange.is_move_ready.clear()
         state_exchange.state = state
@@ -175,7 +175,7 @@ class _Old_GUI_Compatibility:
         return Marriage(queen_card=_Old_GUI_Compatibility.old_engine_order[old_move[0]], king_card=_Old_GUI_Compatibility.old_engine_order[old_move[1]])
 
     @staticmethod
-    def player_game_state_to_json(state: PlayerGameState, leader_move: Optional[Move], game_over: bool) -> str:
+    def player_game_state_to_json(state: PlayerPerspective, leader_move: Optional[Move], game_over: bool) -> str:
 
         # Deck.convert_to_json
         # return {"card_state":self.__card_state, "p1_perspective":self.__p1_perspective,
