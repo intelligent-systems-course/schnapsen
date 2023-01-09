@@ -8,7 +8,11 @@ import itertools
 
 
 class Bot(ABC):
+    """
+    The Bot baseclass. Derive your own bots from this class and implement the get_move method to use it in games.
 
+    Besides the get_move method, it is also possible to override notify_trump_exchange and notify_game_end to get notified when these events happen.
+    """
     @abstractmethod
     def get_move(self, state: 'PlayerPerspective', leader_move: Optional['Move']) -> 'Move':
         """
@@ -546,6 +550,13 @@ class GameState:
 
 
 class PlayerPerspective(ABC):
+    """
+    The perspective a player has on the state of the game. This only gives access to the partially observable information.
+    The Bot gets passed an instance of this class when it gets requested a move by the GamePlayEngine
+
+    This class has several convenience methods to get more information about the current state.
+    """
+
     def __init__(self, state: 'GameState', engine: 'GamePlayEngine') -> None:
         self.__game_state = state
         self.__engine = engine
@@ -600,45 +611,61 @@ class PlayerPerspective(ABC):
 
     @abstractmethod
     def get_hand(self) -> Hand:
+        """Get the cards in the hand of the current player"""
         pass
 
     @abstractmethod
     def get_my_score(self) -> Score:
+        """Get the socre of the current player. The return Score object contains both the direct points and pending points from a marriage."""
         pass
 
     @abstractmethod
     def get_opponent_score(self) -> Score:
+        """Get the socre of the other player. The return Score object contains both the direct points and pending points from a marriage."""
         pass
 
     def get_trump_suit(self) -> Suit:
+        """Get the suit of the trump"""
         return self.__game_state.trump_suit
 
     def get_trump_card(self) -> Optional[Card]:
+        """Get the card which is at the bottom of the talon. Will be None if the talon is empty"""
         return self.__game_state.talon.trump_card()
 
     def get_talon_size(self) -> int:
+        """How many cards are still on the talon?"""
         return len(self.__game_state.talon)
 
     def get_phase(self) -> GamePhase:
+        """What is the pahse of the game? This returns a GamePhase object.
+        You can check the phase by checking state.get_phase == GamePhase.ONE
+        """
         return self.__game_state.game_phase()
 
     @abstractmethod
     def get_opponent_hand_in_phase_two(self) -> Hand:
+        """If the game is in the second phase, you can get the cards in the hand of the opponent.
+        If this gets called, but the second pahse has not started yet, this will throw en Exception
+        """
         pass
 
     @abstractmethod
     def am_i_leader(self) -> bool:
+        """Returns True if the bot is the leader of this trick, False if it is a follower."""
         pass
 
     @abstractmethod
     def get_won_cards(self) -> CardCollection:
+        """Get a list of all cards this Bot has won until now."""
         pass
 
     @abstractmethod
     def get_opponent_won_cards(self) -> CardCollection:
+        """Get the list of cards the opponent has won until now."""
         pass
 
     def __get_own_bot_state(self) -> BotState:
+        """Get the internal state object of this bot. This should not be used by a bot."""
         bot: BotState
         if self.am_i_leader():
             bot = self.__game_state.leader
@@ -647,6 +674,7 @@ class PlayerPerspective(ABC):
         return bot
 
     def __get_opponent_bot_state(self) -> BotState:
+        """Get the internal state object of the other bot. This should not be used by a bot."""
         bot: BotState
         if self.am_i_leader():
             bot = self.__game_state.follower
@@ -655,7 +683,7 @@ class PlayerPerspective(ABC):
         return bot
 
     def seen_cards(self) -> CardCollection:
-
+        """Get a list of all cards your bot has seen until now"""
         bot = self.__get_own_bot_state()
 
         seen_cards: set[Card] = set()  # We make it a set to remove duplicates
@@ -683,6 +711,8 @@ class PlayerPerspective(ABC):
         return past_cards
 
     def get_known_cards_of_opponent_hand(self) -> CardCollection:
+        """Get all cards which are in the opponents hand, but known to your Bot. This includes cards earlier used in marriages, or a trump exchange.
+        All cards in the second pahse of the game."""
         opponent_hand = self.__get_opponent_bot_state().hand
         if self.get_phase() == GamePhase.TWO:
             return opponent_hand
