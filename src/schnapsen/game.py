@@ -8,7 +8,11 @@ import itertools
 
 
 class Bot(ABC):
+    """
+    The Bot baseclass. Derive your own bots from this class and implement the get_move method to use it in games.
 
+    Besides the get_move method, it is also possible to override notify_trump_exchange and notify_game_end to get notified when these events happen.
+    """
     @abstractmethod
     def get_move(self, state: 'PlayerPerspective', leader_move: Optional['Move']) -> 'Move':
         """
@@ -546,6 +550,13 @@ class GameState:
 
 
 class PlayerPerspective(ABC):
+    """
+    The perspective a player has on the state of the game. This only gives access to the partially observable information.
+    The Bot gets passed an instance of this class when it gets requested a move by the GamePlayEngine
+
+    This class has several convenience methods to get more information about the current state.
+    """
+
     def __init__(self, state: 'GameState', engine: 'GamePlayEngine') -> None:
         self.__game_state = state
         self.__engine = engine
@@ -600,45 +611,61 @@ class PlayerPerspective(ABC):
 
     @abstractmethod
     def get_hand(self) -> Hand:
+        """Get the cards in the hand of the current player"""
         pass
 
     @abstractmethod
     def get_my_score(self) -> Score:
+        """Get the socre of the current player. The return Score object contains both the direct points and pending points from a marriage."""
         pass
 
     @abstractmethod
     def get_opponent_score(self) -> Score:
+        """Get the socre of the other player. The return Score object contains both the direct points and pending points from a marriage."""
         pass
 
     def get_trump_suit(self) -> Suit:
+        """Get the suit of the trump"""
         return self.__game_state.trump_suit
 
     def get_trump_card(self) -> Optional[Card]:
+        """Get the card which is at the bottom of the talon. Will be None if the talon is empty"""
         return self.__game_state.talon.trump_card()
 
     def get_talon_size(self) -> int:
+        """How many cards are still on the talon?"""
         return len(self.__game_state.talon)
 
     def get_phase(self) -> GamePhase:
+        """What is the pahse of the game? This returns a GamePhase object.
+        You can check the phase by checking state.get_phase == GamePhase.ONE
+        """
         return self.__game_state.game_phase()
 
     @abstractmethod
     def get_opponent_hand_in_phase_two(self) -> Hand:
+        """If the game is in the second phase, you can get the cards in the hand of the opponent.
+        If this gets called, but the second pahse has not started yet, this will throw en Exception
+        """
         pass
 
     @abstractmethod
     def am_i_leader(self) -> bool:
+        """Returns True if the bot is the leader of this trick, False if it is a follower."""
         pass
 
     @abstractmethod
     def get_won_cards(self) -> CardCollection:
+        """Get a list of all cards this Bot has won until now."""
         pass
 
     @abstractmethod
     def get_opponent_won_cards(self) -> CardCollection:
+        """Get the list of cards the opponent has won until now."""
         pass
 
     def __get_own_bot_state(self) -> BotState:
+        """Get the internal state object of this bot. This should not be used by a bot."""
         bot: BotState
         if self.am_i_leader():
             bot = self.__game_state.leader
@@ -647,6 +674,7 @@ class PlayerPerspective(ABC):
         return bot
 
     def __get_opponent_bot_state(self) -> BotState:
+        """Get the internal state object of the other bot. This should not be used by a bot."""
         bot: BotState
         if self.am_i_leader():
             bot = self.__game_state.follower
@@ -655,7 +683,7 @@ class PlayerPerspective(ABC):
         return bot
 
     def seen_cards(self) -> CardCollection:
-
+        """Get a list of all cards your bot has seen until now"""
         bot = self.__get_own_bot_state()
 
         seen_cards: set[Card] = set()  # We make it a set to remove duplicates
@@ -683,6 +711,8 @@ class PlayerPerspective(ABC):
         return past_cards
 
     def get_known_cards_of_opponent_hand(self) -> CardCollection:
+        """Get all cards which are in the opponents hand, but known to your Bot. This includes cards earlier used in marriages, or a trump exchange.
+        All cards in the second pahse of the game."""
         opponent_hand = self.__get_opponent_bot_state().hand
         if self.get_phase() == GamePhase.TWO:
             return opponent_hand
@@ -690,14 +720,82 @@ class PlayerPerspective(ABC):
         past_trick_cards = self.__past_tricks_cards()
         return OrderedCardCollection(filter(lambda c: c in past_trick_cards, opponent_hand))
 
-    def make_assumption(self) -> 'GameState':
+    def get_state_in_phase_two(self) -> GameState:
         """
-        Takes the current imperfect information state and makes a random guess as to the states of the unknown cards.
+        In phase TWO of the game, all information is known, so you can get the complete state
+
+        This removes the real bots from the GameState. If you want to continue the game, provide new Bots. See copy_with_other_bots in the GameState class.
+        """
+
+        if self.get_phase() == GamePhase.TWO:
+            return self.__game_state.copy_with_other_bots(_DummyBot(), _DummyBot())
+        else:
+            raise AssertionError("You cannot get the state in phase one")
+
+    def make_assumption(self, rand: Random) -> GameState:
+        """
+        Takes the current imperfect information state and makes a random guess as to the position of the unknown cards.
         This also takes into account cards seen earlier during marriages played by the opponent, as well as potential trump jack exchanges
+
+        This removes the real bots from the GameState. If you want to continue the game, provide new Bots. See copy_with_other_bots in the GameState class.
 
         :returns: A perfect information state object.
         """
-        raise NotImplementedError()
+        full_state = self.__game_state.copy_with_other_bots(_DummyBot(), _DummyBot())
+        if self.get_phase() == GamePhase.TWO:
+            return full_state
+
+        seen_cards = self.seen_cards()
+        full_deck = self.__engine.deck_generator.get_initial_deck()
+
+        opponent_hand = self.__get_opponent_bot_state().hand.copy()
+        unseen_opponent_hand = list(filter(lambda card: card not in seen_cards, opponent_hand))
+
+        talon = full_state.talon
+        unseen_talon = list(filter(lambda card: card not in seen_cards, talon))
+
+        unseen_cards = list(filter(lambda card: card not in seen_cards, full_deck))
+        rand.shuffle(unseen_cards)
+
+        assert len(unseen_talon) + len(unseen_opponent_hand) == len(unseen_cards), "Logical error. The number of unseen cards in the opponents hand and in the talon must be equal to the number of unseen cards"
+
+        new_talon = []
+        for card in talon:
+            if card in unseen_talon:
+                # take one of the random cards
+                new_talon.append(unseen_cards.pop())
+            else:
+                new_talon.append(card)
+
+        full_state.talon = Talon(new_talon)
+
+        new_opponent_hand = []
+        for card in opponent_hand:
+            if card in unseen_opponent_hand:
+                new_opponent_hand.append(unseen_cards.pop())
+            else:
+                new_opponent_hand.append(card)
+        if self.am_i_leader():
+            full_state.follower.hand = Hand(new_opponent_hand)
+        else:
+            full_state.leader.hand = Hand(new_opponent_hand)
+
+        assert len(unseen_cards) == 0, "All cards must be consumed by wither the opponent hand or talon by now"
+
+        return full_state
+
+
+class _DummyBot(Bot):
+    """A bit used by PlayerPerspective.make_assumption to replace the real bots. This bot cannot play and will throw an Exception for everything"""
+
+    def get_move(self, state: 'PlayerPerspective', leader_move: Optional['Move']) -> 'Move':
+        raise Exception("The GameState from make_assumption removes the real bots from the Game. If you want to continue the game, provide new Bots. See copy_with_other_bots in the GameState class.")
+
+    def notify_game_end(self, won: bool, state: 'PlayerPerspective') -> None:
+        raise Exception("The GameState from make_assumption removes the real bots from the Game. If you want to continue the game, provide new Bots. See copy_with_other_bots in the GameState class.")
+
+    def notify_trump_exchange(self, move: 'Trump_Exchange') -> None:
+        raise Exception("The GameState from make_assumption removes the real bots from the Game. If you want to continue the game, provide new Bots. See copy_with_other_bots in the GameState class.")
 
 
 class LeaderPerspective(PlayerPerspective):
