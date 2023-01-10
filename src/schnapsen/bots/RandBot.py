@@ -1,4 +1,4 @@
-from src.schnapsen.game import Bot, PlayerPerspective, PartialTrick, Move
+from schnapsen.game import Bot, PlayerPerspective, PartialTrick, Move
 from typing import Optional
 import random
 
