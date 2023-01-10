@@ -890,6 +890,7 @@ class ExchangeFollowerPerspective(PlayerPerspective):
     """
 
     def __init__(self, state: 'GameState', engine: 'GamePlayEngine') -> None:
+        self.__game_state = state
         super().__init__(state, engine)
 
     def valid_moves(self) -> List[Move]:
@@ -901,20 +902,20 @@ class ExchangeFollowerPerspective(PlayerPerspective):
         return []
 
     def get_hand(self) -> Hand:
-        return super().__game_state.follower.hand.copy()
+        return self.__game_state.follower.hand.copy()
 
     def get_my_score(self) -> Score:
-        return super().__game_state.follower.score
+        return self.__game_state.follower.score
 
     def get_opponent_score(self) -> Score:
-        return super().__game_state.leader.score
+        return self.__game_state.leader.score
 
     def get_trump_suit(self) -> Suit:
-        return super().__game_state.trump_suit
+        return self.__game_state.trump_suit
 
     def get_opponent_hand_in_phase_two(self) -> Hand:
         assert self.get_phase() == GamePhase.TWO
-        return super().__game_state.leader.hand.copy()
+        return self.__game_state.leader.hand.copy()
 
     def get_opponent_won_cards(self) -> CardCollection:
         return OrderedCardCollection(self.__game_state.leader.won_cards)
