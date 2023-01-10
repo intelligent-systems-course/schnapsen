@@ -1475,5 +1475,3 @@ class SchnapsenGamePlayEngine(GamePlayEngine):
 
     def __repr__(self) -> str:
         return super().__repr__()
-
-
