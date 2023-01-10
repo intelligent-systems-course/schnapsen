@@ -331,6 +331,9 @@ class ExchangeTrick(Trick):
     exchange: Trump_Exchange
     """A trump exchange by the leading player"""
 
+    trump_card: Card
+    """The card at the bottom of the talon"""
+
     def is_trump_exchange(self) -> bool:
         return True
 
@@ -338,7 +341,9 @@ class ExchangeTrick(Trick):
         raise Exception("An Exchange Trick does not have a first part")
 
     def _cards(self) -> Iterable[Card]:
-        return self.exchange.cards
+        exchange = self.exchange.cards
+        exchange.append(self.trump_card)
+        return exchange
 
 
 @dataclass(frozen=True)
@@ -1008,9 +1013,11 @@ class SchnapsenTrickImplementer(TrickImplementer):
         if leader_move.is_trump_exchange():
             next_game_state = old_game_state.copy_for_next()
             exchange = cast(Trump_Exchange, leader_move)
+            old_trump_card = old_game_state.talon.trump_card()
+            assert old_trump_card
             self.play_trump_exchange(next_game_state, exchange)
             # remember the previous state
-            next_game_state.previous = Previous(old_game_state, ExchangeTrick(exchange), True)
+            next_game_state.previous = Previous(old_game_state, ExchangeTrick(exchange, old_trump_card), True)
             # The whole trick ends here.
             return next_game_state
 
