@@ -331,6 +331,9 @@ class ExchangeTrick(Trick):
     exchange: Trump_Exchange
     """A trump exchange by the leading player"""
 
+    trump_card: Card
+    """The card at the bottom of the talon"""
+
     def is_trump_exchange(self) -> bool:
         return True
 
@@ -338,7 +341,9 @@ class ExchangeTrick(Trick):
         raise Exception("An Exchange Trick does not have a first part")
 
     def _cards(self) -> Iterable[Card]:
-        return self.exchange.cards
+        exchange = self.exchange.cards
+        exchange.append(self.trump_card)
+        return exchange
 
 
 @dataclass(frozen=True)
@@ -770,6 +775,7 @@ class PlayerPerspective(ABC):
         seen_cards = self.seen_cards(leader_move)
         full_deck = self.__engine.deck_generator.get_initial_deck()
 
+        opponent_hand = self.__get_opponent_bot_state().hand.copy()
         unseen_opponent_hand = list(filter(lambda card: card not in seen_cards, opponent_hand))
 
         talon = full_state.talon
@@ -1029,9 +1035,11 @@ class SchnapsenTrickImplementer(TrickImplementer):
         if leader_move.is_trump_exchange():
             next_game_state = game_state.copy_for_next()
             exchange = cast(Trump_Exchange, leader_move)
+            old_trump_card = old_game_state.talon.trump_card()
+            assert old_trump_card
             self.play_trump_exchange(next_game_state, exchange)
             # remember the previous state
-            next_game_state.previous = Previous(game_state, ExchangeTrick(exchange), True)
+            next_game_state.previous = Previous(old_game_state, ExchangeTrick(exchange, old_trump_card), True)
             # The whole trick ends here.
             return next_game_state
 
@@ -1340,15 +1348,6 @@ class GamePlayEngine:
     trick_scorer: TrickScorer
 
     def play_game(self, bot1: Bot, bot2: Bot, rng: Random) -> Tuple[Bot, int, Score]:
-        """
-        Play a game between bot1 and bot2, using the rng to create the game.
-
-        :param bot1: The first bot playing the game. This bot will be the leader for the first trick.
-        :param bot2: The second bot playing the game. This bot will be the follower for the first trick.
-        :param rng: The random number generator used to shuffle the deck.
-
-        :returns: A tuple with the bot which won the game, the number of points obtained from this game and the score attained.
-        """
         cards = self.deck_generator.get_initial_deck()
         shuffled = self.deck_generator.shuffle_deck(cards, rng)
         hand1, hand2, talon = self.hand_generator.generateHands(shuffled)
@@ -1366,38 +1365,18 @@ class GamePlayEngine:
         return winner, points, score
 
     def play_game_from_state_with_new_bots(self, game_state: GameState, new_leader: Bot, new_follower: Bot, leader_move: Optional[Move]) -> Tuple[Bot, int, Score]:
-        """
-        Continue a game  which might have started before with other bots, with new bots.
-        The new bots are new_leader and new_follower.
-        The leader move is an optional paramter which can be provided to force this first move from the leader.
-
-        :param game_state: The state of the game to start from
-        :param new_leader: The bot which will take the leader role in the game.
-        :param new_follower: The bot which will take the follower in the game.
-        :param leader_move: if provided, the leader will be forced to play this move as its first move.
-
-        :returns: A tuple with the bot which won the game, the number of points obtained from this game and the score attained.
-        """
 
         game_state_copy = game_state.copy_with_other_bots(new_leader=new_leader, new_follower=new_follower)
         return self.play_game_from_state(game_state_copy, leader_move=leader_move)
 
     def play_game_from_state(self, game_state: GameState, leader_move: Optional[Move]) -> Tuple[Bot, int, Score]:
-        """
-        Continue a game  which might have been started before.
-        The leader move is an optional paramter which can be provided to force this first move from the leader.
 
-        :param game_state: The state of the game to start from
-        :param leader_move: if provided, the leader will be forced to play this move as its first move.
-
-        :returns: A tuple with the bot which won the game, the number of points obtained from this game and the score attained.
-        """
         winner: Optional[BotState] = None
         points: int = -1
         while not winner:
             if leader_move is not None:
                 # we continues from a game where the leading bot already did a move, we immitate that
-                game_state = self.trick_implementer.play_trick_with_fixed_leader_move(game_engine=self, game_state=game_state, leader_move=leader_move)
+                game_state = self.trick_implementer.play_trick_with_fixed_leader_move(self, game_state=game_state, leader_move=leader_move)
                 leader_move = None
             else:
                 game_state = self.trick_implementer.play_trick(self, game_state)
@@ -1410,40 +1389,6 @@ class GamePlayEngine:
         game_state.follower.implementation.notify_game_end(False, state=loser_state)
 
         return winner.implementation, points, winner.score
-
-    def play_at_most_n_tricks(self, game_state: GameState, new_leader: Bot, new_follower: Bot, n: int) -> Tuple[GameState, int]:
-        """
-        Plays up to n tricks (including the one started by the leader, if provided) on a game which might have started before.
-        The number of tricks will be smaller than n in case the game ends before n tricks are played.
-        The new bots are new_leader and new_follower.
-
-        This method does not make changes to the provided game_state.
-
-        :param game_state: The state of the game to start from
-        :param new_leader: The bot which will take the leader role in the game.
-        :param new_follower: The bot which will take the follower in the game.
-
-        :returns: The GameState reached and the number of steps actually taken.
-        """
-        assert n >= 0, "Cannot play less than 0 rounds"
-        game_state_copy = game_state.copy_with_other_bots(new_leader=new_leader, new_follower=new_follower)
-
-        winner: Optional[BotState] = None
-        rounds_played = 0
-        while not winner:
-            if rounds_played == n:
-                break
-            game_state_copy = self.trick_implementer.play_trick(self, game_state_copy)
-            winner, _ = self.trick_scorer.declare_winner(game_state_copy) or (None, -1)
-            rounds_played += 1
-        if winner:
-            winner_state = WinnerPerspective(game_state_copy, self)
-            winner.implementation.notify_game_end(won=True, state=winner_state)
-
-            loser_state = LoserPerspective(game_state_copy, self)
-            game_state_copy.follower.implementation.notify_game_end(False, state=loser_state)
-
-        return game_state_copy, rounds_played
 
     def __repr__(self) -> str:
         return f"GamePlayEngine(deck_generator={self.deck_generator}, "\
