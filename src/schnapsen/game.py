@@ -34,7 +34,7 @@ class Bot(ABC):
         Override this method to get notified about the end of the game.
 
         :param won: Did this bot win the game?
-        :param state: The final state of the game.
+        :param player_perspective: The final state of the game.
         """
         pass
 
@@ -879,7 +879,7 @@ class FollowerPerspective(PlayerPerspective):
         return OrderedCardCollection(self.__game_state.leader.won_cards)
 
     def __repr__(self) -> str:
-        return f"FollowerGameState(state={self.__game_state}, engine={self.__engine}, "
+        return f"FollowerGameState(state={self.__game_state}, engine={self.__engine}, " + \
         f"partial_trick={self.__partial_trick})"
 
 
