@@ -8,6 +8,8 @@ from schnapsen.game import (Bot, Move, PlayerPerspective,
 from schnapsen.twenty_four_card_schnapsen import \
     TwentyFourSchnapsenGamePlayEngine
 
+from schnapsen.bots.rdeep import RdeepBot
+
 
 @click.group()
 def main() -> None:
@@ -84,6 +86,25 @@ def game_24() -> None:
     for i in range(1000):
         winner_id, game_points, score = engine.play_game(bot1, bot2, random.Random(i))
         print(f"Game ended. Winner is {winner_id} with {game_points} points, score {score}")
+
+
+@main.command()
+def rdeep_game() -> None:
+    bot1: Bot
+    bot2: Bot
+    engine = SchnapsenGamePlayEngine()
+    rdeep = bot1 = RdeepBot(num_samples=10, depth=10, rand=random.Random(4564654644))
+    bot2 = RandBot(464566)
+    wins = 0
+    amount = 1000
+    for i in range(amount):
+        if i % 2 == 0:
+            bot1, bot2 = bot2, bot1
+        winner_id, _, _ = engine.play_game(bot1, bot2, random.Random(5))
+        if winner_id == rdeep:
+            wins += 1
+        if i % 10 == 0:
+            print(f"won {wins} out of {i}")
 
 
 if __name__ == "__main__":
