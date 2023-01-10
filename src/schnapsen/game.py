@@ -1035,11 +1035,11 @@ class SchnapsenTrickImplementer(TrickImplementer):
         if leader_move.is_trump_exchange():
             next_game_state = game_state.copy_for_next()
             exchange = cast(Trump_Exchange, leader_move)
-            old_trump_card = old_game_state.talon.trump_card()
+            old_trump_card = game_state.talon.trump_card()
             assert old_trump_card
             self.play_trump_exchange(next_game_state, exchange)
             # remember the previous state
-            next_game_state.previous = Previous(old_game_state, ExchangeTrick(exchange, old_trump_card), True)
+            next_game_state.previous = Previous(game_state, ExchangeTrick(exchange, old_trump_card), True)
             # The whole trick ends here.
             return next_game_state
 
