@@ -3,7 +3,7 @@ import random
 from typing import Optional
 
 import click
-from schnapsen.bots.ML_Bot import MLDataBot, train_ML_model, MLPlayingBot
+from schnapsen.bots.ml_bot import MLDataBot, train_ML_model, MLPlayingBot
 
 from schnapsen.game import (Bot, Move, PlayerPerspective,
                             SchnapsenGamePlayEngine, Trump_Exchange)
@@ -70,8 +70,13 @@ class HistoryBot(Bot):
         return moves[0]
 
 
-@main.command()
-def create_ML_replay_memory_dataset() -> None:
+@main.group()
+def ml() -> None:
+    """Commands for the ML bot"""
+
+
+@ml.command()
+def create_replay_memory_dataset() -> None:
     # define replay memory database creation parameters
     num_of_games: int = 1000
     replay_memory_dir: str = 'ML_replay_memories'
@@ -100,31 +105,25 @@ def create_ML_replay_memory_dataset() -> None:
     print(f"Replay memory dataset recorder for {num_of_games} games.\nDataset is stored at: {replay_memory_file_path}")
 
 
-@main.command()
-def train_ML_model_main() -> None:
+@ml.command()
+def train_model() -> None:
     replay_memory_filename = 'test_replay_memory.txt'
     replay_memories_directory = 'ML_replay_memories'
     model_name = 'test_model'
     model_dir = "ML_models"
-    overwrite = True
+    overwrite = False
 
     train_ML_model(replay_memory_filename=replay_memory_filename, replay_memories_directory=replay_memories_directory,
                    model_name=model_name, model_dir=model_dir, overwrite=overwrite)
 
 
-@main.command()
-def try_ML_bot_game() -> None:
+@ml.command()
+def try_bot_game() -> None:
     engine = SchnapsenGamePlayEngine()
     bot1 = MLPlayingBot(model_name='test_model', model_dir="ML_models")
     bot2 = RandBot(464566)
     winner, points, score = engine.play_game(bot1, bot2, random.Random(1))
     print(f"Winner is: {winner}, with {points} points!")
-
-
-# these 3 should do it:
-create_ML_replay_memory_dataset()
-# train_ML_model_main()
-# try_ML_bot_game()
 
 
 @main.command()

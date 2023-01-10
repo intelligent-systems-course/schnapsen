@@ -359,15 +359,6 @@ class PartialTrick:
     def __repr__(self) -> str:
         return f"PartialTrick(leader_move={self.leader_move})"
 
-    def get_move(self) -> Move:
-        '''
-        returns the Move variable encapsulated in this PartialTrick object
-        '''
-        if self.is_trump_exchange():
-            return self.exchange
-        else:
-            return self.leader_move
-
 
 @dataclass(frozen=True)
 class RegularTrick(Trick, PartialTrick):

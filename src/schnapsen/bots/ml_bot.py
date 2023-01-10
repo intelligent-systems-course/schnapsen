@@ -1,6 +1,6 @@
-from schnapsen.game import Bot, PlayerPerspective, PartialTrick, SchnapsenDeckGenerator, Move, Trick, GamePhase
+from schnapsen.game import Bot, PlayerPerspective, SchnapsenDeckGenerator, Move, Trick, GamePhase
 import numpy as np
-from typing import List, Optional
+from typing import List, Optional, cast
 from schnapsen.deck import Suit, Rank
 from sklearn.neural_network import MLPClassifier
 import joblib
@@ -21,7 +21,7 @@ class MLPlayingBot(Bot):
             # load model
             self.__model = joblib.load(model_file_path)
 
-    def get_move(self, player_perspective: 'PlayerPerspective', leader_move: Optional[PartialTrick]) -> 'Move':
+    def get_move(self, player_perspective: 'PlayerPerspective', leader_move: Optional[Move]) -> 'Move':
         # get the sate feature representation
         state_representation = get_state_feature_vector(player_perspective)
         # get the leader's move representation, even if it is None
@@ -29,44 +29,28 @@ class MLPlayingBot(Bot):
         # get all my valid moves
         my_valid_moves = player_perspective.valid_moves()
         # get the feature representations for all my valid moves
-        my_move_representations: list[list] = []
+        my_move_representations: list[list[int]] = []
         for my_move in my_valid_moves:
             my_move_representations.append(get_move_feature_vector(my_move))
 
         # create all model inputs, for all bot's valid moves
-        action_state_representations: list[list] = []
+        action_state_representations: list[list[int]] = []
 
         if player_perspective.am_i_leader():
             follower_move_representation = get_move_feature_vector(None)
             for my_move_representation in my_move_representations:
                 action_state_representations.append(
+
                     state_representation + my_move_representation + follower_move_representation)
         else:
             for my_move_representation in my_move_representations:
                 action_state_representations.append(
                     state_representation + leader_move_representation + my_move_representation)
 
-        # select action with the highest probability of winning, according to the trained model
-        # highest_winning_probability: numbers = -1
-        # best_move_index: int = -1
-
         model_output = self.__model.predict_proba(action_state_representations)
         winning_probabilities_of_moves = [outcome_prob[1] for outcome_prob in model_output]
         best_move_index = np.argmax(winning_probabilities_of_moves)
         best_move = my_valid_moves[best_move_index]
-        #
-        # # print(winning_probability)
-        # # exit()
-        #
-        # for move_index, model_input in enumerate(action_state_representations):
-        #     action_winning_probability =
-        #     print(action_winning_probability)
-        #     # Weigh the win/loss outcomes (-1 and 1) by their probabilities
-        #     # res = -1.0 * prob[classes.index('lost')] + 1.0 * prob[classes.index('won')] ?? Do we need this ??
-        #     if action_winning_probability > highest_winning_probability:
-        #         best_move_index = move_index
-        #
-        # best_move = my_valid_moves[best_move_index]
 
         # return the best move
         return best_move
@@ -94,7 +78,7 @@ class MLDataBot(Bot):
         # self.my_history: Optional[list[tuple[PlayerPerspective, Optional[PartialTrick]]]] = None
         self.replay_memory_file_path: str = replay_memory_file_path
 
-    def get_move(self, player_perspective: PlayerPerspective, leader_move: Optional[Trick]) -> Move:
+    def get_move(self, player_perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         """
             This function simply calls the get_move of the provided bot
         """
@@ -108,8 +92,8 @@ class MLDataBot(Bot):
         param won: Did this bot win the game?
         param player_perspective: The final state of the game.
         """
-        # we retrieve the game history while actually discarding the last useless history record (which is after the game has ended)
-        game_history = player_perspective.get_game_history()[:-1]
+        # we retrieve the game history while actually discarding the last useless history record (which is after the game has ended), we know none of the Tricks can be None
+        game_history: list[tuple[PlayerPerspective, Trick]] = cast(list[tuple[PlayerPerspective, Trick]], player_perspective.get_game_history()[:-1])
         # we also save the training label "won or lost"
         won_label = won
 
@@ -139,7 +123,7 @@ class MLDataBot(Bot):
 
 def train_ML_model(replay_memory_filename: str = 'test_replay_memory',
                    replay_memories_directory: str = 'ML_replay_memories',
-                   model_name: str = 'test_model', model_dir: str = "ML_models", overwrite: bool = True):
+                   model_name: str = 'test_model', model_dir: str = "ML_models", overwrite: bool = True) -> None:
     # check if directory exists, and if not, then create it
     if not os.path.exists(model_dir):
         os.mkdir(model_dir)
@@ -162,14 +146,14 @@ def train_ML_model(replay_memory_filename: str = 'test_replay_memory',
     if not os.path.exists(replay_memory_file_path):
         raise ValueError(f"Dataset was not found at: {replay_memory_file_path} !")
 
-    data: list = []
-    targets: list = []
+    data: list[list[int]] = []
+    targets: list[int] = []
     with open(file=replay_memory_file_path, mode="r") as replay_memory_file:
         for line in replay_memory_file:
-            feature_list, won_label = line.split("||")
-            feature_list = feature_list.split(",")
-            feature_list = [int(feature) for feature in feature_list]
-            won_label = int(won_label)
+            feature_string, won_label_str = line.split("||")
+            feature_list_strings: list[str] = feature_string.split(",")
+            feature_list = [int(feature) for feature in feature_list_strings]
+            won_label = int(won_label_str)
             data.append(feature_list)
             targets.append(won_label)
 
@@ -201,9 +185,6 @@ def train_ML_model(replay_memory_filename: str = 'test_replay_memory',
 
     print("Starting training phase...")
 
-    # with open(options.dset_path, 'rb') as output:
-    #     data, target = pickle.load(output)
-
     # Train a neural network
     learner = MLPClassifier(hidden_layer_sizes=hidden_layer_sizes, learning_rate_init=learning_rate,
                             alpha=regularization_strength, verbose=True, early_stopping=True, n_iter_no_change=6)
@@ -220,7 +201,7 @@ def train_ML_model(replay_memory_filename: str = 'test_replay_memory',
 
 
 def create_state_and_actions_vector_representation(player_perspective: PlayerPerspective, leader_move: Optional[Move],
-                                                   follower_move: Optional[Move]) -> List:
+                                                   follower_move: Optional[Move]) -> List[int]:
     """
     This function takes as input a PlayerPerspective variable, and the two moves of leader and follower,
     and returns a list of complete feature representation that contains all information
@@ -232,7 +213,7 @@ def create_state_and_actions_vector_representation(player_perspective: PlayerPer
     return player_game_state_representation + leader_move_representation + follower_move_representation
 
 
-def get_one_hot_encoding_of_card_suit(card_suit: Suit) -> List:
+def get_one_hot_encoding_of_card_suit(card_suit: Suit) -> List[int]:
     """
     Translating the suit of a card into one hot vector encoding of size 4 and type of numpy ndarray.
     """
@@ -251,7 +232,7 @@ def get_one_hot_encoding_of_card_suit(card_suit: Suit) -> List:
     return card_suit_one_hot
 
 
-def get_one_hot_encoding_of_card_rank(card_rank: Rank) -> List:
+def get_one_hot_encoding_of_card_rank(card_rank: Rank) -> List[int]:
     """
     Translating the rank of a card into one hot vector encoding of size 13 and type of numpy ndarray.
     """
@@ -287,7 +268,7 @@ def get_one_hot_encoding_of_card_rank(card_rank: Rank) -> List:
     return card_rank_one_hot
 
 
-def get_move_feature_vector(move: Optional[Move]) -> List:
+def get_move_feature_vector(move: Optional[Move]) -> List[int]:
     """
         in case there isn't any move provided move to encode, we still need to create a "padding"-"meaningless" vector of the same size,
         filled with 0s, since the ML models need to receive input of the same dimensionality always.
@@ -314,14 +295,14 @@ def get_move_feature_vector(move: Optional[Move]) -> List:
         else:
             move_type_one_hot_encoding = [1, 0, 0]
             card = move.card
-        move_type_one_hot_encoding_numpy_array: List = move_type_one_hot_encoding
-        card_rank_one_hot_encoding_numpy_array: List = get_one_hot_encoding_of_card_rank(card.rank)
-        card_suit_one_hot_encoding_numpy_array: List = get_one_hot_encoding_of_card_suit(card.suit)
+        move_type_one_hot_encoding_numpy_array = move_type_one_hot_encoding
+        card_rank_one_hot_encoding_numpy_array = get_one_hot_encoding_of_card_rank(card.rank)
+        card_suit_one_hot_encoding_numpy_array = get_one_hot_encoding_of_card_suit(card.suit)
 
     return move_type_one_hot_encoding_numpy_array + card_rank_one_hot_encoding_numpy_array + card_suit_one_hot_encoding_numpy_array
 
 
-def get_state_feature_vector(player_perspective: PlayerPerspective) -> List:
+def get_state_feature_vector(player_perspective: PlayerPerspective) -> List[int]:
     """
         This function gathers all subjective information that this bot has access to, that can be used to decide its next move, including:
         - points of this player (int)
@@ -338,7 +319,7 @@ def get_state_feature_vector(player_perspective: PlayerPerspective) -> List:
         It should only include any earlier actions of other agents (so the action of the other agent in case that is the leader)
     """
     # a list of all the features that consist the state feature set, of type np.ndarray
-    state_feature_list: list = []
+    state_feature_list: list[int] = []
 
     player_score = player_perspective.get_my_score()
     # - points of this player (int)
@@ -377,7 +358,7 @@ def get_state_feature_vector(player_perspective: PlayerPerspective) -> List:
     state_feature_list += [talon_size]
 
     # - if this player is leader (1-hot encoding)
-    i_am_leader = [0, 1] if player_perspective.am_i_leader() == GamePhase.TWO else [1, 0]
+    i_am_leader = [0, 1] if player_perspective.am_i_leader() else [1, 0]
     # add this features to the feature set
     state_feature_list += i_am_leader
 
@@ -391,10 +372,10 @@ def get_state_feature_vector(player_perspective: PlayerPerspective) -> List:
     # v) be the trump card or vi) in an unknown position -> either on the talon or on the opponent's hand
     # There are all different cases regarding card's knowledge, and we represent these 6 cases using one hot encoding vectors as seen bellow.
 
-    deck_knowledge_in_consecutive_one_hot_encodings: list = []
+    deck_knowledge_in_consecutive_one_hot_encodings: list[int] = []
 
     for card in SchnapsenDeckGenerator.get_initial_deck():
-        card_knowledge_in_one_hot_encoding: list
+        card_knowledge_in_one_hot_encoding: list[int]
         # i) on player's hand
         if card in hand_cards:
             card_knowledge_in_one_hot_encoding = [0, 0, 0, 0, 0, 1]
