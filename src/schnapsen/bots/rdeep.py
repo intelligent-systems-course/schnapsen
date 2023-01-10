@@ -8,7 +8,7 @@ class RdeepBot(Bot):
         """
         Create a new rdeep bot.
 
-        :param num_samples: how many samples to take per move, also how many 
+        :param num_samples: how many samples to take per move, also how many
         :param depth: how deep to sample
         :param rand: the source of randomness for this Bot
         """
@@ -34,9 +34,10 @@ class RdeepBot(Bot):
                 if score > best_score:
                     score = best_score
                     best_move = move
+        assert best_move is not None
         return best_move
 
-    def __evaluate(self, gamestate: GameState, engine: GamePlayEngine, leader_move: Optional[Move], my_move: Move, ):
+    def __evaluate(self, gamestate: GameState, engine: GamePlayEngine, leader_move: Optional[Move], my_move: Move) -> float:
         """
         Evaluates the value of the given state for the given player
         :param state: The state to evaluate
@@ -46,17 +47,20 @@ class RdeepBot(Bot):
         """
         score = 0.0
         for _ in range(self.__num_samples):
+            me: Bot
+            leader_bot: Bot
+            follower_bot: Bot
 
             if leader_move:
                 # we know what the other bot played
-                opponent = leader_bot = FirstFixedMoveThenRandomBot(leader_move, self.__rand)
+                leader_bot = FirstFixedMoveThenRandomBot(leader_move, self.__rand)
                 # I am the follower
                 me = follower_bot = FirstFixedMoveThenRandomBot(my_move, self.__rand)
             else:
                 # I am the leader bot
                 me = leader_bot = FirstFixedMoveThenRandomBot(my_move, self.__rand)
                 # We assume the other bot just random
-                opponent = follower_bot = RandBot(self.__rand)
+                follower_bot = RandBot(self.__rand)
 
             game_state, _ = engine.play_at_most_n_tricks(game_state=gamestate, new_leader=leader_bot, new_follower=follower_bot, leader_move=leader_move, n=self.__depth)
 
