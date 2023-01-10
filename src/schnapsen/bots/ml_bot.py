@@ -78,11 +78,11 @@ class MLDataBot(Bot):
         # self.my_history: Optional[list[tuple[PlayerPerspective, Optional[PartialTrick]]]] = None
         self.replay_memory_file_path: str = replay_memory_file_path
 
-    def get_move(self, player_perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         """
             This function simply calls the get_move of the provided bot
         """
-        return self.bot.get_move(player_perspective=player_perspective, leader_move=leader_move)
+        return self.bot.get_move(state=state, leader_move=leader_move)
 
     def notify_game_end(self, won: bool, player_perspective: 'PlayerPerspective') -> None:
         """
