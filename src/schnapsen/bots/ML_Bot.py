@@ -48,17 +48,26 @@ class MLPlayingBot(Bot):
                 action_state_representations.append(state_representation + leader_move_representation + my_move_representation)
 
         # select action with the highest probability of winning, according to the trained model
-        highest_winning_probability: numbers = -1
-        best_move_index: int = -1
+        # highest_winning_probability: numbers = -1
+        # best_move_index: int = -1
 
-        for move_index, model_input in enumerate(action_state_representations):
-            winning_probability = self.__model.predict_proba(action_state_representations)[0]
-            # Weigh the win/loss outcomes (-1 and 1) by their probabilities
-            # res = -1.0 * prob[classes.index('lost')] + 1.0 * prob[classes.index('won')] ?? Do we need this ??
-            if winning_probability > highest_winning_probability:
-                best_move_index = move_index
-
+        model_output = self.__model.predict_proba(action_state_representations)
+        winning_probabilities_of_moves = [outcome_prob[1] for outcome_prob in model_output]
+        best_move_index = np.argmax(winning_probabilities_of_moves)
         best_move = my_valid_moves[best_move_index]
+        #
+        # # print(winning_probability)
+        # # exit()
+        #
+        # for move_index, model_input in enumerate(action_state_representations):
+        #     action_winning_probability =
+        #     print(action_winning_probability)
+        #     # Weigh the win/loss outcomes (-1 and 1) by their probabilities
+        #     # res = -1.0 * prob[classes.index('lost')] + 1.0 * prob[classes.index('won')] ?? Do we need this ??
+        #     if action_winning_probability > highest_winning_probability:
+        #         best_move_index = move_index
+        #
+        # best_move = my_valid_moves[best_move_index]
 
         # return the best move
         return best_move
@@ -76,19 +85,15 @@ class MLDataBot(Bot):
     The replay memories are stored under the directory "ML_replay_memories" in a file whose filename
     is passed through the parameter "replay_memory_filename" when creating a MLDataBot object.
     """
-    def __init__(self, bot: Bot, replay_memory_filename: str, replay_memories_directory: str = 'ML_replay_memories') -> None:
+    def __init__(self, bot: Bot, replay_memory_file_path: str) -> None:
         """
         bot: the provided bot that will actually play the game and make decisions
         replay_memory_filename: the filename under which the replay memory records will be stored, under the directory "ML_replay_memories"
         """
-        self.bot = bot
+        self.bot: Bot = bot
         # self.my_history: Optional[list[tuple[PlayerPerspective, Optional[PartialTrick]]]] = None
-        self.replay_memory_filename = replay_memory_filename
-        self.replay_memories_directory = replay_memories_directory
+        self.replay_memory_file_path: str = replay_memory_file_path
 
-        # make sure the directory exists already, and if not, then create it.
-        if not os.path.exists(self.replay_memories_directory):
-            os.mkdir(self.replay_memories_directory)
 
     def get_move(self, player_perspective: PlayerPerspective, leader_move: Optional[Trick]) -> Move:
         """
@@ -128,15 +133,14 @@ class MLDataBot(Bot):
                 player_perspective=round_player_perspective, leader_move=leader_move, follower_move=follower_move)
 
             # append replay memory to file
-            with open(file=os.path.join(self.replay_memories_directory, self.replay_memory_filename), mode="a") as replay_memory_file:
+            with open(file=self.replay_memory_file_path, mode="a") as replay_memory_file:
                 # replay_memory_line: List[Tuple[list, number]] = [state_actions_representation, won_label]
                 # writing to replay memory file in the form "[feature list] || int(won_label)]
                 replay_memory_file.write(f"{str(state_actions_representation)[1:-1]} || {int(won_label)}\n")
 
 
 def train_ML_model(replay_memory_filename: str = 'test_replay_memory', replay_memories_directory: str = 'ML_replay_memories',
-                   model_name: str = 'test_model', model_dir: str = "ML_models", override: bool = False):
-
+                   model_name: str = 'test_model', model_dir: str = "ML_models", overwrite: bool = True):
     # check if directory exists, and if not, then create it
     if not os.path.exists(model_dir):
         os.mkdir(model_dir)
@@ -144,15 +148,22 @@ def train_ML_model(replay_memory_filename: str = 'test_replay_memory', replay_me
     # Check if model exists already
     model_file_path = os.path.join(model_dir, model_name)
     if os.path.exists(model_file_path):
-        if override:
+        if overwrite:
+            print("Model with name: "+ model_name + ", in directory: " + model_dir + ", exists already and will be overwritten as selected.")
             os.remove(model_file_path)
         else:
-            raise ValueError("Model with name: "+ model_name + ", in directory: " + model_dir + ", exists already and override is set to False."
-                             + "\n Process terminates!")
+            raise ValueError("Model with name: "+ model_name + ", in directory: " + model_dir + ", exists already and overwrite is set to False."
+                             + "\nNo new model will be trained, process terminates")
+
+    replay_memory_file_path = os.path.join(replay_memories_directory, replay_memory_filename)
+
+    # check that the replay memory dataset is found at the specified location
+    if not os.path.exists(replay_memory_file_path):
+        raise ValueError(f"Dataset was not found at: {replay_memory_file_path} !")
 
     data: list = []
     targets: list = []
-    with open(file=os.path.join(replay_memories_directory, replay_memory_filename), mode="r") as replay_memory_file:
+    with open(file=replay_memory_file_path, mode="r") as replay_memory_file:
         for line in replay_memory_file:
             feature_list, won_label = line.split(("||"))
             feature_list = feature_list.split(",")
@@ -161,6 +172,11 @@ def train_ML_model(replay_memory_filename: str = 'test_replay_memory', replay_me
             data.append(feature_list)
             targets.append(won_label)
 
+    print("Dataset Statistics:")
+    samples_of_wins = sum(targets)
+    samples_of_losses = len(targets) - samples_of_wins
+    print("Samples of wins:", samples_of_wins)
+    print("Samples of losses:", samples_of_losses)
 
     # Play around with the model parameters below
 
@@ -180,6 +196,8 @@ def train_ML_model(replay_memory_filename: str = 'test_replay_memory', replay_me
 
     #############################################
 
+
+
     start = time.time()
 
     print("Starting training phase...")
@@ -193,10 +211,6 @@ def train_ML_model(replay_memory_filename: str = 'test_replay_memory', replay_me
 
     model = learner.fit(data, targets)
 
-    samples_of_wins = sum(targets)
-    samples_of_losses = len(targets) - samples_of_wins
-    print("Samples of wins:", samples_of_wins)
-    print("Samples of losses:", samples_of_losses)
 
     # Store the model
     joblib.dump(model, model_file_path)
