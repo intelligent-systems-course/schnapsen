@@ -122,11 +122,9 @@ def try_ML_bot_game() -> None:
 
 
 # these 3 should do it:
-# create_ML_replay_memory_dataset()
+create_ML_replay_memory_dataset()
 # train_ML_model_main()
 # try_ML_bot_game()
-
-
 
 
 @main.command()

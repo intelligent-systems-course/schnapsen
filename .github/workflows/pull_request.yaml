@@ -64,10 +64,10 @@ jobs:
           python -m pip install .[test]
       - name: Lint with flake8
         run: |
-          flake8 src tests
+          flake8 src tests executables
       - name: Check typing with mypy
         run: |
-          mypy --install-types --non-interactive  --strict src tests
+          mypy --install-types --non-interactive  --strict src tests executables
       - name: Test with pytest
         run: |
           py.test tests

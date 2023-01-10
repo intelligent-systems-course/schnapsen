@@ -1,12 +1,8 @@
-import numbers
-
-from src.schnapsen.game import Bot, PlayerPerspective, PartialTrick, SchnapsenDeckGenerator, Move, Trick, GamePhase, ExchangeTrick
-from typing import Optional
+from schnapsen.game import Bot, PlayerPerspective, PartialTrick, SchnapsenDeckGenerator, Move, Trick, GamePhase
 import numpy as np
-from typing import Iterable, List, Optional, Tuple, Union, cast, Any
-from src.schnapsen.deck import Suit, Rank
+from typing import List, Optional
+from schnapsen.deck import Suit, Rank
 from sklearn.neural_network import MLPClassifier
-import sklearn.linear_model
 import joblib
 import os
 import time
@@ -16,6 +12,7 @@ class MLPlayingBot(Bot):
     """
     This class loads a trained ML model and uses it to play
     """
+
     def __init__(self, model_name: str = 'test_model', model_dir: str = "ML_models") -> None:
         model_file_path = os.path.join(model_dir, model_name)
         if not os.path.exists(model_file_path):
@@ -42,10 +39,12 @@ class MLPlayingBot(Bot):
         if player_perspective.am_i_leader():
             follower_move_representation = get_move_feature_vector(None)
             for my_move_representation in my_move_representations:
-                action_state_representations.append(state_representation + my_move_representation + follower_move_representation)
+                action_state_representations.append(
+                    state_representation + my_move_representation + follower_move_representation)
         else:
             for my_move_representation in my_move_representations:
-                action_state_representations.append(state_representation + leader_move_representation + my_move_representation)
+                action_state_representations.append(
+                    state_representation + leader_move_representation + my_move_representation)
 
         # select action with the highest probability of winning, according to the trained model
         # highest_winning_probability: numbers = -1
@@ -85,6 +84,7 @@ class MLDataBot(Bot):
     The replay memories are stored under the directory "ML_replay_memories" in a file whose filename
     is passed through the parameter "replay_memory_filename" when creating a MLDataBot object.
     """
+
     def __init__(self, bot: Bot, replay_memory_file_path: str) -> None:
         """
         bot: the provided bot that will actually play the game and make decisions
@@ -94,13 +94,11 @@ class MLDataBot(Bot):
         # self.my_history: Optional[list[tuple[PlayerPerspective, Optional[PartialTrick]]]] = None
         self.replay_memory_file_path: str = replay_memory_file_path
 
-
     def get_move(self, player_perspective: PlayerPerspective, leader_move: Optional[Trick]) -> Move:
         """
             This function simply calls the get_move of the provided bot
         """
         return self.bot.get_move(player_perspective=player_perspective, leader_move=leader_move)
-
 
     def notify_game_end(self, won: bool, player_perspective: 'PlayerPerspective') -> None:
         """
@@ -139,7 +137,8 @@ class MLDataBot(Bot):
                 replay_memory_file.write(f"{str(state_actions_representation)[1:-1]} || {int(won_label)}\n")
 
 
-def train_ML_model(replay_memory_filename: str = 'test_replay_memory', replay_memories_directory: str = 'ML_replay_memories',
+def train_ML_model(replay_memory_filename: str = 'test_replay_memory',
+                   replay_memories_directory: str = 'ML_replay_memories',
                    model_name: str = 'test_model', model_dir: str = "ML_models", overwrite: bool = True):
     # check if directory exists, and if not, then create it
     if not os.path.exists(model_dir):
@@ -149,11 +148,13 @@ def train_ML_model(replay_memory_filename: str = 'test_replay_memory', replay_me
     model_file_path = os.path.join(model_dir, model_name)
     if os.path.exists(model_file_path):
         if overwrite:
-            print("Model with name: "+ model_name + ", in directory: " + model_dir + ", exists already and will be overwritten as selected.")
+            print(
+                "Model with name: " + model_name + ", in directory: " + model_dir + ", exists already and will be overwritten as selected.")
             os.remove(model_file_path)
         else:
-            raise ValueError("Model with name: "+ model_name + ", in directory: " + model_dir + ", exists already and overwrite is set to False."
-                             + "\nNo new model will be trained, process terminates")
+            raise ValueError(
+                "Model with name: " + model_name + ", in directory: " + model_dir + ", exists already and overwrite is set to False."
+                "\nNo new model will be trained, process terminates")
 
     replay_memory_file_path = os.path.join(replay_memories_directory, replay_memory_filename)
 
@@ -165,7 +166,7 @@ def train_ML_model(replay_memory_filename: str = 'test_replay_memory', replay_me
     targets: list = []
     with open(file=replay_memory_file_path, mode="r") as replay_memory_file:
         for line in replay_memory_file:
-            feature_list, won_label = line.split(("||"))
+            feature_list, won_label = line.split("||")
             feature_list = feature_list.split(",")
             feature_list = [int(feature) for feature in feature_list]
             won_label = int(won_label)
@@ -191,12 +192,10 @@ def train_ML_model(replay_memory_filename: str = 'test_replay_memory', replay_me
     # A low learning rate will converge slowly, but a large one might overshoot.
     learning_rate = 0.0001
 
-    # The regularization term aims to prevent overfiting, and we can tweak its strength here.
+    # The regularization term aims to prevent overfitting, and we can tweak its strength here.
     regularization_strength = 0.0001
 
     #############################################
-
-
 
     start = time.time()
 
@@ -206,21 +205,22 @@ def train_ML_model(replay_memory_filename: str = 'test_replay_memory', replay_me
     #     data, target = pickle.load(output)
 
     # Train a neural network
-    learner = MLPClassifier(hidden_layer_sizes=hidden_layer_sizes, learning_rate_init=learning_rate, alpha=regularization_strength, verbose=True, early_stopping=True, n_iter_no_change=6)
+    learner = MLPClassifier(hidden_layer_sizes=hidden_layer_sizes, learning_rate_init=learning_rate,
+                            alpha=regularization_strength, verbose=True, early_stopping=True, n_iter_no_change=6)
     # learner = sklearn.linear_model.LogisticRegression()
 
     model = learner.fit(data, targets)
-
 
     # Store the model
     joblib.dump(model, model_file_path)
 
     end = time.time()
 
-    print('Done. Time to train:', (end-start)/60, 'minutes.')
+    print('Done. Time to train:', (end - start) / 60, 'minutes.')
 
 
-def create_state_and_actions_vector_representation(player_perspective: PlayerPerspective, leader_move: Optional[Move], follower_move: Optional[Move]) -> List:
+def create_state_and_actions_vector_representation(player_perspective: PlayerPerspective, leader_move: Optional[Move],
+                                                   follower_move: Optional[Move]) -> List:
     """
     This function takes as input a PlayerPerspective variable, and the two moves of leader and follower,
     and returns a list of complete feature representation that contains all information
@@ -237,13 +237,13 @@ def get_one_hot_encoding_of_card_suit(card_suit: Suit) -> List:
     Translating the suit of a card into one hot vector encoding of size 4 and type of numpy ndarray.
     """
     card_suit_one_hot: list[int]
-    if card_suit.name == Suit.HEARTS.name:
+    if card_suit == Suit.HEARTS:
         card_suit_one_hot = [0, 0, 0, 1]
-    elif card_suit.name == Suit.CLUBS.name:
+    elif card_suit == Suit.CLUBS:
         card_suit_one_hot = [0, 0, 1, 0]
-    elif card_suit.name == Suit.SPADES.name:
+    elif card_suit == Suit.SPADES:
         card_suit_one_hot = [0, 1, 0, 0]
-    elif card_suit.name == Suit.DIAMONDS.name:
+    elif card_suit == Suit.DIAMONDS:
         card_suit_one_hot = [1, 0, 0, 0]
     else:
         raise ValueError("Suit of card was not found!")
@@ -256,34 +256,34 @@ def get_one_hot_encoding_of_card_rank(card_rank: Rank) -> List:
     Translating the rank of a card into one hot vector encoding of size 13 and type of numpy ndarray.
     """
     card_rank_one_hot: list[int]
-    if card_rank.name == Rank.ACE.name:
+    if card_rank == Rank.ACE:
         card_rank_one_hot = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1]
-    elif card_rank.name == Rank.TWO.name:
+    elif card_rank == Rank.TWO:
         card_rank_one_hot = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0]
-    elif card_rank.name == Rank.THREE.name:
+    elif card_rank == Rank.THREE:
         card_rank_one_hot = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0]
-    elif card_rank.name == Rank.FOUR.name:
+    elif card_rank == Rank.FOUR:
         card_rank_one_hot = [0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0]
-    elif card_rank.name == Rank.FIVE.name:
+    elif card_rank == Rank.FIVE:
         card_rank_one_hot = [0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0]
-    elif card_rank.name == Rank.SIX.name:
+    elif card_rank == Rank.SIX:
         card_rank_one_hot = [0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0]
-    elif card_rank.name == Rank.SEVEN.name:
+    elif card_rank == Rank.SEVEN:
         card_rank_one_hot = [0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]
-    elif card_rank.name == Rank.EIGHT.name:
+    elif card_rank == Rank.EIGHT:
         card_rank_one_hot = [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0]
-    elif card_rank.name == Rank.NINE.name:
+    elif card_rank == Rank.NINE:
         card_rank_one_hot = [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0]
-    elif card_rank.name == Rank.TEN.name:
+    elif card_rank == Rank.TEN:
         card_rank_one_hot = [0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    elif card_rank.name == Rank.JACK.name:
+    elif card_rank == Rank.JACK:
         card_rank_one_hot = [0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    elif card_rank.name == Rank.QUEEN.name:
+    elif card_rank == Rank.QUEEN:
         card_rank_one_hot = [0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
-    elif card_rank.name == Rank.KING.name:
+    elif card_rank == Rank.KING:
         card_rank_one_hot = [1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
     else:
-        raise ValueError("Rank of card was not found!")
+        raise AssertionError("Provided card Rank does not exist!")
     return card_rank_one_hot
 
 
