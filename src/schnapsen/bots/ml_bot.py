@@ -1,5 +1,4 @@
 from schnapsen.game import Bot, PlayerPerspective, SchnapsenDeckGenerator, Move, Trick, GamePhase
-import numpy as np
 from typing import List, Optional, cast
 from schnapsen.deck import Suit, Rank
 from sklearn.neural_network import MLPClassifier
@@ -49,10 +48,13 @@ class MLPlayingBot(Bot):
 
         model_output = self.__model.predict_proba(action_state_representations)
         winning_probabilities_of_moves = [outcome_prob[1] for outcome_prob in model_output]
-        best_move_index = np.argmax(winning_probabilities_of_moves)
-        best_move = my_valid_moves[best_move_index]
-
-        # return the best move
+        highest_value: float = -1
+        best_move: Move
+        for index, value in enumerate(winning_probabilities_of_moves):
+            if value > highest_value:
+                highest_value = value
+                best_move = my_valid_moves[index]
+        assert best_move
         return best_move
 
 
