@@ -29,7 +29,7 @@ class RdeepBot(Bot):
         best_move = None
         for move in moves:
             for _ in range(self.__num_samples):
-                gamestate = state.make_assumption(rand=self.__rand)
+                gamestate = state.make_assumption(leader_move=leader_move, rand=self.__rand)
                 score = self.__evaluate(gamestate, state.get_engine(), leader_move, move)
                 if score > best_score:
                     score = best_score
@@ -53,23 +53,23 @@ class RdeepBot(Bot):
 
             if leader_move:
                 # we know what the other bot played
-                leader_bot = FirstFixedMoveThenRandomBot(leader_move, self.__rand)
+                leader_bot = FirstFixedMoveThenBaseBot(RandBot(rand=self.__rand), leader_move)
                 # I am the follower
-                me = follower_bot = FirstFixedMoveThenRandomBot(my_move, self.__rand)
+                me = follower_bot = FirstFixedMoveThenBaseBot(RandBot(rand=self.__rand), my_move)
             else:
                 # I am the leader bot
-                me = leader_bot = FirstFixedMoveThenRandomBot(my_move, self.__rand)
+                me = leader_bot = FirstFixedMoveThenBaseBot(RandBot(rand=self.__rand), my_move)
                 # We assume the other bot just random
                 follower_bot = RandBot(self.__rand)
 
-            game_state, _ = engine.play_at_most_n_tricks(game_state=gamestate, new_leader=leader_bot, new_follower=follower_bot, leader_move=leader_move, n=self.__depth)
+            new_game_state, _ = engine.play_at_most_n_tricks(game_state=gamestate, new_leader=leader_bot, new_follower=follower_bot, n=self.__depth)
 
-            if game_state.leader.implementation == me:
-                my_score = game_state.leader.score.direct_points
-                opponent_score = game_state.follower.score.direct_points
+            if new_game_state.leader.implementation == me:
+                my_score = new_game_state.leader.score.direct_points
+                opponent_score = new_game_state.follower.score.direct_points
             else:
-                my_score = game_state.follower.score.direct_points
-                opponent_score = game_state.leader.score.direct_points
+                my_score = new_game_state.follower.score.direct_points
+                opponent_score = new_game_state.leader.score.direct_points
 
             heuristic = my_score / (my_score + opponent_score)
             score += heuristic
@@ -85,15 +85,15 @@ class RandBot(Bot):
         return self.rand.choice(state.valid_moves())
 
 
-class FirstFixedMoveThenRandomBot(RandBot):
-    def __init__(self, first_move: Move, rand: Random) -> None:
+class FirstFixedMoveThenBaseBot(Bot):
+    def __init__(self, base_bot: Bot, first_move: Move) -> None:
         self.first_move = first_move
         self.first_move_played = False
-        self.rand = rand
+        self.base_bot = base_bot
 
     def get_move(self, state: 'PlayerPerspective', leader_move: Optional['Move']) -> 'Move':
         if not self.first_move_played:
             self.first_move_played = True
             return self.first_move
         else:
-            return super().get_move(state=state, leader_move=leader_move)
+            return self.base_bot.get_move(state=state, leader_move=leader_move)
