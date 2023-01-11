@@ -16,7 +16,8 @@ pip install -e .
 To run the tests, run:
 
 ```sh
-pip install -e '.[test]'
+pip install -e '.[test]'  # for Linux / MacOS
+pip install -e ".[test]"  # for Windows
 pytest ./tests
 ```
 
