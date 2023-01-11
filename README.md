@@ -7,7 +7,8 @@ To get to know the concept of the game, please visit
 
 This is the improved platform for the schnapsen card game.
 
-Python3.9 is highly recommended. To get started, install the schnapsen package in editable mode by running:
+Python3.9 is highly recommended. To get started, install the schnapsen package in editable
+mode by running:
 
 ```sh
 pip install -e .
@@ -21,15 +22,46 @@ pip install -e ".[test]"  # for Windows
 pytest ./tests
 ```
 
-If above doesn't work, try deactivating your python and activating again (or just turn off and back on your console).
+If above doesn't work, try deactivating your python and activating again (or just turn
+off and back on your console).
 
-To test run the GUI, run:
+## Running GUI
+
+The GUI lets you play against a bot (e.g., You vs. RandBot) in a GUI mode.
+
+To run the GUI, run:
 
 ```sh
 python executables/server.py
 ```
 
-You will find bot examples in the [`src/schnapsen/bots`](./src/schnapsen/bots) folder and executable examples in the executables folder.
+Now that the server is running, open your webbrowser and type in the server address
+(i.e., http://127.0.0.1:8080). By default, you are playing against RandBot. You can play
+against with other bots by running
+
+```sh
+python executables/server.py --bot BOTNAME
+```
+
+where `BOTNAME` can be `RandBot`, `AlphaBetaBot`, `RdeepBot`, `MLDataBot`, or
+`MLPlayingBot`. Not all of them are implemented yet.
+
+You will find bot examples in the [`src/schnapsen/bots`](./src/schnapsen/bots) folder
+and executable examples in the executables folder.
+
+## Running CLI
+
+The CLI let bots play against each other (e.g., RandBot vs. RandBot) in command line.
+
+To run the CLI, run:
+
+```sh
+python executables/cli.py
+```
+
+It will ask you to type arguments. Try different arguments and see it yourself.
+For example, if you want to see how a RandBot play against another RandBot, type
+`python executables/cli.py random-game`.
 
 ## Troubleshooting
 

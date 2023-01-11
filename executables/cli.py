@@ -5,7 +5,7 @@ from typing import Optional
 import click
 from schnapsen.bots import MLDataBot, train_ML_model, MLPlayingBot
 
-from schnapsen.bots.example_bot import ExampleBot # This is a place holder.
+from schnapsen.bots.example_bot import ExampleBot  # This is a place holder.
 
 from schnapsen.game import (Bot, Move, PlayerPerspective,
                             SchnapsenGamePlayEngine, Trump_Exchange)
