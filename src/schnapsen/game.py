@@ -599,7 +599,7 @@ class PlayerPerspective(ABC):
             # If we were leader, and we remained, then we were leader before
             # If we were follower, and we remained, then we were follower before
             # If we were leader, and we did not remain, then we were follower before
-            # If we were leader, and we did not remain, then we were leader before
+            # If we were follower, and we did not remain, then we were leader before
             # This logic gets reflected by the negation of a xor
             current_leader = not current_leader ^ current.leader_remained_leader
 
@@ -818,13 +818,13 @@ class PlayerPerspective(ABC):
 class _DummyBot(Bot):
     """A bot used by PlayerPerspective.make_assumption to replace the real bots. This bot cannot play and will throw an Exception for everything"""
 
-    def get_move(self, state: 'PlayerPerspective', leader_move: Optional['Move']) -> 'Move':
+    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         raise Exception("The GameState from make_assumption removes the real bots from the Game. If you want to continue the game, provide new Bots. See copy_with_other_bots in the GameState class.")
 
-    def notify_game_end(self, won: bool, state: 'PlayerPerspective') -> None:
+    def notify_game_end(self, won: bool, state: PlayerPerspective) -> None:
         raise Exception("The GameState from make_assumption removes the real bots from the Game. If you want to continue the game, provide new Bots. See copy_with_other_bots in the GameState class.")
 
-    def notify_trump_exchange(self, move: 'Trump_Exchange') -> None:
+    def notify_trump_exchange(self, move: Trump_Exchange) -> None:
         raise Exception("The GameState from make_assumption removes the real bots from the Game. If you want to continue the game, provide new Bots. See copy_with_other_bots in the GameState class.")
 
 

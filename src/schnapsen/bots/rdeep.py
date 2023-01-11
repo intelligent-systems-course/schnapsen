@@ -18,7 +18,7 @@ class RdeepBot(Bot):
         self.__depth = depth
         self.__rand = rand
 
-    def get_move(self, state: 'PlayerPerspective', leader_move: Optional['Move']) -> 'Move':
+    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         # get the list of valid moves, and shuffle it such
         # that we get a random move of the highest scoring
         # ones if there are multiple highest scoring moves.
@@ -91,7 +91,7 @@ class FirstFixedMoveThenBaseBot(Bot):
         self.first_move_played = False
         self.base_bot = base_bot
 
-    def get_move(self, state: 'PlayerPerspective', leader_move: Optional['Move']) -> 'Move':
+    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         if not self.first_move_played:
             self.first_move_played = True
             return self.first_move
