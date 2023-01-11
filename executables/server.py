@@ -1,19 +1,18 @@
-import argparse
 import random
 from schnapsen.bots import SchnapsenServer
 from schnapsen.bots import RandBot, AlphaBetaBot, RdeepBot
-from schnapsen.game import SchnapsenGamePlayEngine
+from schnapsen.game import SchnapsenGamePlayEngine, Bot
+import click
 
 
+@click.command()
+@click.option('--bot', '-b',
+              type=click.Choice(['AlphaBetaBot', 'RdeepBot', 'MLDataBot', 'MLPlayingBot', 'RandBot'], case_sensitive=False),
+              default='RandBot', help="The bot you want to play against.")
 def main(bot: str) -> None:
-    """Run the GUI.
-
-    Args
-    ----
-    bot: RandBot, AlphaBetaBot, RdeepBot, MLDataBot, or MLPlayingBot
-
-    """
+    """Run the GUI."""
     engine = SchnapsenGamePlayEngine()
+    bot1: Bot
     with SchnapsenServer() as s:
         if bot.lower() == "randbot":
             bot1 = RandBot(12)
@@ -29,19 +28,4 @@ def main(bot: str) -> None:
 
 
 if __name__ == "__main__":
-    parser = argparse.ArgumentParser(description="GUI")
-    parser.add_argument(
-        "-b",
-        "--bot",
-        default="RandBot",
-        type=str,
-        help="The bot you want to play against. Possible options are RandBot, "
-        "AlphaBetaBot, RdeepBot, MLDataBot, or MLPlayingBot. The default is RandBot",
-    )
-    args = parser.parse_args()
-    config = vars(args)
-    print("Arguments:")
-    for k, v in config.items():
-        print(f"  {k:>21} : {v}")
-
-    main(**config)
+    main()
