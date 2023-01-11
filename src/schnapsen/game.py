@@ -442,8 +442,11 @@ class BotState:
         :returns: The move the both played
         """
         move = self.implementation.get_move(state, leader_move=leader_move)
-        # All checks for move are removed from here. There is a chance the implementation returns something wrong, these issues should be captured by the callee, not by this wrapper.
-        return move
+        assert move is not None, f"The bot {self.implementation} returned a move which is None"
+        if not isinstance(move, Move):
+            raise AssertionError(f"The bot returned an object which is not a Move, got {move}")
+        else:
+            return move
 
     def copy(self) -> 'BotState':
         """
