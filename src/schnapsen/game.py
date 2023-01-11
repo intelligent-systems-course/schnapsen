@@ -1475,9 +1475,3 @@ class SchnapsenGamePlayEngine(GamePlayEngine):
 
     def __repr__(self) -> str:
         return super().__repr__()
-
-
-# engine = GamePlayEngine(startingDeck=MyDeck(), hand_generator = HandGenetation, play_trick = MyPlayTrick(), move_requester=Move_Requester, move_validator = MoveValidator(), scorer = ScoreThing() ),
-
-
-# engine.play_game(bot1, bot 2)
