@@ -1,14 +1,14 @@
-# Schnapsen
+# Schnapsen platform - Project Intelligent Systems 2022-2023
 
 ## Getting started
 
-To get to know the concept of the game, please visit
+This is the improved platform for the schnapsen card game. To get to know the concept of the game, please visit
 [this web page](https://www.pagat.com/marriage/schnaps.html).
 
-This is the improved platform for the schnapsen card game.
 
-Python3.9 is highly recommended. To get started, install the schnapsen package in editable
-mode by running:
+To use the platform, your python version must be at least 3.9, we suggest installing conda an using an environment.
+
+To get started, install the schnapsen package and itse dependencies in editable mode by running:
 
 ```sh
 pip install -e .
@@ -17,55 +17,85 @@ pip install -e .
 To run the tests, run:
 
 ```sh
-pip install -e '.[test]'  # for Linux / MacOS
-pip install -e ".[test]"  # for Windows
+pip install -e '.[test]'  # on Linux / MacOS
+pip install -e ".[test]"  # on Windows
 pytest ./tests
 ```
 
-If above doesn't work, try deactivating your python and activating again (or just turn
-off and back on your console).
+If the above fails, try deactivating your environment and activating it again.
+Then retry installing the dependencies.
 
-## Running GUI
+## Running the CLI
 
-The GUI lets you play against a bot (e.g., You vs. RandBot) in a GUI mode.
-
-To run the GUI, run:
-
-```sh
-python executables/server.py
-```
-
-Now that the server is running, open your webbrowser and type in the server address
-(i.e., http://127.0.0.1:8080). By default, you are playing against RandBot. You can play
-against with other bots by running
-
-```sh
-python executables/server.py --bot BOTNAME
-```
-
-where `BOTNAME` can be `RandBot`, `AlphaBetaBot`, `RdeepBot`, `MLDataBot`, or
-`MLPlayingBot`. Not all of them are implemented yet.
-
-You will find bot examples in the [`src/schnapsen/bots`](./src/schnapsen/bots) folder
-and executable examples in the executables folder.
-
-## Running CLI
-
-The CLI let bots play against each other (e.g., RandBot vs. RandBot) in command line.
+After intalling, you can try the provided command line interface examples.
+Most examples are bots playing against each other; read the code for details.
 
 To run the CLI, run:
 
 ```sh
 python executables/cli.py
 ```
+This will list the available commands.
 
-It will ask you to type arguments. Try different arguments and see it yourself.
-For example, if you want to see how a RandBot play against another RandBot, type
+For example, if you want try a RandBot play against another RandBot, type
 `python executables/cli.py random-game`.
+
+
+## Running the GUI
+
+The graphical user interface (GUI) lets you play visually against a bot (e.g., You vs. RandBot).
+
+To start the GUI, run:
+
+```sh
+python executables/server.py
+```
+
+Now, open your webbrowser and type in the server address (i.e., http://127.0.0.1:8080). 
+By default, you are playing against RandBot. You can also play against other bots. Run 
+
+```sh
+python executables/server.py --help
+```
+for more details.
+
+## Implementing more bots
+
+You will find bot examples in the [`src/schnapsen/bots`](./src/schnapsen/bots) folder.
+You can look at the example_bot.py file for various methods provided to your bot.
+
 
 ## Troubleshooting
 
-### [Getting started](#getting-started) doesn't work.
+### Getting the right python ###
+
+The first hurdle in getting the platform to run is getting the right python version on your system.
+An easy way to get that is using virtual environments. We suggest you install [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html) to manage them.
+Then, you can use conda to create a new environment by running
+```sh
+conda create --name project_is python=3.10
+```
+With this environment created, you can start it
+```
+conda activate project_is
+```
+Inside this environment you can install the dependencies as instructed above.
+
+### Run the right python ###
+
+If you install conda and create an environment, you can run python by just running the `python` command.
+However, often your system also provides a python version. 
+To know which python is running, use
+```sh
+which python    # on linux
+where python    # on windows (untested)
+``` 
+Now, you want to look at the output and make sure that this executable is inside the anaconda folder and not where your system stores its executables.
+
+
+
+
+<!--
 
 Most of the time, when you read Github python repo READMEs, they won't tell you how to do things in detail, but simply tell you things like run `python bar`, run `pip install foo`, etc. All of these imply that you are running things in an isolated python environment. Often times this is easily done by creating virtual environments (e.g., venv, conda, etc.), where you know exactly what `python`, `pip`, and other modules you are running. If you are not familiar with it and still want to proceed on your current machine, especially on Windows, below are some tips.
 
@@ -78,3 +108,4 @@ Most of the time, when you read Github python repo READMEs, they won't tell you 
    Don't just run `pip install foo` but do more like `python3.9 -m pip install foo`. Again, if you just run `pip install foo`, we don't know exactly which `pip` your system will run. `python3.9 -m pip install foo` specifies that you want your `python3.9` to run the module (i.e., `-m`) `pip` to do something. The same goes for `python3.9 -m pytest ./tests`, instead of `pytest ./tests`.
 
 Things can be messy if you have multiple python3.9 versions (e.g., `python3.9.1`, `python3.9.10`, etc.). Things can get even more messy when your python binary can't be run as `python3.9` but more like `py3.9` or something. Good luck!
+-->
