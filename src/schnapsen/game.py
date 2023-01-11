@@ -444,7 +444,7 @@ class BotState:
         move = self.implementation.get_move(state, leader_move=leader_move)
         assert move is not None, f"The bot {self.implementation} returned a move which is None"
         if not isinstance(move, Move):
-            raise AssertionError(f"The bot returned an object which is not a Move, got {move}")
+            raise AssertionError(f"The bot {self.implementation} returned an object which is not a Move, got {move}")
         else:
             return move
 
