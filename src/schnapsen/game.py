@@ -1089,7 +1089,7 @@ class SchnapsenTrickImplementer(TrickImplementer):
         leader_game_state = LeaderPerspective(game_state, game_engine)
         leader_move = game_engine.move_requester.get_move(game_state.leader, leader_game_state, None)
         if not game_engine.move_validator.is_legal_leader_move(game_engine, game_state, leader_move):
-            raise Exception("Leader played an illegal move")
+            raise Exception(f"Leader {game_state.leader.implementation} played an illegal move")
 
         return leader_move
 
@@ -1112,7 +1112,7 @@ class SchnapsenTrickImplementer(TrickImplementer):
 
         follower_move = game_engine.move_requester.get_move(game_state.follower, follower_game_state, partial_trick)
         if follower_move not in game_engine.move_validator.get_legal_follower_moves(game_engine, game_state, partial_trick):
-            raise Exception("Follower played an illegal move")
+            raise Exception(f"Follower {game_state.follower.implementation} played an illegal move")
         return cast(RegularMove, follower_move)
 
 
