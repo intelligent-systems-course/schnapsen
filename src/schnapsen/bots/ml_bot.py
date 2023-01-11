@@ -20,7 +20,7 @@ class MLPlayingBot(Bot):
             # load model
             self.__model = joblib.load(model_file_path)
 
-    def get_move(self, player_perspective: 'PlayerPerspective', leader_move: Optional[Move]) -> 'Move':
+    def get_move(self, player_perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         # get the sate feature representation
         state_representation = get_state_feature_vector(player_perspective)
         # get the leader's move representation, even if it is None
@@ -86,7 +86,7 @@ class MLDataBot(Bot):
         """
         return self.bot.get_move(state=state, leader_move=leader_move)
 
-    def notify_game_end(self, won: bool, player_perspective: 'PlayerPerspective') -> None:
+    def notify_game_end(self, won: bool, player_perspective: PlayerPerspective) -> None:
         """
         When the game ends, this function retrieves the game history and more specifically all the replay memories that can
         be derived from it, and stores them in the form of state-actions vector representations and the corresponding outcome of the game

@@ -20,7 +20,7 @@ class GUIBot(Bot):
     def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         return self.server._get_move(self.name, state, leader_move)
 
-    def notify_game_end(self, won: bool, state: 'PlayerPerspective') -> None:
+    def notify_game_end(self, won: bool, state: PlayerPerspective) -> None:
         self.server._post_final_state(self.name, state)
 
 
