@@ -1,0 +1,1016 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
+<meta name="generator" content="pdoc 0.10.0" />
+<title>src.schnapsen.deck API documentation</title>
+<meta name="description" content="" />
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
+<link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
+<link rel="stylesheet preload" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/styles/github.min.css" crossorigin>
+<style>:root{--highlight-color:#fe9}.flex{display:flex !important}body{line-height:1.5em}#content{padding:20px}#sidebar{padding:30px;overflow:hidden}#sidebar > *:last-child{margin-bottom:2cm}.http-server-breadcrumbs{font-size:130%;margin:0 0 15px 0}#footer{font-size:.75em;padding:5px 30px;border-top:1px solid #ddd;text-align:right}#footer p{margin:0 0 0 1em;display:inline-block}#footer p:last-child{margin-right:30px}h1,h2,h3,h4,h5{font-weight:300}h1{font-size:2.5em;line-height:1.1em}h2{font-size:1.75em;margin:1em 0 .50em 0}h3{font-size:1.4em;margin:25px 0 10px 0}h4{margin:0;font-size:105%}h1:target,h2:target,h3:target,h4:target,h5:target,h6:target{background:var(--highlight-color);padding:.2em 0}a{color:#058;text-decoration:none;transition:color .3s ease-in-out}a:hover{color:#e82}.title code{font-weight:bold}h2[id^="header-"]{margin-top:2em}.ident{color:#900}pre code{background:#f8f8f8;font-size:.8em;line-height:1.4em}code{background:#f2f2f1;padding:1px 4px;overflow-wrap:break-word}h1 code{background:transparent}pre{background:#f8f8f8;border:0;border-top:1px solid #ccc;border-bottom:1px solid #ccc;margin:1em 0;padding:1ex}#http-server-module-list{display:flex;flex-flow:column}#http-server-module-list div{display:flex}#http-server-module-list dt{min-width:10%}#http-server-module-list p{margin-top:0}.toc ul,#index{list-style-type:none;margin:0;padding:0}#index code{background:transparent}#index h3{border-bottom:1px solid #ddd}#index ul{padding:0}#index h4{margin-top:.6em;font-weight:bold}@media (min-width:200ex){#index .two-column{column-count:2}}@media (min-width:300ex){#index .two-column{column-count:3}}dl{margin-bottom:2em}dl dl:last-child{margin-bottom:4em}dd{margin:0 0 1em 3em}#header-classes + dl > dd{margin-bottom:3em}dd dd{margin-left:2em}dd p{margin:10px 0}.name{background:#eee;font-weight:bold;font-size:.85em;padding:5px 10px;display:inline-block;min-width:40%}.name:hover{background:#e0e0e0}dt:target .name{background:var(--highlight-color)}.name > span:first-child{white-space:nowrap}.name.class > span:nth-child(2){margin-left:.4em}.inherited{color:#999;border-left:5px solid #eee;padding-left:1em}.inheritance em{font-style:normal;font-weight:bold}.desc h2{font-weight:400;font-size:1.25em}.desc h3{font-size:1em}.desc dt code{background:inherit}.source summary,.git-link-div{color:#666;text-align:right;font-weight:400;font-size:.8em;text-transform:uppercase}.source summary > *{white-space:nowrap;cursor:pointer}.git-link{color:inherit;margin-left:1em}.source pre{max-height:500px;overflow:auto;margin:0}.source pre code{font-size:12px;overflow:visible}.hlist{list-style:none}.hlist li{display:inline}.hlist li:after{content:',\2002'}.hlist li:last-child:after{content:none}.hlist .hlist{display:inline;padding-left:1em}img{max-width:100%}td{padding:0 .5em}.admonition{padding:.1em .5em;margin-bottom:1em}.admonition-title{font-weight:bold}.admonition.note,.admonition.info,.admonition.important{background:#aef}.admonition.todo,.admonition.versionadded,.admonition.tip,.admonition.hint{background:#dfd}.admonition.warning,.admonition.versionchanged,.admonition.deprecated{background:#fd4}.admonition.error,.admonition.danger,.admonition.caution{background:lightpink}</style>
+<style media="screen and (min-width: 700px)">@media screen and (min-width:700px){#sidebar{width:30%;height:100vh;overflow:auto;position:sticky;top:0}#content{width:70%;max-width:100ch;padding:3em 4em;border-left:1px solid #ddd}pre code{font-size:1em}.item .name{font-size:1em}main{display:flex;flex-direction:row-reverse;justify-content:flex-end}.toc ul ul,#index ul{padding-left:1.5em}.toc > ul > li{margin-top:.5em}}</style>
+<style media="print">@media print{#sidebar h1{page-break-before:always}.source{display:none}}@media print{*{background:transparent !important;color:#000 !important;box-shadow:none !important;text-shadow:none !important}a[href]:after{content:" (" attr(href) ")";font-size:90%}a[href][title]:after{content:none}abbr[title]:after{content:" (" attr(title) ")"}.ir a:after,a[href^="javascript:"]:after,a[href^="#"]:after{content:""}pre,blockquote{border:1px solid #999;page-break-inside:avoid}thead{display:table-header-group}tr,img{page-break-inside:avoid}img{max-width:100% !important}@page{margin:0.5cm}p,h2,h3{orphans:3;widows:3}h1,h2,h3,h4,h5,h6{page-break-after:avoid}}</style>
+<script defer src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.1.1/highlight.min.js" integrity="sha256-Uv3H6lx7dJmRfRvH8TH6kJD1TSK1aFcwgx+mdg3epi8=" crossorigin></script>
+<script>window.addEventListener('DOMContentLoaded', () => hljs.initHighlighting())</script>
+</head>
+<body>
+<main>
+<article id="content">
+<header>
+<h1 class="title">Module <code>src.schnapsen.deck</code></h1>
+</header>
+<section id="section-intro">
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">from abc import ABC, abstractmethod
+from enum import Enum, auto
+import enum
+from typing import Any, Iterable, Iterator, List, Optional
+import itertools
+
+
+class Suit(Enum):
+    HEARTS = auto()
+    CLUBS = auto()
+    SPADES = auto()
+    DIAMONDS = auto()
+
+    def __str__(self) -&gt; str:
+        return self.name
+
+
+class Rank(Enum):
+    ACE = auto()
+    TWO = auto()
+    THREE = auto()
+    FOUR = auto()
+    FIVE = auto()
+    SIX = auto()
+    SEVEN = auto()
+    EIGHT = auto()
+    NINE = auto()
+    TEN = auto()
+    JACK = auto()
+    QUEEN = auto()
+    KING = auto()
+
+    def __str__(self) -&gt; str:
+        return self.name
+
+
+@enum.unique
+class Card(Enum):
+    ACE_HEARTS = (Rank.ACE, Suit.HEARTS, &#34;🂱&#34;)
+    TWO_HEARTS = (Rank.TWO, Suit.HEARTS, &#34;🂲&#34;)
+    THREE_HEARTS = (Rank.THREE, Suit.HEARTS, &#34;🂳&#34;)
+    FOUR_HEARTS = (Rank.FOUR, Suit.HEARTS, &#34;🂴&#34;)
+    FIVE_HEARTS = (Rank.FIVE, Suit.HEARTS, &#34;🂵&#34;)
+    SIX_HEARTS = (Rank.SIX, Suit.HEARTS, &#34;🂶&#34;)
+    SEVEN_HEARTS = (Rank.SEVEN, Suit.HEARTS, &#34;🂷&#34;)
+    EIGHT_HEARTS = (Rank.EIGHT, Suit.HEARTS, &#34;🂸&#34;)
+    NINE_HEARTS = (Rank.NINE, Suit.HEARTS, &#34;🂹&#34;)
+    TEN_HEARTS = (Rank.TEN, Suit.HEARTS, &#34;🂺&#34;)
+    JACK_HEARTS = (Rank.JACK, Suit.HEARTS, &#34;🂻&#34;)
+    QUEEN_HEARTS = (Rank.QUEEN, Suit.HEARTS, &#34;🂽&#34;)
+    KING_HEARTS = (Rank.KING, Suit.HEARTS, &#34;🂾&#34;)
+
+    ACE_CLUBS = (Rank.ACE, Suit.CLUBS, &#34;🃑&#34;)
+    TWO_CLUBS = (Rank.TWO, Suit.CLUBS, &#34;🃒&#34;)
+    THREE_CLUBS = (Rank.THREE, Suit.CLUBS, &#34;🃓&#34;)
+    FOUR_CLUBS = (Rank.FOUR, Suit.CLUBS, &#34;🃔&#34;)
+    FIVE_CLUBS = (Rank.FIVE, Suit.CLUBS, &#34;🃕&#34;)
+    SIX_CLUBS = (Rank.SIX, Suit.CLUBS, &#34;🃖&#34;)
+    SEVEN_CLUBS = (Rank.SEVEN, Suit.CLUBS, &#34;🃗&#34;)
+    EIGHT_CLUBS = (Rank.EIGHT, Suit.CLUBS, &#34;🃘&#34;)
+    NINE_CLUBS = (Rank.NINE, Suit.CLUBS, &#34;🃙&#34;)
+    TEN_CLUBS = (Rank.TEN, Suit.CLUBS, &#34;🃚&#34;)
+    JACK_CLUBS = (Rank.JACK, Suit.CLUBS, &#34;🃛&#34;)
+    QUEEN_CLUBS = (Rank.QUEEN, Suit.CLUBS, &#34;🃝&#34;)
+    KING_CLUBS = (Rank.KING, Suit.CLUBS, &#34;🃞&#34;)
+
+    ACE_SPADES = (Rank.ACE, Suit.SPADES, &#34;🂡&#34;)
+    TWO_SPADES = (Rank.TWO, Suit.SPADES, &#34;🂢&#34;)
+    THREE_SPADES = (Rank.THREE, Suit.SPADES, &#34;🂣&#34;)
+    FOUR_SPADES = (Rank.FOUR, Suit.SPADES, &#34;🂤&#34;)
+    FIVE_SPADES = (Rank.FIVE, Suit.SPADES, &#34;🂥&#34;)
+    SIX_SPADES = (Rank.SIX, Suit.SPADES, &#34;🂦&#34;)
+    SEVEN_SPADES = (Rank.SEVEN, Suit.SPADES, &#34;🂧&#34;)
+    EIGHT_SPADES = (Rank.EIGHT, Suit.SPADES, &#34;🂨&#34;)
+    NINE_SPADES = (Rank.NINE, Suit.SPADES, &#34;🂩&#34;)
+    TEN_SPADES = (Rank.TEN, Suit.SPADES, &#34;🂪&#34;)
+    JACK_SPADES = (Rank.JACK, Suit.SPADES, &#34;🂫&#34;)
+    QUEEN_SPADES = (Rank.QUEEN, Suit.SPADES, &#34;🂭&#34;)
+    KING_SPADES = (Rank.KING, Suit.SPADES, &#34;🂮&#34;)
+
+    ACE_DIAMONDS = (Rank.ACE, Suit.DIAMONDS, &#34;🃁&#34;)
+    TWO_DIAMONDS = (Rank.TWO, Suit.DIAMONDS, &#34;🃂&#34;)
+    THREE_DIAMONDS = (Rank.THREE, Suit.DIAMONDS, &#34;🃃&#34;)
+    FOUR_DIAMONDS = (Rank.FOUR, Suit.DIAMONDS, &#34;🃄&#34;)
+    FIVE_DIAMONDS = (Rank.FIVE, Suit.DIAMONDS, &#34;🃅&#34;)
+    SIX_DIAMONDS = (Rank.SIX, Suit.DIAMONDS, &#34;🃆&#34;)
+    SEVEN_DIAMONDS = (Rank.SEVEN, Suit.DIAMONDS, &#34;🃇&#34;)
+    EIGHT_DIAMONDS = (Rank.EIGHT, Suit.DIAMONDS, &#34;🃈&#34;)
+    NINE_DIAMONDS = (Rank.NINE, Suit.DIAMONDS, &#34;🃉&#34;)
+    TEN_DIAMONDS = (Rank.TEN, Suit.DIAMONDS, &#34;🃊&#34;)
+    JACK_DIAMONDS = (Rank.JACK, Suit.DIAMONDS, &#34;🃋&#34;)
+    QUEEN_DIAMONDS = (Rank.QUEEN, Suit.DIAMONDS, &#34;🃍&#34;)
+    KING_DIAMONDS = (Rank.KING, Suit.DIAMONDS, &#34;🃎&#34;)
+
+    def __init__(self, rank: Rank, suit: Suit, character: str) -&gt; None:
+        self.rank = rank
+        self.suit = suit
+        self.character = character
+
+    @staticmethod
+    def _get_card(rank: Rank, suit: Suit) -&gt; &#39;Card&#39;:
+        for card in Card:
+            (card_rank, card_suit, _) = card.value
+            if rank == card_rank and suit == card_suit:
+                return card
+        raise Exception(f&#34;This card does not exist: {card_rank}, {card_suit}. This should be impossible as all combinations are defined&#34;)
+
+    @staticmethod
+    def get_card(rank: Rank, suit: Suit) -&gt; &#39;Card&#39;:
+        return _CardCache._CARD_CACHE[(rank, suit)]
+
+    def __repr__(self) -&gt; str:
+        return f&#34;Card.{self.name}&#34;
+
+
+class _CardCache:
+    _CARD_CACHE = {(card_rank, card_suit): Card._get_card(card_rank, card_suit) for (card_rank, card_suit) in itertools.product(Rank, Suit)}
+
+
+class CardCollection(ABC):
+    &#34;&#34;&#34;A collection of cards for which the order is not significant and not guaranteed.&#34;&#34;&#34;
+
+    @abstractmethod
+    def get_cards(self) -&gt; Iterable[Card]:
+        &#34;&#34;&#34;
+        Get an Iterable of the cards in this collection. Changes to this Iterable will not be reflected in this Collection
+        &#34;&#34;&#34;
+        raise NotImplementedError()
+
+    def filter_suit(self, suit: Suit) -&gt; Iterable[Card]:
+        &#34;&#34;&#34;Returns an Iterable with in it all cards which have the provided suit&#34;&#34;&#34;
+        results: List[Card] = list(filter(lambda x: x.suit is suit, self.get_cards()))
+        return results
+
+    def filter_rank(self, rank: Rank) -&gt; Iterable[Card]:
+        &#34;&#34;&#34;Returns an Iterable with in it all cards which have the provided rank&#34;&#34;&#34;
+        results: List[Card] = list(filter(lambda x: x.rank is rank, self.get_cards()))
+        return results
+
+    @abstractmethod
+    def is_empty(self) -&gt; bool:
+        pass
+
+    def __len__(self) -&gt; int:
+        return sum(1 for _ in self.get_cards())
+
+    def __iter__(self) -&gt; Iterator[Card]:
+        return self.get_cards().__iter__()
+
+    def __contains__(self, item: Any) -&gt; bool:
+        assert isinstance(item, Card), &#34;Only cards can be contained in a card collection&#34;
+        return item in self.get_cards()
+
+
+class OrderedCardCollection(CardCollection):
+    def __init__(self, cards: Optional[Iterable[Card]] = None) -&gt; None:
+        &#34;&#34;&#34;
+        Create an ordered collection of cards. The cards are in the order as specified in the Iterable.
+        By default the Collection is empty.
+        This constructor will make a defensive copy of the argument.
+        &#34;&#34;&#34;
+        self._cards: List[Card] = list(cards or [])
+
+    def is_empty(self) -&gt; bool:
+        return len(self._cards) == 0
+
+    def get_cards(self) -&gt; Iterable[Card]:
+        return list(self._cards)
+
+    def __len__(self) -&gt; int:
+        return len(self._cards)
+
+    def __iter__(self) -&gt; Iterator[Card]:
+        return self._cards.__iter__()
+
+    def __contains__(self, item: Any) -&gt; bool:
+        assert isinstance(item, Card), &#34;Only cards can be contained in a card collection&#34;
+        return item in self._cards
+
+    def filter_suit(self, suit: Suit) -&gt; Iterable[Card]:
+        &#34;&#34;&#34;Returns an Iterable with in it all cards which have the provided suit&#34;&#34;&#34;
+        assert suit in Suit
+        results = [card for card in self._cards if card.suit is suit]
+        return results
+
+    def filter_rank(self, rank: Rank) -&gt; Iterable[Card]:
+        &#34;&#34;&#34;Returns an Iterable with in it all cards which have the provided rank&#34;&#34;&#34;
+        assert rank in Rank
+        results = [card for card in self._cards if card.rank is rank]
+        return results
+
+    def __repr__(self) -&gt; str:
+        return f&#34;OrderedCardCollection(cards={self._cards})&#34;</code></pre>
+</details>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+</section>
+<section>
+<h2 class="section-title" id="header-classes">Classes</h2>
+<dl>
+<dt id="src.schnapsen.deck.Card"><code class="flex name class">
+<span>class <span class="ident">Card</span></span>
+<span>(</span><span>rank: <a title="src.schnapsen.deck.Rank" href="#src.schnapsen.deck.Rank">Rank</a>, suit: <a title="src.schnapsen.deck.Suit" href="#src.schnapsen.deck.Suit">Suit</a>, character: str)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enumeration.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@enum.unique
+class Card(Enum):
+    ACE_HEARTS = (Rank.ACE, Suit.HEARTS, &#34;🂱&#34;)
+    TWO_HEARTS = (Rank.TWO, Suit.HEARTS, &#34;🂲&#34;)
+    THREE_HEARTS = (Rank.THREE, Suit.HEARTS, &#34;🂳&#34;)
+    FOUR_HEARTS = (Rank.FOUR, Suit.HEARTS, &#34;🂴&#34;)
+    FIVE_HEARTS = (Rank.FIVE, Suit.HEARTS, &#34;🂵&#34;)
+    SIX_HEARTS = (Rank.SIX, Suit.HEARTS, &#34;🂶&#34;)
+    SEVEN_HEARTS = (Rank.SEVEN, Suit.HEARTS, &#34;🂷&#34;)
+    EIGHT_HEARTS = (Rank.EIGHT, Suit.HEARTS, &#34;🂸&#34;)
+    NINE_HEARTS = (Rank.NINE, Suit.HEARTS, &#34;🂹&#34;)
+    TEN_HEARTS = (Rank.TEN, Suit.HEARTS, &#34;🂺&#34;)
+    JACK_HEARTS = (Rank.JACK, Suit.HEARTS, &#34;🂻&#34;)
+    QUEEN_HEARTS = (Rank.QUEEN, Suit.HEARTS, &#34;🂽&#34;)
+    KING_HEARTS = (Rank.KING, Suit.HEARTS, &#34;🂾&#34;)
+
+    ACE_CLUBS = (Rank.ACE, Suit.CLUBS, &#34;🃑&#34;)
+    TWO_CLUBS = (Rank.TWO, Suit.CLUBS, &#34;🃒&#34;)
+    THREE_CLUBS = (Rank.THREE, Suit.CLUBS, &#34;🃓&#34;)
+    FOUR_CLUBS = (Rank.FOUR, Suit.CLUBS, &#34;🃔&#34;)
+    FIVE_CLUBS = (Rank.FIVE, Suit.CLUBS, &#34;🃕&#34;)
+    SIX_CLUBS = (Rank.SIX, Suit.CLUBS, &#34;🃖&#34;)
+    SEVEN_CLUBS = (Rank.SEVEN, Suit.CLUBS, &#34;🃗&#34;)
+    EIGHT_CLUBS = (Rank.EIGHT, Suit.CLUBS, &#34;🃘&#34;)
+    NINE_CLUBS = (Rank.NINE, Suit.CLUBS, &#34;🃙&#34;)
+    TEN_CLUBS = (Rank.TEN, Suit.CLUBS, &#34;🃚&#34;)
+    JACK_CLUBS = (Rank.JACK, Suit.CLUBS, &#34;🃛&#34;)
+    QUEEN_CLUBS = (Rank.QUEEN, Suit.CLUBS, &#34;🃝&#34;)
+    KING_CLUBS = (Rank.KING, Suit.CLUBS, &#34;🃞&#34;)
+
+    ACE_SPADES = (Rank.ACE, Suit.SPADES, &#34;🂡&#34;)
+    TWO_SPADES = (Rank.TWO, Suit.SPADES, &#34;🂢&#34;)
+    THREE_SPADES = (Rank.THREE, Suit.SPADES, &#34;🂣&#34;)
+    FOUR_SPADES = (Rank.FOUR, Suit.SPADES, &#34;🂤&#34;)
+    FIVE_SPADES = (Rank.FIVE, Suit.SPADES, &#34;🂥&#34;)
+    SIX_SPADES = (Rank.SIX, Suit.SPADES, &#34;🂦&#34;)
+    SEVEN_SPADES = (Rank.SEVEN, Suit.SPADES, &#34;🂧&#34;)
+    EIGHT_SPADES = (Rank.EIGHT, Suit.SPADES, &#34;🂨&#34;)
+    NINE_SPADES = (Rank.NINE, Suit.SPADES, &#34;🂩&#34;)
+    TEN_SPADES = (Rank.TEN, Suit.SPADES, &#34;🂪&#34;)
+    JACK_SPADES = (Rank.JACK, Suit.SPADES, &#34;🂫&#34;)
+    QUEEN_SPADES = (Rank.QUEEN, Suit.SPADES, &#34;🂭&#34;)
+    KING_SPADES = (Rank.KING, Suit.SPADES, &#34;🂮&#34;)
+
+    ACE_DIAMONDS = (Rank.ACE, Suit.DIAMONDS, &#34;🃁&#34;)
+    TWO_DIAMONDS = (Rank.TWO, Suit.DIAMONDS, &#34;🃂&#34;)
+    THREE_DIAMONDS = (Rank.THREE, Suit.DIAMONDS, &#34;🃃&#34;)
+    FOUR_DIAMONDS = (Rank.FOUR, Suit.DIAMONDS, &#34;🃄&#34;)
+    FIVE_DIAMONDS = (Rank.FIVE, Suit.DIAMONDS, &#34;🃅&#34;)
+    SIX_DIAMONDS = (Rank.SIX, Suit.DIAMONDS, &#34;🃆&#34;)
+    SEVEN_DIAMONDS = (Rank.SEVEN, Suit.DIAMONDS, &#34;🃇&#34;)
+    EIGHT_DIAMONDS = (Rank.EIGHT, Suit.DIAMONDS, &#34;🃈&#34;)
+    NINE_DIAMONDS = (Rank.NINE, Suit.DIAMONDS, &#34;🃉&#34;)
+    TEN_DIAMONDS = (Rank.TEN, Suit.DIAMONDS, &#34;🃊&#34;)
+    JACK_DIAMONDS = (Rank.JACK, Suit.DIAMONDS, &#34;🃋&#34;)
+    QUEEN_DIAMONDS = (Rank.QUEEN, Suit.DIAMONDS, &#34;🃍&#34;)
+    KING_DIAMONDS = (Rank.KING, Suit.DIAMONDS, &#34;🃎&#34;)
+
+    def __init__(self, rank: Rank, suit: Suit, character: str) -&gt; None:
+        self.rank = rank
+        self.suit = suit
+        self.character = character
+
+    @staticmethod
+    def _get_card(rank: Rank, suit: Suit) -&gt; &#39;Card&#39;:
+        for card in Card:
+            (card_rank, card_suit, _) = card.value
+            if rank == card_rank and suit == card_suit:
+                return card
+        raise Exception(f&#34;This card does not exist: {card_rank}, {card_suit}. This should be impossible as all combinations are defined&#34;)
+
+    @staticmethod
+    def get_card(rank: Rank, suit: Suit) -&gt; &#39;Card&#39;:
+        return _CardCache._CARD_CACHE[(rank, suit)]
+
+    def __repr__(self) -&gt; str:
+        return f&#34;Card.{self.name}&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="src.schnapsen.deck.Card.ACE_CLUBS"><code class="name">var <span class="ident">ACE_CLUBS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.ACE_DIAMONDS"><code class="name">var <span class="ident">ACE_DIAMONDS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.ACE_HEARTS"><code class="name">var <span class="ident">ACE_HEARTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.ACE_SPADES"><code class="name">var <span class="ident">ACE_SPADES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.EIGHT_CLUBS"><code class="name">var <span class="ident">EIGHT_CLUBS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.EIGHT_DIAMONDS"><code class="name">var <span class="ident">EIGHT_DIAMONDS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.EIGHT_HEARTS"><code class="name">var <span class="ident">EIGHT_HEARTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.EIGHT_SPADES"><code class="name">var <span class="ident">EIGHT_SPADES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.FIVE_CLUBS"><code class="name">var <span class="ident">FIVE_CLUBS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.FIVE_DIAMONDS"><code class="name">var <span class="ident">FIVE_DIAMONDS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.FIVE_HEARTS"><code class="name">var <span class="ident">FIVE_HEARTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.FIVE_SPADES"><code class="name">var <span class="ident">FIVE_SPADES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.FOUR_CLUBS"><code class="name">var <span class="ident">FOUR_CLUBS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.FOUR_DIAMONDS"><code class="name">var <span class="ident">FOUR_DIAMONDS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.FOUR_HEARTS"><code class="name">var <span class="ident">FOUR_HEARTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.FOUR_SPADES"><code class="name">var <span class="ident">FOUR_SPADES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.JACK_CLUBS"><code class="name">var <span class="ident">JACK_CLUBS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.JACK_DIAMONDS"><code class="name">var <span class="ident">JACK_DIAMONDS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.JACK_HEARTS"><code class="name">var <span class="ident">JACK_HEARTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.JACK_SPADES"><code class="name">var <span class="ident">JACK_SPADES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.KING_CLUBS"><code class="name">var <span class="ident">KING_CLUBS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.KING_DIAMONDS"><code class="name">var <span class="ident">KING_DIAMONDS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.KING_HEARTS"><code class="name">var <span class="ident">KING_HEARTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.KING_SPADES"><code class="name">var <span class="ident">KING_SPADES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.NINE_CLUBS"><code class="name">var <span class="ident">NINE_CLUBS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.NINE_DIAMONDS"><code class="name">var <span class="ident">NINE_DIAMONDS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.NINE_HEARTS"><code class="name">var <span class="ident">NINE_HEARTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.NINE_SPADES"><code class="name">var <span class="ident">NINE_SPADES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.QUEEN_CLUBS"><code class="name">var <span class="ident">QUEEN_CLUBS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.QUEEN_DIAMONDS"><code class="name">var <span class="ident">QUEEN_DIAMONDS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.QUEEN_HEARTS"><code class="name">var <span class="ident">QUEEN_HEARTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.QUEEN_SPADES"><code class="name">var <span class="ident">QUEEN_SPADES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.SEVEN_CLUBS"><code class="name">var <span class="ident">SEVEN_CLUBS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.SEVEN_DIAMONDS"><code class="name">var <span class="ident">SEVEN_DIAMONDS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.SEVEN_HEARTS"><code class="name">var <span class="ident">SEVEN_HEARTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.SEVEN_SPADES"><code class="name">var <span class="ident">SEVEN_SPADES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.SIX_CLUBS"><code class="name">var <span class="ident">SIX_CLUBS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.SIX_DIAMONDS"><code class="name">var <span class="ident">SIX_DIAMONDS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.SIX_HEARTS"><code class="name">var <span class="ident">SIX_HEARTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.SIX_SPADES"><code class="name">var <span class="ident">SIX_SPADES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.TEN_CLUBS"><code class="name">var <span class="ident">TEN_CLUBS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.TEN_DIAMONDS"><code class="name">var <span class="ident">TEN_DIAMONDS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.TEN_HEARTS"><code class="name">var <span class="ident">TEN_HEARTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.TEN_SPADES"><code class="name">var <span class="ident">TEN_SPADES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.THREE_CLUBS"><code class="name">var <span class="ident">THREE_CLUBS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.THREE_DIAMONDS"><code class="name">var <span class="ident">THREE_DIAMONDS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.THREE_HEARTS"><code class="name">var <span class="ident">THREE_HEARTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.THREE_SPADES"><code class="name">var <span class="ident">THREE_SPADES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.TWO_CLUBS"><code class="name">var <span class="ident">TWO_CLUBS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.TWO_DIAMONDS"><code class="name">var <span class="ident">TWO_DIAMONDS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.TWO_HEARTS"><code class="name">var <span class="ident">TWO_HEARTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Card.TWO_SPADES"><code class="name">var <span class="ident">TWO_SPADES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+<h3>Static methods</h3>
+<dl>
+<dt id="src.schnapsen.deck.Card.get_card"><code class="name flex">
+<span>def <span class="ident">get_card</span></span>(<span>rank: <a title="src.schnapsen.deck.Rank" href="#src.schnapsen.deck.Rank">Rank</a>, suit: <a title="src.schnapsen.deck.Suit" href="#src.schnapsen.deck.Suit">Suit</a>) ‑> <a title="src.schnapsen.deck.Card" href="#src.schnapsen.deck.Card">Card</a></span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@staticmethod
+def get_card(rank: Rank, suit: Suit) -&gt; &#39;Card&#39;:
+    return _CardCache._CARD_CACHE[(rank, suit)]</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="src.schnapsen.deck.CardCollection"><code class="flex name class">
+<span>class <span class="ident">CardCollection</span></span>
+</code></dt>
+<dd>
+<div class="desc"><p>A collection of cards for which the order is not significant and not guaranteed.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class CardCollection(ABC):
+    &#34;&#34;&#34;A collection of cards for which the order is not significant and not guaranteed.&#34;&#34;&#34;
+
+    @abstractmethod
+    def get_cards(self) -&gt; Iterable[Card]:
+        &#34;&#34;&#34;
+        Get an Iterable of the cards in this collection. Changes to this Iterable will not be reflected in this Collection
+        &#34;&#34;&#34;
+        raise NotImplementedError()
+
+    def filter_suit(self, suit: Suit) -&gt; Iterable[Card]:
+        &#34;&#34;&#34;Returns an Iterable with in it all cards which have the provided suit&#34;&#34;&#34;
+        results: List[Card] = list(filter(lambda x: x.suit is suit, self.get_cards()))
+        return results
+
+    def filter_rank(self, rank: Rank) -&gt; Iterable[Card]:
+        &#34;&#34;&#34;Returns an Iterable with in it all cards which have the provided rank&#34;&#34;&#34;
+        results: List[Card] = list(filter(lambda x: x.rank is rank, self.get_cards()))
+        return results
+
+    @abstractmethod
+    def is_empty(self) -&gt; bool:
+        pass
+
+    def __len__(self) -&gt; int:
+        return sum(1 for _ in self.get_cards())
+
+    def __iter__(self) -&gt; Iterator[Card]:
+        return self.get_cards().__iter__()
+
+    def __contains__(self, item: Any) -&gt; bool:
+        assert isinstance(item, Card), &#34;Only cards can be contained in a card collection&#34;
+        return item in self.get_cards()</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>abc.ABC</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="src.schnapsen.deck.OrderedCardCollection" href="#src.schnapsen.deck.OrderedCardCollection">OrderedCardCollection</a></li>
+<li><a title="src.schnapsen.game.Hand" href="game.html#src.schnapsen.game.Hand">Hand</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="src.schnapsen.deck.CardCollection.filter_rank"><code class="name flex">
+<span>def <span class="ident">filter_rank</span></span>(<span>self, rank: <a title="src.schnapsen.deck.Rank" href="#src.schnapsen.deck.Rank">Rank</a>) ‑> Iterable[<a title="src.schnapsen.deck.Card" href="#src.schnapsen.deck.Card">Card</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns an Iterable with in it all cards which have the provided rank</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def filter_rank(self, rank: Rank) -&gt; Iterable[Card]:
+    &#34;&#34;&#34;Returns an Iterable with in it all cards which have the provided rank&#34;&#34;&#34;
+    results: List[Card] = list(filter(lambda x: x.rank is rank, self.get_cards()))
+    return results</code></pre>
+</details>
+</dd>
+<dt id="src.schnapsen.deck.CardCollection.filter_suit"><code class="name flex">
+<span>def <span class="ident">filter_suit</span></span>(<span>self, suit: <a title="src.schnapsen.deck.Suit" href="#src.schnapsen.deck.Suit">Suit</a>) ‑> Iterable[<a title="src.schnapsen.deck.Card" href="#src.schnapsen.deck.Card">Card</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns an Iterable with in it all cards which have the provided suit</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def filter_suit(self, suit: Suit) -&gt; Iterable[Card]:
+    &#34;&#34;&#34;Returns an Iterable with in it all cards which have the provided suit&#34;&#34;&#34;
+    results: List[Card] = list(filter(lambda x: x.suit is suit, self.get_cards()))
+    return results</code></pre>
+</details>
+</dd>
+<dt id="src.schnapsen.deck.CardCollection.get_cards"><code class="name flex">
+<span>def <span class="ident">get_cards</span></span>(<span>self) ‑> Iterable[<a title="src.schnapsen.deck.Card" href="#src.schnapsen.deck.Card">Card</a>]</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Get an Iterable of the cards in this collection. Changes to this Iterable will not be reflected in this Collection</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@abstractmethod
+def get_cards(self) -&gt; Iterable[Card]:
+    &#34;&#34;&#34;
+    Get an Iterable of the cards in this collection. Changes to this Iterable will not be reflected in this Collection
+    &#34;&#34;&#34;
+    raise NotImplementedError()</code></pre>
+</details>
+</dd>
+<dt id="src.schnapsen.deck.CardCollection.is_empty"><code class="name flex">
+<span>def <span class="ident">is_empty</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">@abstractmethod
+def is_empty(self) -&gt; bool:
+    pass</code></pre>
+</details>
+</dd>
+</dl>
+</dd>
+<dt id="src.schnapsen.deck.OrderedCardCollection"><code class="flex name class">
+<span>class <span class="ident">OrderedCardCollection</span></span>
+<span>(</span><span>cards: Optional[Iterable[<a title="src.schnapsen.deck.Card" href="#src.schnapsen.deck.Card">Card</a>]] = None)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>A collection of cards for which the order is not significant and not guaranteed.</p>
+<p>Create an ordered collection of cards. The cards are in the order as specified in the Iterable.
+By default the Collection is empty.
+This constructor will make a defensive copy of the argument.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class OrderedCardCollection(CardCollection):
+    def __init__(self, cards: Optional[Iterable[Card]] = None) -&gt; None:
+        &#34;&#34;&#34;
+        Create an ordered collection of cards. The cards are in the order as specified in the Iterable.
+        By default the Collection is empty.
+        This constructor will make a defensive copy of the argument.
+        &#34;&#34;&#34;
+        self._cards: List[Card] = list(cards or [])
+
+    def is_empty(self) -&gt; bool:
+        return len(self._cards) == 0
+
+    def get_cards(self) -&gt; Iterable[Card]:
+        return list(self._cards)
+
+    def __len__(self) -&gt; int:
+        return len(self._cards)
+
+    def __iter__(self) -&gt; Iterator[Card]:
+        return self._cards.__iter__()
+
+    def __contains__(self, item: Any) -&gt; bool:
+        assert isinstance(item, Card), &#34;Only cards can be contained in a card collection&#34;
+        return item in self._cards
+
+    def filter_suit(self, suit: Suit) -&gt; Iterable[Card]:
+        &#34;&#34;&#34;Returns an Iterable with in it all cards which have the provided suit&#34;&#34;&#34;
+        assert suit in Suit
+        results = [card for card in self._cards if card.suit is suit]
+        return results
+
+    def filter_rank(self, rank: Rank) -&gt; Iterable[Card]:
+        &#34;&#34;&#34;Returns an Iterable with in it all cards which have the provided rank&#34;&#34;&#34;
+        assert rank in Rank
+        results = [card for card in self._cards if card.rank is rank]
+        return results
+
+    def __repr__(self) -&gt; str:
+        return f&#34;OrderedCardCollection(cards={self._cards})&#34;</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li><a title="src.schnapsen.deck.CardCollection" href="#src.schnapsen.deck.CardCollection">CardCollection</a></li>
+<li>abc.ABC</li>
+</ul>
+<h3>Subclasses</h3>
+<ul class="hlist">
+<li><a title="src.schnapsen.game.Talon" href="game.html#src.schnapsen.game.Talon">Talon</a></li>
+</ul>
+<h3>Methods</h3>
+<dl>
+<dt id="src.schnapsen.deck.OrderedCardCollection.is_empty"><code class="name flex">
+<span>def <span class="ident">is_empty</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_empty(self) -&gt; bool:
+    return len(self._cards) == 0</code></pre>
+</details>
+</dd>
+</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="src.schnapsen.deck.CardCollection" href="#src.schnapsen.deck.CardCollection">CardCollection</a></b></code>:
+<ul class="hlist">
+<li><code><a title="src.schnapsen.deck.CardCollection.filter_rank" href="#src.schnapsen.deck.CardCollection.filter_rank">filter_rank</a></code></li>
+<li><code><a title="src.schnapsen.deck.CardCollection.filter_suit" href="#src.schnapsen.deck.CardCollection.filter_suit">filter_suit</a></code></li>
+<li><code><a title="src.schnapsen.deck.CardCollection.get_cards" href="#src.schnapsen.deck.CardCollection.get_cards">get_cards</a></code></li>
+</ul>
+</li>
+</ul>
+</dd>
+<dt id="src.schnapsen.deck.Rank"><code class="flex name class">
+<span>class <span class="ident">Rank</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enumeration.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Rank(Enum):
+    ACE = auto()
+    TWO = auto()
+    THREE = auto()
+    FOUR = auto()
+    FIVE = auto()
+    SIX = auto()
+    SEVEN = auto()
+    EIGHT = auto()
+    NINE = auto()
+    TEN = auto()
+    JACK = auto()
+    QUEEN = auto()
+    KING = auto()
+
+    def __str__(self) -&gt; str:
+        return self.name</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="src.schnapsen.deck.Rank.ACE"><code class="name">var <span class="ident">ACE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Rank.EIGHT"><code class="name">var <span class="ident">EIGHT</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Rank.FIVE"><code class="name">var <span class="ident">FIVE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Rank.FOUR"><code class="name">var <span class="ident">FOUR</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Rank.JACK"><code class="name">var <span class="ident">JACK</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Rank.KING"><code class="name">var <span class="ident">KING</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Rank.NINE"><code class="name">var <span class="ident">NINE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Rank.QUEEN"><code class="name">var <span class="ident">QUEEN</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Rank.SEVEN"><code class="name">var <span class="ident">SEVEN</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Rank.SIX"><code class="name">var <span class="ident">SIX</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Rank.TEN"><code class="name">var <span class="ident">TEN</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Rank.THREE"><code class="name">var <span class="ident">THREE</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Rank.TWO"><code class="name">var <span class="ident">TWO</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+<dt id="src.schnapsen.deck.Suit"><code class="flex name class">
+<span>class <span class="ident">Suit</span></span>
+<span>(</span><span>value, names=None, *, module=None, qualname=None, type=None, start=1)</span>
+</code></dt>
+<dd>
+<div class="desc"><p>An enumeration.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">class Suit(Enum):
+    HEARTS = auto()
+    CLUBS = auto()
+    SPADES = auto()
+    DIAMONDS = auto()
+
+    def __str__(self) -&gt; str:
+        return self.name</code></pre>
+</details>
+<h3>Ancestors</h3>
+<ul class="hlist">
+<li>enum.Enum</li>
+</ul>
+<h3>Class variables</h3>
+<dl>
+<dt id="src.schnapsen.deck.Suit.CLUBS"><code class="name">var <span class="ident">CLUBS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Suit.DIAMONDS"><code class="name">var <span class="ident">DIAMONDS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Suit.HEARTS"><code class="name">var <span class="ident">HEARTS</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+<dt id="src.schnapsen.deck.Suit.SPADES"><code class="name">var <span class="ident">SPADES</span></code></dt>
+<dd>
+<div class="desc"></div>
+</dd>
+</dl>
+</dd>
+</dl>
+</section>
+</article>
+<nav id="sidebar">
+<h1>Index</h1>
+<div class="toc">
+<ul></ul>
+</div>
+<ul id="index">
+<li><h3>Super-module</h3>
+<ul>
+<li><code><a title="src.schnapsen" href="index.html">src.schnapsen</a></code></li>
+</ul>
+</li>
+<li><h3><a href="#header-classes">Classes</a></h3>
+<ul>
+<li>
+<h4><code><a title="src.schnapsen.deck.Card" href="#src.schnapsen.deck.Card">Card</a></code></h4>
+<ul class="two-column">
+<li><code><a title="src.schnapsen.deck.Card.ACE_CLUBS" href="#src.schnapsen.deck.Card.ACE_CLUBS">ACE_CLUBS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.ACE_DIAMONDS" href="#src.schnapsen.deck.Card.ACE_DIAMONDS">ACE_DIAMONDS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.ACE_HEARTS" href="#src.schnapsen.deck.Card.ACE_HEARTS">ACE_HEARTS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.ACE_SPADES" href="#src.schnapsen.deck.Card.ACE_SPADES">ACE_SPADES</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.EIGHT_CLUBS" href="#src.schnapsen.deck.Card.EIGHT_CLUBS">EIGHT_CLUBS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.EIGHT_DIAMONDS" href="#src.schnapsen.deck.Card.EIGHT_DIAMONDS">EIGHT_DIAMONDS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.EIGHT_HEARTS" href="#src.schnapsen.deck.Card.EIGHT_HEARTS">EIGHT_HEARTS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.EIGHT_SPADES" href="#src.schnapsen.deck.Card.EIGHT_SPADES">EIGHT_SPADES</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.FIVE_CLUBS" href="#src.schnapsen.deck.Card.FIVE_CLUBS">FIVE_CLUBS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.FIVE_DIAMONDS" href="#src.schnapsen.deck.Card.FIVE_DIAMONDS">FIVE_DIAMONDS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.FIVE_HEARTS" href="#src.schnapsen.deck.Card.FIVE_HEARTS">FIVE_HEARTS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.FIVE_SPADES" href="#src.schnapsen.deck.Card.FIVE_SPADES">FIVE_SPADES</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.FOUR_CLUBS" href="#src.schnapsen.deck.Card.FOUR_CLUBS">FOUR_CLUBS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.FOUR_DIAMONDS" href="#src.schnapsen.deck.Card.FOUR_DIAMONDS">FOUR_DIAMONDS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.FOUR_HEARTS" href="#src.schnapsen.deck.Card.FOUR_HEARTS">FOUR_HEARTS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.FOUR_SPADES" href="#src.schnapsen.deck.Card.FOUR_SPADES">FOUR_SPADES</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.JACK_CLUBS" href="#src.schnapsen.deck.Card.JACK_CLUBS">JACK_CLUBS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.JACK_DIAMONDS" href="#src.schnapsen.deck.Card.JACK_DIAMONDS">JACK_DIAMONDS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.JACK_HEARTS" href="#src.schnapsen.deck.Card.JACK_HEARTS">JACK_HEARTS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.JACK_SPADES" href="#src.schnapsen.deck.Card.JACK_SPADES">JACK_SPADES</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.KING_CLUBS" href="#src.schnapsen.deck.Card.KING_CLUBS">KING_CLUBS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.KING_DIAMONDS" href="#src.schnapsen.deck.Card.KING_DIAMONDS">KING_DIAMONDS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.KING_HEARTS" href="#src.schnapsen.deck.Card.KING_HEARTS">KING_HEARTS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.KING_SPADES" href="#src.schnapsen.deck.Card.KING_SPADES">KING_SPADES</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.NINE_CLUBS" href="#src.schnapsen.deck.Card.NINE_CLUBS">NINE_CLUBS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.NINE_DIAMONDS" href="#src.schnapsen.deck.Card.NINE_DIAMONDS">NINE_DIAMONDS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.NINE_HEARTS" href="#src.schnapsen.deck.Card.NINE_HEARTS">NINE_HEARTS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.NINE_SPADES" href="#src.schnapsen.deck.Card.NINE_SPADES">NINE_SPADES</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.QUEEN_CLUBS" href="#src.schnapsen.deck.Card.QUEEN_CLUBS">QUEEN_CLUBS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.QUEEN_DIAMONDS" href="#src.schnapsen.deck.Card.QUEEN_DIAMONDS">QUEEN_DIAMONDS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.QUEEN_HEARTS" href="#src.schnapsen.deck.Card.QUEEN_HEARTS">QUEEN_HEARTS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.QUEEN_SPADES" href="#src.schnapsen.deck.Card.QUEEN_SPADES">QUEEN_SPADES</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.SEVEN_CLUBS" href="#src.schnapsen.deck.Card.SEVEN_CLUBS">SEVEN_CLUBS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.SEVEN_DIAMONDS" href="#src.schnapsen.deck.Card.SEVEN_DIAMONDS">SEVEN_DIAMONDS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.SEVEN_HEARTS" href="#src.schnapsen.deck.Card.SEVEN_HEARTS">SEVEN_HEARTS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.SEVEN_SPADES" href="#src.schnapsen.deck.Card.SEVEN_SPADES">SEVEN_SPADES</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.SIX_CLUBS" href="#src.schnapsen.deck.Card.SIX_CLUBS">SIX_CLUBS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.SIX_DIAMONDS" href="#src.schnapsen.deck.Card.SIX_DIAMONDS">SIX_DIAMONDS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.SIX_HEARTS" href="#src.schnapsen.deck.Card.SIX_HEARTS">SIX_HEARTS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.SIX_SPADES" href="#src.schnapsen.deck.Card.SIX_SPADES">SIX_SPADES</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.TEN_CLUBS" href="#src.schnapsen.deck.Card.TEN_CLUBS">TEN_CLUBS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.TEN_DIAMONDS" href="#src.schnapsen.deck.Card.TEN_DIAMONDS">TEN_DIAMONDS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.TEN_HEARTS" href="#src.schnapsen.deck.Card.TEN_HEARTS">TEN_HEARTS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.TEN_SPADES" href="#src.schnapsen.deck.Card.TEN_SPADES">TEN_SPADES</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.THREE_CLUBS" href="#src.schnapsen.deck.Card.THREE_CLUBS">THREE_CLUBS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.THREE_DIAMONDS" href="#src.schnapsen.deck.Card.THREE_DIAMONDS">THREE_DIAMONDS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.THREE_HEARTS" href="#src.schnapsen.deck.Card.THREE_HEARTS">THREE_HEARTS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.THREE_SPADES" href="#src.schnapsen.deck.Card.THREE_SPADES">THREE_SPADES</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.TWO_CLUBS" href="#src.schnapsen.deck.Card.TWO_CLUBS">TWO_CLUBS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.TWO_DIAMONDS" href="#src.schnapsen.deck.Card.TWO_DIAMONDS">TWO_DIAMONDS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.TWO_HEARTS" href="#src.schnapsen.deck.Card.TWO_HEARTS">TWO_HEARTS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.TWO_SPADES" href="#src.schnapsen.deck.Card.TWO_SPADES">TWO_SPADES</a></code></li>
+<li><code><a title="src.schnapsen.deck.Card.get_card" href="#src.schnapsen.deck.Card.get_card">get_card</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="src.schnapsen.deck.CardCollection" href="#src.schnapsen.deck.CardCollection">CardCollection</a></code></h4>
+<ul class="">
+<li><code><a title="src.schnapsen.deck.CardCollection.filter_rank" href="#src.schnapsen.deck.CardCollection.filter_rank">filter_rank</a></code></li>
+<li><code><a title="src.schnapsen.deck.CardCollection.filter_suit" href="#src.schnapsen.deck.CardCollection.filter_suit">filter_suit</a></code></li>
+<li><code><a title="src.schnapsen.deck.CardCollection.get_cards" href="#src.schnapsen.deck.CardCollection.get_cards">get_cards</a></code></li>
+<li><code><a title="src.schnapsen.deck.CardCollection.is_empty" href="#src.schnapsen.deck.CardCollection.is_empty">is_empty</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="src.schnapsen.deck.OrderedCardCollection" href="#src.schnapsen.deck.OrderedCardCollection">OrderedCardCollection</a></code></h4>
+<ul class="">
+<li><code><a title="src.schnapsen.deck.OrderedCardCollection.is_empty" href="#src.schnapsen.deck.OrderedCardCollection.is_empty">is_empty</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="src.schnapsen.deck.Rank" href="#src.schnapsen.deck.Rank">Rank</a></code></h4>
+<ul class="two-column">
+<li><code><a title="src.schnapsen.deck.Rank.ACE" href="#src.schnapsen.deck.Rank.ACE">ACE</a></code></li>
+<li><code><a title="src.schnapsen.deck.Rank.EIGHT" href="#src.schnapsen.deck.Rank.EIGHT">EIGHT</a></code></li>
+<li><code><a title="src.schnapsen.deck.Rank.FIVE" href="#src.schnapsen.deck.Rank.FIVE">FIVE</a></code></li>
+<li><code><a title="src.schnapsen.deck.Rank.FOUR" href="#src.schnapsen.deck.Rank.FOUR">FOUR</a></code></li>
+<li><code><a title="src.schnapsen.deck.Rank.JACK" href="#src.schnapsen.deck.Rank.JACK">JACK</a></code></li>
+<li><code><a title="src.schnapsen.deck.Rank.KING" href="#src.schnapsen.deck.Rank.KING">KING</a></code></li>
+<li><code><a title="src.schnapsen.deck.Rank.NINE" href="#src.schnapsen.deck.Rank.NINE">NINE</a></code></li>
+<li><code><a title="src.schnapsen.deck.Rank.QUEEN" href="#src.schnapsen.deck.Rank.QUEEN">QUEEN</a></code></li>
+<li><code><a title="src.schnapsen.deck.Rank.SEVEN" href="#src.schnapsen.deck.Rank.SEVEN">SEVEN</a></code></li>
+<li><code><a title="src.schnapsen.deck.Rank.SIX" href="#src.schnapsen.deck.Rank.SIX">SIX</a></code></li>
+<li><code><a title="src.schnapsen.deck.Rank.TEN" href="#src.schnapsen.deck.Rank.TEN">TEN</a></code></li>
+<li><code><a title="src.schnapsen.deck.Rank.THREE" href="#src.schnapsen.deck.Rank.THREE">THREE</a></code></li>
+<li><code><a title="src.schnapsen.deck.Rank.TWO" href="#src.schnapsen.deck.Rank.TWO">TWO</a></code></li>
+</ul>
+</li>
+<li>
+<h4><code><a title="src.schnapsen.deck.Suit" href="#src.schnapsen.deck.Suit">Suit</a></code></h4>
+<ul class="">
+<li><code><a title="src.schnapsen.deck.Suit.CLUBS" href="#src.schnapsen.deck.Suit.CLUBS">CLUBS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Suit.DIAMONDS" href="#src.schnapsen.deck.Suit.DIAMONDS">DIAMONDS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Suit.HEARTS" href="#src.schnapsen.deck.Suit.HEARTS">HEARTS</a></code></li>
+<li><code><a title="src.schnapsen.deck.Suit.SPADES" href="#src.schnapsen.deck.Suit.SPADES">SPADES</a></code></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</nav>
+</main>
+<footer id="footer">
+<p>Generated by <a href="https://pdoc3.github.io/pdoc" title="pdoc: Python API documentation generator"><cite>pdoc</cite> 0.10.0</a>.</p>
+</footer>
+</body>
+</html>
