@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>src.schnapsen.bots.ml_bot API documentation</title>
+<title>schnapsen.bots.ml_bot API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>src.schnapsen.bots.ml_bot</code></h1>
+<h1 class="title">Module <code>schnapsen.bots.ml_bot</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
@@ -441,8 +441,8 @@ def get_state_feature_vector(player_perspective: PlayerPerspective) -&gt; List[i
 <section>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
-<dt id="src.schnapsen.bots.ml_bot.create_state_and_actions_vector_representation"><code class="name flex">
-<span>def <span class="ident">create_state_and_actions_vector_representation</span></span>(<span>player_perspective: schnapsen.game.PlayerPerspective, leader_move: Optional[schnapsen.game.Move], follower_move: Optional[schnapsen.game.Move]) ‑> List[int]</span>
+<dt id="schnapsen.bots.ml_bot.create_state_and_actions_vector_representation"><code class="name flex">
+<span>def <span class="ident">create_state_and_actions_vector_representation</span></span>(<span>player_perspective: <a title="schnapsen.game.PlayerPerspective" href="../game.html#schnapsen.game.PlayerPerspective">PlayerPerspective</a>, leader_move: Optional[<a title="schnapsen.game.Move" href="../game.html#schnapsen.game.Move">Move</a>], follower_move: Optional[<a title="schnapsen.game.Move" href="../game.html#schnapsen.game.Move">Move</a>]) ‑> List[int]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function takes as input a PlayerPerspective variable, and the two moves of leader and follower,
@@ -464,8 +464,8 @@ and returns a list of complete feature representation that contains all informat
     return player_game_state_representation + leader_move_representation + follower_move_representation</code></pre>
 </details>
 </dd>
-<dt id="src.schnapsen.bots.ml_bot.get_move_feature_vector"><code class="name flex">
-<span>def <span class="ident">get_move_feature_vector</span></span>(<span>move: Optional[schnapsen.game.Move]) ‑> List[int]</span>
+<dt id="schnapsen.bots.ml_bot.get_move_feature_vector"><code class="name flex">
+<span>def <span class="ident">get_move_feature_vector</span></span>(<span>move: Optional[<a title="schnapsen.game.Move" href="../game.html#schnapsen.game.Move">Move</a>]) ‑> List[int]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>in case there isn't any move provided move to encode, we still need to create a "padding"-"meaningless" vector of the same size,
@@ -510,8 +510,8 @@ translate this information into one-hot vectors respectively, and concatenate th
     return move_type_one_hot_encoding_numpy_array + card_rank_one_hot_encoding_numpy_array + card_suit_one_hot_encoding_numpy_array</code></pre>
 </details>
 </dd>
-<dt id="src.schnapsen.bots.ml_bot.get_one_hot_encoding_of_card_rank"><code class="name flex">
-<span>def <span class="ident">get_one_hot_encoding_of_card_rank</span></span>(<span>card_rank: schnapsen.deck.Rank) ‑> List[int]</span>
+<dt id="schnapsen.bots.ml_bot.get_one_hot_encoding_of_card_rank"><code class="name flex">
+<span>def <span class="ident">get_one_hot_encoding_of_card_rank</span></span>(<span>card_rank: <a title="schnapsen.deck.Rank" href="../deck.html#schnapsen.deck.Rank">Rank</a>) ‑> List[int]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Translating the rank of a card into one hot vector encoding of size 13 and type of numpy ndarray.</p></div>
@@ -555,8 +555,8 @@ translate this information into one-hot vectors respectively, and concatenate th
     return card_rank_one_hot</code></pre>
 </details>
 </dd>
-<dt id="src.schnapsen.bots.ml_bot.get_one_hot_encoding_of_card_suit"><code class="name flex">
-<span>def <span class="ident">get_one_hot_encoding_of_card_suit</span></span>(<span>card_suit: schnapsen.deck.Suit) ‑> List[int]</span>
+<dt id="schnapsen.bots.ml_bot.get_one_hot_encoding_of_card_suit"><code class="name flex">
+<span>def <span class="ident">get_one_hot_encoding_of_card_suit</span></span>(<span>card_suit: <a title="schnapsen.deck.Suit" href="../deck.html#schnapsen.deck.Suit">Suit</a>) ‑> List[int]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>Translating the suit of a card into one hot vector encoding of size 4 and type of numpy ndarray.</p></div>
@@ -583,8 +583,8 @@ translate this information into one-hot vectors respectively, and concatenate th
     return card_suit_one_hot</code></pre>
 </details>
 </dd>
-<dt id="src.schnapsen.bots.ml_bot.get_state_feature_vector"><code class="name flex">
-<span>def <span class="ident">get_state_feature_vector</span></span>(<span>player_perspective: schnapsen.game.PlayerPerspective) ‑> List[int]</span>
+<dt id="schnapsen.bots.ml_bot.get_state_feature_vector"><code class="name flex">
+<span>def <span class="ident">get_state_feature_vector</span></span>(<span>player_perspective: <a title="schnapsen.game.PlayerPerspective" href="../game.html#schnapsen.game.PlayerPerspective">PlayerPerspective</a>) ‑> List[int]</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function gathers all subjective information that this bot has access to, that can be used to decide its next move, including:
@@ -705,7 +705,7 @@ It should only include any earlier actions of other agents (so the action of the
     return state_feature_list</code></pre>
 </details>
 </dd>
-<dt id="src.schnapsen.bots.ml_bot.train_ML_model"><code class="name flex">
+<dt id="schnapsen.bots.ml_bot.train_ML_model"><code class="name flex">
 <span>def <span class="ident">train_ML_model</span></span>(<span>replay_memory_filename: str = 'test_replay_memory', replay_memories_directory: str = 'ML_replay_memories', model_name: str = 'test_model', model_dir: str = 'ML_models', overwrite: bool = True) ‑> None</span>
 </code></dt>
 <dd>
@@ -798,9 +798,9 @@ It should only include any earlier actions of other agents (so the action of the
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="src.schnapsen.bots.ml_bot.MLDataBot"><code class="flex name class">
+<dt id="schnapsen.bots.ml_bot.MLDataBot"><code class="flex name class">
 <span>class <span class="ident">MLDataBot</span></span>
-<span>(</span><span>bot: schnapsen.game.Bot, replay_memory_file_path: str)</span>
+<span>(</span><span>bot: <a title="schnapsen.game.Bot" href="../game.html#schnapsen.game.Bot">Bot</a>, replay_memory_file_path: str)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This class is defined to allow the creation of a training schnapsen bot dataset, that allows us to train a Machine Learning (ML) Bot
@@ -884,13 +884,13 @@ replay_memory_filename: the filename under which the replay memory records will 
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li>schnapsen.game.Bot</li>
+<li><a title="schnapsen.game.Bot" href="../game.html#schnapsen.game.Bot">Bot</a></li>
 <li>abc.ABC</li>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="src.schnapsen.bots.ml_bot.MLDataBot.get_move"><code class="name flex">
-<span>def <span class="ident">get_move</span></span>(<span>self, state: schnapsen.game.PlayerPerspective, leader_move: Optional[schnapsen.game.Move]) ‑> schnapsen.game.Move</span>
+<dt id="schnapsen.bots.ml_bot.MLDataBot.get_move"><code class="name flex">
+<span>def <span class="ident">get_move</span></span>(<span>self, state: <a title="schnapsen.game.PlayerPerspective" href="../game.html#schnapsen.game.PlayerPerspective">PlayerPerspective</a>, leader_move: Optional[<a title="schnapsen.game.Move" href="../game.html#schnapsen.game.Move">Move</a>]) ‑> <a title="schnapsen.game.Move" href="../game.html#schnapsen.game.Move">Move</a></span>
 </code></dt>
 <dd>
 <div class="desc"><p>This function simply calls the get_move of the provided bot</p></div>
@@ -905,7 +905,7 @@ replay_memory_filename: the filename under which the replay memory records will 
     return self.bot.get_move(state=state, leader_move=leader_move)</code></pre>
 </details>
 </dd>
-<dt id="src.schnapsen.bots.ml_bot.MLDataBot.notify_game_end"><code class="name flex">
+<dt id="schnapsen.bots.ml_bot.MLDataBot.notify_game_end"><code class="name flex">
 <span>def <span class="ident">notify_game_end</span></span>(<span>self, won: bool, player_perspective: PlayerPerspective) ‑> None</span>
 </code></dt>
 <dd>
@@ -955,8 +955,16 @@ param player_perspective: The final state of the game.</p></div>
 </details>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="schnapsen.game.Bot" href="../game.html#schnapsen.game.Bot">Bot</a></b></code>:
+<ul class="hlist">
+<li><code><a title="schnapsen.game.Bot.notify_trump_exchange" href="../game.html#schnapsen.game.Bot.notify_trump_exchange">notify_trump_exchange</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
-<dt id="src.schnapsen.bots.ml_bot.MLPlayingBot"><code class="flex name class">
+<dt id="schnapsen.bots.ml_bot.MLPlayingBot"><code class="flex name class">
 <span>class <span class="ident">MLPlayingBot</span></span>
 <span>(</span><span>model_name: str = 'test_model', model_dir: str = 'ML_models')</span>
 </code></dt>
@@ -1018,60 +1026,19 @@ param player_perspective: The final state of the game.</p></div>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li>schnapsen.game.Bot</li>
+<li><a title="schnapsen.game.Bot" href="../game.html#schnapsen.game.Bot">Bot</a></li>
 <li>abc.ABC</li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="src.schnapsen.bots.ml_bot.MLPlayingBot.get_move"><code class="name flex">
-<span>def <span class="ident">get_move</span></span>(<span>self, player_perspective: PlayerPerspective, leader_move: Optional[schnapsen.game.Move]) ‑> schnapsen.game.Move</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Get the move this Bot wants to play.
-If this Bot is leading, the leader_move will be None. If this both is following, the leader_move will contain the move the opponent just played</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_move(self, player_perspective: &#39;PlayerPerspective&#39;, leader_move: Optional[Move]) -&gt; &#39;Move&#39;:
-    # get the sate feature representation
-    state_representation = get_state_feature_vector(player_perspective)
-    # get the leader&#39;s move representation, even if it is None
-    leader_move_representation = get_move_feature_vector(leader_move)
-    # get all my valid moves
-    my_valid_moves = player_perspective.valid_moves()
-    # get the feature representations for all my valid moves
-    my_move_representations: list[list[int]] = []
-    for my_move in my_valid_moves:
-        my_move_representations.append(get_move_feature_vector(my_move))
-
-    # create all model inputs, for all bot&#39;s valid moves
-    action_state_representations: list[list[int]] = []
-
-    if player_perspective.am_i_leader():
-        follower_move_representation = get_move_feature_vector(None)
-        for my_move_representation in my_move_representations:
-            action_state_representations.append(
-
-                state_representation + my_move_representation + follower_move_representation)
-    else:
-        for my_move_representation in my_move_representations:
-            action_state_representations.append(
-                state_representation + leader_move_representation + my_move_representation)
-
-    model_output = self.__model.predict_proba(action_state_representations)
-    winning_probabilities_of_moves = [outcome_prob[1] for outcome_prob in model_output]
-    highest_value: float = -1
-    best_move: Move
-    for index, value in enumerate(winning_probabilities_of_moves):
-        if value &gt; highest_value:
-            highest_value = value
-            best_move = my_valid_moves[index]
-    assert best_move
-    return best_move</code></pre>
-</details>
-</dd>
-</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="schnapsen.game.Bot" href="../game.html#schnapsen.game.Bot">Bot</a></b></code>:
+<ul class="hlist">
+<li><code><a title="schnapsen.game.Bot.get_move" href="../game.html#schnapsen.game.Bot.get_move">get_move</a></code></li>
+<li><code><a title="schnapsen.game.Bot.notify_game_end" href="../game.html#schnapsen.game.Bot.notify_game_end">notify_game_end</a></code></li>
+<li><code><a title="schnapsen.game.Bot.notify_trump_exchange" href="../game.html#schnapsen.game.Bot.notify_trump_exchange">notify_trump_exchange</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 </dl>
 </section>
@@ -1084,33 +1051,30 @@ If this Bot is leading, the leader_move will be None. If this both is following,
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="src.schnapsen.bots" href="index.html">src.schnapsen.bots</a></code></li>
+<li><code><a title="schnapsen.bots" href="index.html">schnapsen.bots</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-functions">Functions</a></h3>
 <ul class="">
-<li><code><a title="src.schnapsen.bots.ml_bot.create_state_and_actions_vector_representation" href="#src.schnapsen.bots.ml_bot.create_state_and_actions_vector_representation">create_state_and_actions_vector_representation</a></code></li>
-<li><code><a title="src.schnapsen.bots.ml_bot.get_move_feature_vector" href="#src.schnapsen.bots.ml_bot.get_move_feature_vector">get_move_feature_vector</a></code></li>
-<li><code><a title="src.schnapsen.bots.ml_bot.get_one_hot_encoding_of_card_rank" href="#src.schnapsen.bots.ml_bot.get_one_hot_encoding_of_card_rank">get_one_hot_encoding_of_card_rank</a></code></li>
-<li><code><a title="src.schnapsen.bots.ml_bot.get_one_hot_encoding_of_card_suit" href="#src.schnapsen.bots.ml_bot.get_one_hot_encoding_of_card_suit">get_one_hot_encoding_of_card_suit</a></code></li>
-<li><code><a title="src.schnapsen.bots.ml_bot.get_state_feature_vector" href="#src.schnapsen.bots.ml_bot.get_state_feature_vector">get_state_feature_vector</a></code></li>
-<li><code><a title="src.schnapsen.bots.ml_bot.train_ML_model" href="#src.schnapsen.bots.ml_bot.train_ML_model">train_ML_model</a></code></li>
+<li><code><a title="schnapsen.bots.ml_bot.create_state_and_actions_vector_representation" href="#schnapsen.bots.ml_bot.create_state_and_actions_vector_representation">create_state_and_actions_vector_representation</a></code></li>
+<li><code><a title="schnapsen.bots.ml_bot.get_move_feature_vector" href="#schnapsen.bots.ml_bot.get_move_feature_vector">get_move_feature_vector</a></code></li>
+<li><code><a title="schnapsen.bots.ml_bot.get_one_hot_encoding_of_card_rank" href="#schnapsen.bots.ml_bot.get_one_hot_encoding_of_card_rank">get_one_hot_encoding_of_card_rank</a></code></li>
+<li><code><a title="schnapsen.bots.ml_bot.get_one_hot_encoding_of_card_suit" href="#schnapsen.bots.ml_bot.get_one_hot_encoding_of_card_suit">get_one_hot_encoding_of_card_suit</a></code></li>
+<li><code><a title="schnapsen.bots.ml_bot.get_state_feature_vector" href="#schnapsen.bots.ml_bot.get_state_feature_vector">get_state_feature_vector</a></code></li>
+<li><code><a title="schnapsen.bots.ml_bot.train_ML_model" href="#schnapsen.bots.ml_bot.train_ML_model">train_ML_model</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="src.schnapsen.bots.ml_bot.MLDataBot" href="#src.schnapsen.bots.ml_bot.MLDataBot">MLDataBot</a></code></h4>
+<h4><code><a title="schnapsen.bots.ml_bot.MLDataBot" href="#schnapsen.bots.ml_bot.MLDataBot">MLDataBot</a></code></h4>
 <ul class="">
-<li><code><a title="src.schnapsen.bots.ml_bot.MLDataBot.get_move" href="#src.schnapsen.bots.ml_bot.MLDataBot.get_move">get_move</a></code></li>
-<li><code><a title="src.schnapsen.bots.ml_bot.MLDataBot.notify_game_end" href="#src.schnapsen.bots.ml_bot.MLDataBot.notify_game_end">notify_game_end</a></code></li>
+<li><code><a title="schnapsen.bots.ml_bot.MLDataBot.get_move" href="#schnapsen.bots.ml_bot.MLDataBot.get_move">get_move</a></code></li>
+<li><code><a title="schnapsen.bots.ml_bot.MLDataBot.notify_game_end" href="#schnapsen.bots.ml_bot.MLDataBot.notify_game_end">notify_game_end</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="src.schnapsen.bots.ml_bot.MLPlayingBot" href="#src.schnapsen.bots.ml_bot.MLPlayingBot">MLPlayingBot</a></code></h4>
-<ul class="">
-<li><code><a title="src.schnapsen.bots.ml_bot.MLPlayingBot.get_move" href="#src.schnapsen.bots.ml_bot.MLPlayingBot.get_move">get_move</a></code></li>
-</ul>
+<h4><code><a title="schnapsen.bots.ml_bot.MLPlayingBot" href="#schnapsen.bots.ml_bot.MLPlayingBot">MLPlayingBot</a></code></h4>
 </li>
 </ul>
 </li>

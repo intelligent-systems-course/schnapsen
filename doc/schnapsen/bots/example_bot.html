@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>src.schnapsen.bots.rand API documentation</title>
+<title>schnapsen.bots.example_bot API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,34 +19,50 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>src.schnapsen.bots.rand</code></h1>
+<h1 class="title">Module <code>schnapsen.bots.example_bot</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">import random
+<pre><code class="python">from schnapsen.game import Bot, PlayerPerspective, Move, SchnapsenTrickScorer
+from schnapsen.deck import Suit, Card, Rank
 from typing import Optional
-from schnapsen.game import Bot, PlayerPerspective, Move
 
 
-class RandBot(Bot):
-    def __init__(self, seed: int) -&gt; None:
-        self.seed = seed
-        self.rng = random.Random(self.seed)
+class ExampleBot(Bot):
+    def get_move(self, state: &#39;PlayerPerspective&#39;, leader_move: Optional[&#39;Move&#39;]) -&gt; &#39;Move&#39;:
+        # You can get information on the state from your perspective
+        print(state.am_i_leader())
+        print(state.get_my_score())
+        print(state.get_opponent_won_cards())
+        # more methods in the documentation
 
-    def get_move(
-        self,
-        player_perspective: PlayerPerspective,
-        leader_move: Optional[Move],
-    ) -&gt; Move:
-        moves = player_perspective.valid_moves()
-        move = self.rng.choice(list(moves))
-        return move
+        # Get valid moves
+        moves: list[Move] = state.valid_moves()
+        one_move: Move = moves[0]
+        # You can ask a move whether it is a marriage or a trum exchange
+        print(one_move.is_marriage())
+        print(one_move.is_trump_exchange())
 
-    def __repr__(self) -&gt; str:
-        return f&#34;RandBot(seed={self.seed})&#34;</code></pre>
+        # Check the cards in the moves
+        if one_move.is_marriage():
+            marriage = one_move
+            queen = marriage.cards[0]
+            king = marriage.cards[1]
+        elif one_move.is_trump_exchange():
+            exchange = one_move
+            jack = exchange.cards[0]
+        else:
+            normal_move = one_move
+            card: Card = normal_move.cards[0]
+            print(card.suit)
+            print(card.rank)
+            scorer = SchnapsenTrickScorer()
+            points = scorer.rank_to_points(card.rank)
+            print(points)
+        return one_move</code></pre>
 </details>
 </section>
 <section>
@@ -58,9 +74,8 @@ class RandBot(Bot):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="src.schnapsen.bots.rand.RandBot"><code class="flex name class">
-<span>class <span class="ident">RandBot</span></span>
-<span>(</span><span>seed: int)</span>
+<dt id="schnapsen.bots.example_bot.ExampleBot"><code class="flex name class">
+<span>class <span class="ident">ExampleBot</span></span>
 </code></dt>
 <dd>
 <div class="desc"><p>The Bot baseclass. Derive your own bots from this class and implement the get_move method to use it in games.</p>
@@ -69,51 +84,54 @@ class RandBot(Bot):
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">class RandBot(Bot):
-    def __init__(self, seed: int) -&gt; None:
-        self.seed = seed
-        self.rng = random.Random(self.seed)
+<pre><code class="python">class ExampleBot(Bot):
+    def get_move(self, state: &#39;PlayerPerspective&#39;, leader_move: Optional[&#39;Move&#39;]) -&gt; &#39;Move&#39;:
+        # You can get information on the state from your perspective
+        print(state.am_i_leader())
+        print(state.get_my_score())
+        print(state.get_opponent_won_cards())
+        # more methods in the documentation
 
-    def get_move(
-        self,
-        player_perspective: PlayerPerspective,
-        leader_move: Optional[Move],
-    ) -&gt; Move:
-        moves = player_perspective.valid_moves()
-        move = self.rng.choice(list(moves))
-        return move
+        # Get valid moves
+        moves: list[Move] = state.valid_moves()
+        one_move: Move = moves[0]
+        # You can ask a move whether it is a marriage or a trum exchange
+        print(one_move.is_marriage())
+        print(one_move.is_trump_exchange())
 
-    def __repr__(self) -&gt; str:
-        return f&#34;RandBot(seed={self.seed})&#34;</code></pre>
+        # Check the cards in the moves
+        if one_move.is_marriage():
+            marriage = one_move
+            queen = marriage.cards[0]
+            king = marriage.cards[1]
+        elif one_move.is_trump_exchange():
+            exchange = one_move
+            jack = exchange.cards[0]
+        else:
+            normal_move = one_move
+            card: Card = normal_move.cards[0]
+            print(card.suit)
+            print(card.rank)
+            scorer = SchnapsenTrickScorer()
+            points = scorer.rank_to_points(card.rank)
+            print(points)
+        return one_move</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li>schnapsen.game.Bot</li>
+<li><a title="schnapsen.game.Bot" href="../game.html#schnapsen.game.Bot">Bot</a></li>
 <li>abc.ABC</li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="src.schnapsen.bots.rand.RandBot.get_move"><code class="name flex">
-<span>def <span class="ident">get_move</span></span>(<span>self, player_perspective: schnapsen.game.PlayerPerspective, leader_move: Optional[schnapsen.game.Move]) ‑> schnapsen.game.Move</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Get the move this Bot wants to play.
-If this Bot is leading, the leader_move will be None. If this both is following, the leader_move will contain the move the opponent just played</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_move(
-    self,
-    player_perspective: PlayerPerspective,
-    leader_move: Optional[Move],
-) -&gt; Move:
-    moves = player_perspective.valid_moves()
-    move = self.rng.choice(list(moves))
-    return move</code></pre>
-</details>
-</dd>
-</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="schnapsen.game.Bot" href="../game.html#schnapsen.game.Bot">Bot</a></b></code>:
+<ul class="hlist">
+<li><code><a title="schnapsen.game.Bot.get_move" href="../game.html#schnapsen.game.Bot.get_move">get_move</a></code></li>
+<li><code><a title="schnapsen.game.Bot.notify_game_end" href="../game.html#schnapsen.game.Bot.notify_game_end">notify_game_end</a></code></li>
+<li><code><a title="schnapsen.game.Bot.notify_trump_exchange" href="../game.html#schnapsen.game.Bot.notify_trump_exchange">notify_trump_exchange</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 </dl>
 </section>
@@ -126,16 +144,13 @@ If this Bot is leading, the leader_move will be None. If this both is following,
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="src.schnapsen.bots" href="index.html">src.schnapsen.bots</a></code></li>
+<li><code><a title="schnapsen.bots" href="index.html">schnapsen.bots</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="src.schnapsen.bots.rand.RandBot" href="#src.schnapsen.bots.rand.RandBot">RandBot</a></code></h4>
-<ul class="">
-<li><code><a title="src.schnapsen.bots.rand.RandBot.get_move" href="#src.schnapsen.bots.rand.RandBot.get_move">get_move</a></code></li>
-</ul>
+<h4><code><a title="schnapsen.bots.example_bot.ExampleBot" href="#schnapsen.bots.example_bot.ExampleBot">ExampleBot</a></code></h4>
 </li>
 </ul>
 </li>

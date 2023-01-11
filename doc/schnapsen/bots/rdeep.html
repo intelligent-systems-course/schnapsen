@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>src.schnapsen.bots.rdeep API documentation</title>
+<title>schnapsen.bots.rdeep API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>src.schnapsen.bots.rdeep</code></h1>
+<h1 class="title">Module <code>schnapsen.bots.rdeep</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
@@ -36,7 +36,7 @@ class RdeepBot(Bot):
         &#34;&#34;&#34;
         Create a new rdeep bot.
 
-        :param num_samples: how many samples to take per move, also how many
+        :param num_samples: how many samples to take per move
         :param depth: how deep to sample
         :param rand: the source of randomness for this Bot
         &#34;&#34;&#34;
@@ -136,9 +136,9 @@ class FirstFixedMoveThenBaseBot(Bot):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="src.schnapsen.bots.rdeep.FirstFixedMoveThenBaseBot"><code class="flex name class">
+<dt id="schnapsen.bots.rdeep.FirstFixedMoveThenBaseBot"><code class="flex name class">
 <span>class <span class="ident">FirstFixedMoveThenBaseBot</span></span>
-<span>(</span><span>base_bot: schnapsen.game.Bot, first_move: schnapsen.game.Move)</span>
+<span>(</span><span>base_bot: <a title="schnapsen.game.Bot" href="../game.html#schnapsen.game.Bot">Bot</a>, first_move: <a title="schnapsen.game.Move" href="../game.html#schnapsen.game.Move">Move</a>)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>The Bot baseclass. Derive your own bots from this class and implement the get_move method to use it in games.</p>
@@ -162,32 +162,21 @@ class FirstFixedMoveThenBaseBot(Bot):
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li>schnapsen.game.Bot</li>
+<li><a title="schnapsen.game.Bot" href="../game.html#schnapsen.game.Bot">Bot</a></li>
 <li>abc.ABC</li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="src.schnapsen.bots.rdeep.FirstFixedMoveThenBaseBot.get_move"><code class="name flex">
-<span>def <span class="ident">get_move</span></span>(<span>self, state: PlayerPerspective, leader_move: Optional[ForwardRef('Move')]) ‑> schnapsen.game.Move</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Get the move this Bot wants to play.
-If this Bot is leading, the leader_move will be None. If this both is following, the leader_move will contain the move the opponent just played</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_move(self, state: &#39;PlayerPerspective&#39;, leader_move: Optional[&#39;Move&#39;]) -&gt; &#39;Move&#39;:
-    if not self.first_move_played:
-        self.first_move_played = True
-        return self.first_move
-    else:
-        return self.base_bot.get_move(state=state, leader_move=leader_move)</code></pre>
-</details>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="schnapsen.game.Bot" href="../game.html#schnapsen.game.Bot">Bot</a></b></code>:
+<ul class="hlist">
+<li><code><a title="schnapsen.game.Bot.get_move" href="../game.html#schnapsen.game.Bot.get_move">get_move</a></code></li>
+<li><code><a title="schnapsen.game.Bot.notify_game_end" href="../game.html#schnapsen.game.Bot.notify_game_end">notify_game_end</a></code></li>
+<li><code><a title="schnapsen.game.Bot.notify_trump_exchange" href="../game.html#schnapsen.game.Bot.notify_trump_exchange">notify_trump_exchange</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
-</dl>
-</dd>
-<dt id="src.schnapsen.bots.rdeep.RandBot"><code class="flex name class">
+<dt id="schnapsen.bots.rdeep.RandBot"><code class="flex name class">
 <span>class <span class="ident">RandBot</span></span>
 <span>(</span><span>rand: random.Random)</span>
 </code></dt>
@@ -208,28 +197,21 @@ If this Bot is leading, the leader_move will be None. If this both is following,
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li>schnapsen.game.Bot</li>
+<li><a title="schnapsen.game.Bot" href="../game.html#schnapsen.game.Bot">Bot</a></li>
 <li>abc.ABC</li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="src.schnapsen.bots.rdeep.RandBot.get_move"><code class="name flex">
-<span>def <span class="ident">get_move</span></span>(<span>self, state: schnapsen.game.PlayerPerspective, leader_move: Optional[schnapsen.game.Move]) ‑> schnapsen.game.Move</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Get the move this Bot wants to play.
-If this Bot is leading, the leader_move will be None. If this both is following, the leader_move will contain the move the opponent just played</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -&gt; Move:
-    return self.rand.choice(state.valid_moves())</code></pre>
-</details>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="schnapsen.game.Bot" href="../game.html#schnapsen.game.Bot">Bot</a></b></code>:
+<ul class="hlist">
+<li><code><a title="schnapsen.game.Bot.get_move" href="../game.html#schnapsen.game.Bot.get_move">get_move</a></code></li>
+<li><code><a title="schnapsen.game.Bot.notify_game_end" href="../game.html#schnapsen.game.Bot.notify_game_end">notify_game_end</a></code></li>
+<li><code><a title="schnapsen.game.Bot.notify_trump_exchange" href="../game.html#schnapsen.game.Bot.notify_trump_exchange">notify_trump_exchange</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
-</dl>
-</dd>
-<dt id="src.schnapsen.bots.rdeep.RdeepBot"><code class="flex name class">
+<dt id="schnapsen.bots.rdeep.RdeepBot"><code class="flex name class">
 <span>class <span class="ident">RdeepBot</span></span>
 <span>(</span><span>num_samples: int, depth: int, rand: random.Random)</span>
 </code></dt>
@@ -237,7 +219,7 @@ If this Bot is leading, the leader_move will be None. If this both is following,
 <div class="desc"><p>The Bot baseclass. Derive your own bots from this class and implement the get_move method to use it in games.</p>
 <p>Besides the get_move method, it is also possible to override notify_trump_exchange and notify_game_end to get notified when these events happen.</p>
 <p>Create a new rdeep bot.</p>
-<p>:param num_samples: how many samples to take per move, also how many
+<p>:param num_samples: how many samples to take per move
 :param depth: how deep to sample
 :param rand: the source of randomness for this Bot</p></div>
 <details class="source">
@@ -249,7 +231,7 @@ If this Bot is leading, the leader_move will be None. If this both is following,
         &#34;&#34;&#34;
         Create a new rdeep bot.
 
-        :param num_samples: how many samples to take per move, also how many
+        :param num_samples: how many samples to take per move
         :param depth: how deep to sample
         :param rand: the source of randomness for this Bot
         &#34;&#34;&#34;
@@ -318,45 +300,19 @@ If this Bot is leading, the leader_move will be None. If this both is following,
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li>schnapsen.game.Bot</li>
+<li><a title="schnapsen.game.Bot" href="../game.html#schnapsen.game.Bot">Bot</a></li>
 <li>abc.ABC</li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="src.schnapsen.bots.rdeep.RdeepBot.get_move"><code class="name flex">
-<span>def <span class="ident">get_move</span></span>(<span>self, state: PlayerPerspective, leader_move: Optional[ForwardRef('Move')]) ‑> schnapsen.game.Move</span>
-</code></dt>
-<dd>
-<div class="desc"><p>Get the move this Bot wants to play.
-If this Bot is leading, the leader_move will be None. If this both is following, the leader_move will contain the move the opponent just played</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_move(self, state: &#39;PlayerPerspective&#39;, leader_move: Optional[&#39;Move&#39;]) -&gt; &#39;Move&#39;:
-    # get the list of valid moves, and shuffle it such
-    # that we get a random move of the highest scoring
-    # ones if there are multiple highest scoring moves.
-    moves = state.valid_moves()
-    self.__rand.shuffle(moves)
-
-    best_score = float(&#39;-inf&#39;)
-    best_move = None
-    for move in moves:
-        sum_of_scores = 0.0
-        for _ in range(self.__num_samples):
-            gamestate = state.make_assumption(leader_move=leader_move, rand=self.__rand)
-            score = self.__evaluate(gamestate, state.get_engine(), leader_move, move)
-            sum_of_scores += score
-        average_score = sum_of_scores / self.__num_samples
-        if average_score &gt; best_score:
-            best_score = average_score
-            best_move = move
-    assert best_move is not None
-    return best_move</code></pre>
-</details>
-</dd>
-</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="schnapsen.game.Bot" href="../game.html#schnapsen.game.Bot">Bot</a></b></code>:
+<ul class="hlist">
+<li><code><a title="schnapsen.game.Bot.get_move" href="../game.html#schnapsen.game.Bot.get_move">get_move</a></code></li>
+<li><code><a title="schnapsen.game.Bot.notify_game_end" href="../game.html#schnapsen.game.Bot.notify_game_end">notify_game_end</a></code></li>
+<li><code><a title="schnapsen.game.Bot.notify_trump_exchange" href="../game.html#schnapsen.game.Bot.notify_trump_exchange">notify_trump_exchange</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 </dl>
 </section>
@@ -369,28 +325,19 @@ If this Bot is leading, the leader_move will be None. If this both is following,
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="src.schnapsen.bots" href="index.html">src.schnapsen.bots</a></code></li>
+<li><code><a title="schnapsen.bots" href="index.html">schnapsen.bots</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="src.schnapsen.bots.rdeep.FirstFixedMoveThenBaseBot" href="#src.schnapsen.bots.rdeep.FirstFixedMoveThenBaseBot">FirstFixedMoveThenBaseBot</a></code></h4>
-<ul class="">
-<li><code><a title="src.schnapsen.bots.rdeep.FirstFixedMoveThenBaseBot.get_move" href="#src.schnapsen.bots.rdeep.FirstFixedMoveThenBaseBot.get_move">get_move</a></code></li>
-</ul>
+<h4><code><a title="schnapsen.bots.rdeep.FirstFixedMoveThenBaseBot" href="#schnapsen.bots.rdeep.FirstFixedMoveThenBaseBot">FirstFixedMoveThenBaseBot</a></code></h4>
 </li>
 <li>
-<h4><code><a title="src.schnapsen.bots.rdeep.RandBot" href="#src.schnapsen.bots.rdeep.RandBot">RandBot</a></code></h4>
-<ul class="">
-<li><code><a title="src.schnapsen.bots.rdeep.RandBot.get_move" href="#src.schnapsen.bots.rdeep.RandBot.get_move">get_move</a></code></li>
-</ul>
+<h4><code><a title="schnapsen.bots.rdeep.RandBot" href="#schnapsen.bots.rdeep.RandBot">RandBot</a></code></h4>
 </li>
 <li>
-<h4><code><a title="src.schnapsen.bots.rdeep.RdeepBot" href="#src.schnapsen.bots.rdeep.RdeepBot">RdeepBot</a></code></h4>
-<ul class="">
-<li><code><a title="src.schnapsen.bots.rdeep.RdeepBot.get_move" href="#src.schnapsen.bots.rdeep.RdeepBot.get_move">get_move</a></code></li>
-</ul>
+<h4><code><a title="schnapsen.bots.rdeep.RdeepBot" href="#schnapsen.bots.rdeep.RdeepBot">RdeepBot</a></code></h4>
 </li>
 </ul>
 </li>

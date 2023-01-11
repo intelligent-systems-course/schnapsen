@@ -8,7 +8,7 @@ class RdeepBot(Bot):
         """
         Create a new rdeep bot.
 
-        :param num_samples: how many samples to take per move, also how many
+        :param num_samples: how many samples to take per move
         :param depth: how deep to sample
         :param rand: the source of randomness for this Bot
         """

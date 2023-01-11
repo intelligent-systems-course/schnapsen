@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1" />
 <meta name="generator" content="pdoc 0.10.0" />
-<title>src.schnapsen.twenty_four_card_schnapsen API documentation</title>
+<title>schnapsen.twenty_four_card_schnapsen API documentation</title>
 <meta name="description" content="" />
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/sanitize.min.css" integrity="sha256-PK9q560IAAa6WVRRh76LtCaI8pjTJ2z11v0miyNNjrs=" crossorigin>
 <link rel="preload stylesheet" as="style" href="https://cdnjs.cloudflare.com/ajax/libs/10up-sanitize.css/11.0.1/typography.min.css" integrity="sha256-7l/o7C8jubJiy74VsKTidCy1yBkRtiUGbVkYBylBqUg=" crossorigin>
@@ -19,7 +19,7 @@
 <main>
 <article id="content">
 <header>
-<h1 class="title">Module <code>src.schnapsen.twenty_four_card_schnapsen</code></h1>
+<h1 class="title">Module <code>schnapsen.twenty_four_card_schnapsen</code></h1>
 </header>
 <section id="section-intro">
 <details class="source">
@@ -76,7 +76,7 @@ class TwentyFourSchnapsenGamePlayEngine(GamePlayEngine):
 <section>
 <h2 class="section-title" id="header-classes">Classes</h2>
 <dl>
-<dt id="src.schnapsen.twenty_four_card_schnapsen.MyDeckGenerator"><code class="flex name class">
+<dt id="schnapsen.twenty_four_card_schnapsen.MyDeckGenerator"><code class="flex name class">
 <span>class <span class="ident">MyDeckGenerator</span></span>
 </code></dt>
 <dd>
@@ -96,13 +96,13 @@ inheritance.</p></div>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li>schnapsen.game.DeckGenerator</li>
+<li><a title="schnapsen.game.DeckGenerator" href="game.html#schnapsen.game.DeckGenerator">DeckGenerator</a></li>
 <li>abc.ABC</li>
 </ul>
 <h3>Methods</h3>
 <dl>
-<dt id="src.schnapsen.twenty_four_card_schnapsen.MyDeckGenerator.get_initial_deck"><code class="name flex">
-<span>def <span class="ident">get_initial_deck</span></span>(<span>self) ‑> schnapsen.deck.OrderedCardCollection</span>
+<dt id="schnapsen.twenty_four_card_schnapsen.MyDeckGenerator.get_initial_deck"><code class="name flex">
+<span>def <span class="ident">get_initial_deck</span></span>(<span>self) ‑> <a title="schnapsen.deck.OrderedCardCollection" href="deck.html#schnapsen.deck.OrderedCardCollection">OrderedCardCollection</a></span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -120,7 +120,7 @@ inheritance.</p></div>
 </dd>
 </dl>
 </dd>
-<dt id="src.schnapsen.twenty_four_card_schnapsen.MyTrickScorer"><code class="flex name class">
+<dt id="schnapsen.twenty_four_card_schnapsen.MyTrickScorer"><code class="flex name class">
 <span>class <span class="ident">MyTrickScorer</span></span>
 </code></dt>
 <dd>
@@ -147,21 +147,21 @@ inheritance.</p></div>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li>schnapsen.game.SchnapsenTrickScorer</li>
-<li>schnapsen.game.TrickScorer</li>
+<li><a title="schnapsen.game.SchnapsenTrickScorer" href="game.html#schnapsen.game.SchnapsenTrickScorer">SchnapsenTrickScorer</a></li>
+<li><a title="schnapsen.game.TrickScorer" href="game.html#schnapsen.game.TrickScorer">TrickScorer</a></li>
 <li>abc.ABC</li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="src.schnapsen.twenty_four_card_schnapsen.MyTrickScorer.scores"><code class="name">var <span class="ident">scores</span></code></dt>
+<dt id="schnapsen.twenty_four_card_schnapsen.MyTrickScorer.scores"><code class="name">var <span class="ident">scores</span></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="src.schnapsen.twenty_four_card_schnapsen.MyTrickScorer.rank_to_points"><code class="name flex">
-<span>def <span class="ident">rank_to_points</span></span>(<span>self, rank: schnapsen.deck.Rank) ‑> int</span>
+<dt id="schnapsen.twenty_four_card_schnapsen.MyTrickScorer.rank_to_points"><code class="name flex">
+<span>def <span class="ident">rank_to_points</span></span>(<span>self, rank: <a title="schnapsen.deck.Rank" href="deck.html#schnapsen.deck.Rank">Rank</a>) ‑> int</span>
 </code></dt>
 <dd>
 <div class="desc"></div>
@@ -174,8 +174,17 @@ inheritance.</p></div>
 </details>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="schnapsen.game.SchnapsenTrickScorer" href="game.html#schnapsen.game.SchnapsenTrickScorer">SchnapsenTrickScorer</a></b></code>:
+<ul class="hlist">
+<li><code><a title="schnapsen.game.SchnapsenTrickScorer.declare_winner" href="game.html#schnapsen.game.SchnapsenTrickScorer.declare_winner">declare_winner</a></code></li>
+<li><code><a title="schnapsen.game.SchnapsenTrickScorer.score" href="game.html#schnapsen.game.TrickScorer.score">score</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
-<dt id="src.schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine"><code class="flex name class">
+<dt id="schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine"><code class="flex name class">
 <span>class <span class="ident">TwentyFourSchnapsenGamePlayEngine</span></span>
 </code></dt>
 <dd>
@@ -197,35 +206,46 @@ inheritance.</p></div>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
-<li>schnapsen.game.GamePlayEngine</li>
+<li><a title="schnapsen.game.GamePlayEngine" href="game.html#schnapsen.game.GamePlayEngine">GamePlayEngine</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>
-<dt id="src.schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.deck_generator"><code class="name">var <span class="ident">deck_generator</span> : schnapsen.game.DeckGenerator</code></dt>
+<dt id="schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.deck_generator"><code class="name">var <span class="ident">deck_generator</span> : <a title="schnapsen.game.DeckGenerator" href="game.html#schnapsen.game.DeckGenerator">DeckGenerator</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="src.schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.hand_generator"><code class="name">var <span class="ident">hand_generator</span> : schnapsen.game.HandGenerator</code></dt>
+<dt id="schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.hand_generator"><code class="name">var <span class="ident">hand_generator</span> : <a title="schnapsen.game.HandGenerator" href="game.html#schnapsen.game.HandGenerator">HandGenerator</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="src.schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.move_requester"><code class="name">var <span class="ident">move_requester</span> : schnapsen.game.MoveRequester</code></dt>
+<dt id="schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.move_requester"><code class="name">var <span class="ident">move_requester</span> : <a title="schnapsen.game.MoveRequester" href="game.html#schnapsen.game.MoveRequester">MoveRequester</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="src.schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.move_validator"><code class="name">var <span class="ident">move_validator</span> : schnapsen.game.MoveValidator</code></dt>
+<dt id="schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.move_validator"><code class="name">var <span class="ident">move_validator</span> : <a title="schnapsen.game.MoveValidator" href="game.html#schnapsen.game.MoveValidator">MoveValidator</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="src.schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.trick_implementer"><code class="name">var <span class="ident">trick_implementer</span> : schnapsen.game.TrickImplementer</code></dt>
+<dt id="schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.trick_implementer"><code class="name">var <span class="ident">trick_implementer</span> : <a title="schnapsen.game.TrickImplementer" href="game.html#schnapsen.game.TrickImplementer">TrickImplementer</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
-<dt id="src.schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.trick_scorer"><code class="name">var <span class="ident">trick_scorer</span> : schnapsen.game.TrickScorer</code></dt>
+<dt id="schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.trick_scorer"><code class="name">var <span class="ident">trick_scorer</span> : <a title="schnapsen.game.TrickScorer" href="game.html#schnapsen.game.TrickScorer">TrickScorer</a></code></dt>
 <dd>
 <div class="desc"></div>
 </dd>
 </dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="schnapsen.game.GamePlayEngine" href="game.html#schnapsen.game.GamePlayEngine">GamePlayEngine</a></b></code>:
+<ul class="hlist">
+<li><code><a title="schnapsen.game.GamePlayEngine.play_at_most_n_tricks" href="game.html#schnapsen.game.GamePlayEngine.play_at_most_n_tricks">play_at_most_n_tricks</a></code></li>
+<li><code><a title="schnapsen.game.GamePlayEngine.play_game" href="game.html#schnapsen.game.GamePlayEngine.play_game">play_game</a></code></li>
+<li><code><a title="schnapsen.game.GamePlayEngine.play_game_from_state" href="game.html#schnapsen.game.GamePlayEngine.play_game_from_state">play_game_from_state</a></code></li>
+<li><code><a title="schnapsen.game.GamePlayEngine.play_game_from_state_with_new_bots" href="game.html#schnapsen.game.GamePlayEngine.play_game_from_state_with_new_bots">play_game_from_state_with_new_bots</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 </dl>
 </section>
@@ -238,33 +258,33 @@ inheritance.</p></div>
 <ul id="index">
 <li><h3>Super-module</h3>
 <ul>
-<li><code><a title="src.schnapsen" href="index.html">src.schnapsen</a></code></li>
+<li><code><a title="schnapsen" href="index.html">schnapsen</a></code></li>
 </ul>
 </li>
 <li><h3><a href="#header-classes">Classes</a></h3>
 <ul>
 <li>
-<h4><code><a title="src.schnapsen.twenty_four_card_schnapsen.MyDeckGenerator" href="#src.schnapsen.twenty_four_card_schnapsen.MyDeckGenerator">MyDeckGenerator</a></code></h4>
+<h4><code><a title="schnapsen.twenty_four_card_schnapsen.MyDeckGenerator" href="#schnapsen.twenty_four_card_schnapsen.MyDeckGenerator">MyDeckGenerator</a></code></h4>
 <ul class="">
-<li><code><a title="src.schnapsen.twenty_four_card_schnapsen.MyDeckGenerator.get_initial_deck" href="#src.schnapsen.twenty_four_card_schnapsen.MyDeckGenerator.get_initial_deck">get_initial_deck</a></code></li>
+<li><code><a title="schnapsen.twenty_four_card_schnapsen.MyDeckGenerator.get_initial_deck" href="#schnapsen.twenty_four_card_schnapsen.MyDeckGenerator.get_initial_deck">get_initial_deck</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="src.schnapsen.twenty_four_card_schnapsen.MyTrickScorer" href="#src.schnapsen.twenty_four_card_schnapsen.MyTrickScorer">MyTrickScorer</a></code></h4>
+<h4><code><a title="schnapsen.twenty_four_card_schnapsen.MyTrickScorer" href="#schnapsen.twenty_four_card_schnapsen.MyTrickScorer">MyTrickScorer</a></code></h4>
 <ul class="">
-<li><code><a title="src.schnapsen.twenty_four_card_schnapsen.MyTrickScorer.rank_to_points" href="#src.schnapsen.twenty_four_card_schnapsen.MyTrickScorer.rank_to_points">rank_to_points</a></code></li>
-<li><code><a title="src.schnapsen.twenty_four_card_schnapsen.MyTrickScorer.scores" href="#src.schnapsen.twenty_four_card_schnapsen.MyTrickScorer.scores">scores</a></code></li>
+<li><code><a title="schnapsen.twenty_four_card_schnapsen.MyTrickScorer.rank_to_points" href="#schnapsen.twenty_four_card_schnapsen.MyTrickScorer.rank_to_points">rank_to_points</a></code></li>
+<li><code><a title="schnapsen.twenty_four_card_schnapsen.MyTrickScorer.scores" href="#schnapsen.twenty_four_card_schnapsen.MyTrickScorer.scores">scores</a></code></li>
 </ul>
 </li>
 <li>
-<h4><code><a title="src.schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine" href="#src.schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine">TwentyFourSchnapsenGamePlayEngine</a></code></h4>
+<h4><code><a title="schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine" href="#schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine">TwentyFourSchnapsenGamePlayEngine</a></code></h4>
 <ul class="two-column">
-<li><code><a title="src.schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.deck_generator" href="#src.schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.deck_generator">deck_generator</a></code></li>
-<li><code><a title="src.schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.hand_generator" href="#src.schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.hand_generator">hand_generator</a></code></li>
-<li><code><a title="src.schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.move_requester" href="#src.schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.move_requester">move_requester</a></code></li>
-<li><code><a title="src.schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.move_validator" href="#src.schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.move_validator">move_validator</a></code></li>
-<li><code><a title="src.schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.trick_implementer" href="#src.schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.trick_implementer">trick_implementer</a></code></li>
-<li><code><a title="src.schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.trick_scorer" href="#src.schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.trick_scorer">trick_scorer</a></code></li>
+<li><code><a title="schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.deck_generator" href="#schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.deck_generator">deck_generator</a></code></li>
+<li><code><a title="schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.hand_generator" href="#schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.hand_generator">hand_generator</a></code></li>
+<li><code><a title="schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.move_requester" href="#schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.move_requester">move_requester</a></code></li>
+<li><code><a title="schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.move_validator" href="#schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.move_validator">move_validator</a></code></li>
+<li><code><a title="schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.trick_implementer" href="#schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.trick_implementer">trick_implementer</a></code></li>
+<li><code><a title="schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.trick_scorer" href="#schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine.trick_scorer">trick_scorer</a></code></li>
 </ul>
 </li>
 </ul>

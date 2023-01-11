@@ -5,6 +5,8 @@ from typing import Optional
 import click
 from schnapsen.bots import MLDataBot, train_ML_model, MLPlayingBot
 
+from schnapsen.bots.example_bot import ExampleBot
+
 from schnapsen.game import (Bot, Move, PlayerPerspective,
                             SchnapsenGamePlayEngine, Trump_Exchange)
 from schnapsen.twenty_four_card_schnapsen import \
@@ -146,15 +148,24 @@ def rdeep_game() -> None:
     rdeep = bot1 = RdeepBot(num_samples=16, depth=4, rand=random.Random(4564654644))
     bot2 = RandBot(464566)
     wins = 0
-    amount = 1000
+    amount = 101
     for i in range(amount):
         if i % 2 == 0:
             bot1, bot2 = bot2, bot1
         winner_id, _, _ = engine.play_game(bot1, bot2, random.Random(5))
         if winner_id == rdeep:
             wins += 1
-        if i % 10 == 0:
+        if i > 0 and i % 10 == 0:
             print(f"won {wins} out of {i}")
+
+
+@main.command()
+def try_example_bot_game() -> None:
+    engine = SchnapsenGamePlayEngine()
+    bot1 = ExampleBot()
+    bot2 = RandBot(464566)
+    winner, points, score = engine.play_game(bot1, bot2, random.Random(1))
+    print(f"Winner is: {winner}, with {points} points!")
 
 
 if __name__ == "__main__":
