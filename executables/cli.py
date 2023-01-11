@@ -143,7 +143,7 @@ def rdeep_game() -> None:
     bot1: Bot
     bot2: Bot
     engine = SchnapsenGamePlayEngine()
-    rdeep = bot1 = RdeepBot(num_samples=10, depth=10, rand=random.Random(4564654644))
+    rdeep = bot1 = RdeepBot(num_samples=16, depth=4, rand=random.Random(4564654644))
     bot2 = RandBot(464566)
     wins = 0
     amount = 1000

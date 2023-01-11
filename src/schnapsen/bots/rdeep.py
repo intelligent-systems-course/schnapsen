@@ -28,12 +28,15 @@ class RdeepBot(Bot):
         best_score = float('-inf')
         best_move = None
         for move in moves:
+            sum_of_scores = 0.0
             for _ in range(self.__num_samples):
                 gamestate = state.make_assumption(leader_move=leader_move, rand=self.__rand)
                 score = self.__evaluate(gamestate, state.get_engine(), leader_move, move)
-                if score > best_score:
-                    score = best_score
-                    best_move = move
+                sum_of_scores += score
+            average_score = sum_of_scores / self.__num_samples
+            if average_score > best_score:
+                best_score = average_score
+                best_move = move
         assert best_move is not None
         return best_move
 
@@ -45,35 +48,32 @@ class RdeepBot(Bot):
         :return: A float representing the value of this state for the given player. The higher the value, the better the
                 state is for the player.
         """
-        score = 0.0
-        for _ in range(self.__num_samples):
-            me: Bot
-            leader_bot: Bot
-            follower_bot: Bot
+        me: Bot
+        leader_bot: Bot
+        follower_bot: Bot
 
-            if leader_move:
-                # we know what the other bot played
-                leader_bot = FirstFixedMoveThenBaseBot(RandBot(rand=self.__rand), leader_move)
-                # I am the follower
-                me = follower_bot = FirstFixedMoveThenBaseBot(RandBot(rand=self.__rand), my_move)
-            else:
-                # I am the leader bot
-                me = leader_bot = FirstFixedMoveThenBaseBot(RandBot(rand=self.__rand), my_move)
-                # We assume the other bot just random
-                follower_bot = RandBot(self.__rand)
+        if leader_move:
+            # we know what the other bot played
+            leader_bot = FirstFixedMoveThenBaseBot(RandBot(rand=self.__rand), leader_move)
+            # I am the follower
+            me = follower_bot = FirstFixedMoveThenBaseBot(RandBot(rand=self.__rand), my_move)
+        else:
+            # I am the leader bot
+            me = leader_bot = FirstFixedMoveThenBaseBot(RandBot(rand=self.__rand), my_move)
+            # We assume the other bot just random
+            follower_bot = RandBot(self.__rand)
 
-            new_game_state, _ = engine.play_at_most_n_tricks(game_state=gamestate, new_leader=leader_bot, new_follower=follower_bot, n=self.__depth)
+        new_game_state, _ = engine.play_at_most_n_tricks(game_state=gamestate, new_leader=leader_bot, new_follower=follower_bot, n=self.__depth)
 
-            if new_game_state.leader.implementation == me:
-                my_score = new_game_state.leader.score.direct_points
-                opponent_score = new_game_state.follower.score.direct_points
-            else:
-                my_score = new_game_state.follower.score.direct_points
-                opponent_score = new_game_state.leader.score.direct_points
+        if new_game_state.leader.implementation is me:
+            my_score = new_game_state.leader.score.direct_points
+            opponent_score = new_game_state.follower.score.direct_points
+        else:
+            my_score = new_game_state.follower.score.direct_points
+            opponent_score = new_game_state.leader.score.direct_points
 
-            heuristic = my_score / (my_score + opponent_score)
-            score += heuristic
-        return score / self.__num_samples
+        heuristic = my_score / (my_score + opponent_score)
+        return heuristic
 
 
 class RandBot(Bot):
