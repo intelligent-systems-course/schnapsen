@@ -1,5 +1,5 @@
-from schnapsen.bots.gui import SchnapsenServer
-from schnapsen.bots.rand import RandBot
+from schnapsen.bots import SchnapsenServer
+from schnapsen.bots import RandBot
 from schnapsen.game import SchnapsenGamePlayEngine
 import random
 

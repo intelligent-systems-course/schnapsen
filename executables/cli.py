@@ -3,7 +3,7 @@ import random
 from typing import Optional
 
 import click
-from schnapsen.bots.ml_bot import MLDataBot, train_ML_model, MLPlayingBot
+from schnapsen.bots import MLDataBot, train_ML_model, MLPlayingBot
 
 from schnapsen.game import (Bot, Move, PlayerPerspective,
                             SchnapsenGamePlayEngine, Trump_Exchange)
