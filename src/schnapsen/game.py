@@ -1111,39 +1111,80 @@ class SchnapsenTrickImplementer(TrickImplementer):
         follower_game_state = FollowerPerspective(game_state, game_engine, partial_trick)
 
         follower_move = game_engine.move_requester.get_move(game_state.follower, follower_game_state, partial_trick)
-        if follower_move not in game_engine.move_validator.get_legal_follower_moves(game_engine, game_state, partial_trick):
+        if not game_engine.move_validator.is_legal_follower_move(game_engine, game_state, partial_trick, follower_move):
             raise Exception(f"Follower {game_state.follower.implementation} played an illegal move")
         return cast(RegularMove, follower_move)
 
 
 class MoveRequester:
-    """An the logic of requesting a move from a bot.
-    This logic also determines what happens in case the bot is to slow, throws an exception during operation, etc"""
+    """
+    An moveRequester captures the logic of requesting a move from a bot.
+    This logic also determines what happens in case the bot is to slow, throws an exception during operation, etc
+    """
 
     @ abstractmethod
     def get_move(self, bot: BotState, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+        """
+        Get a move from the bot, potentially applying timeout logic.
+
+        """
         pass
 
 
 class SimpleMoveRequester(MoveRequester):
-
-    """The simplest just asks the move"""
+    """The SimplemoveRquester just asks the move, and does nto time out"""
 
     def get_move(self, bot: BotState, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         return bot.get_move(state, leader_move=leader_move)
 
 
 class MoveValidator(ABC):
+    """
+    An object of this class can be used to check whether a move is valid.
+    """
     @ abstractmethod
     def get_legal_leader_moves(self, game_engine: 'GamePlayEngine', game_state: GameState) -> Iterable[Move]:
-        pass
+        """
+        Get all legal moves for the current leader of the game.
 
-    @ abstractmethod
-    def get_legal_follower_moves(self, game_engine: 'GamePlayEngine', game_state: GameState, partial_trick: Move) -> Iterable[Move]:
+        :param game_engine: The engine which is playing the game
+        :param game_state: The current state of the game
+
+        :returns: An iterable containing the current legal moves.
+        """
         pass
 
     def is_legal_leader_move(self, game_engine: 'GamePlayEngine', game_state: GameState, move: Move) -> bool:
+        """
+        Whether the provided move is legal for the leader to play.
+        The basic implementation checks whether the move is in the legal leader moves.
+        Derived classes might implement this more performantly.
+        """
+        assert move, 'The move played by the leader cannot be None'
         return move in self.get_legal_leader_moves(game_engine, game_state)
+
+    @ abstractmethod
+    def get_legal_follower_moves(self, game_engine: 'GamePlayEngine', game_state: GameState, partial_trick: Move) -> Iterable[Move]:
+        """
+        Get all legal moves for the current follower of the game.
+
+        :param game_engine: The engine which is playing the game
+        :param game_state: The current state of the game
+        :param partial_trick: The move played by the leader of the trick.
+
+        :returns: An iterable containing the current legal moves.
+        """
+        pass
+
+    def is_legal_follower_move(self, game_engine: 'GamePlayEngine', game_state: GameState, leader_move: Move, move: Move) -> bool:
+        """
+        Whether the provided move is legal for the follower to play.
+        The basic implementation checks whether the move is in the legal fllower moves.
+        Derived classes might implement this more performantly.
+        """
+        assert move, 'The move played by the follower cannot be None'
+        assert leader_move, 'The move played by the leader cannot be None'
+        return move in self.get_legal_follower_moves(game_engine=game_engine, game_state=game_state, partial_trick=leader_move)
 
 
 class SchnapsenMoveValidator(MoveValidator):
@@ -1239,19 +1280,38 @@ class TrickScorer(ABC):
 
     @ abstractmethod
     def declare_winner(self, game_state: GameState) -> Optional[Tuple[BotState, int]]:
-        """return a bot and the number of points if there is a winner of this game already"""
+        """return a bot and the number of points if there is a winner of this game already
+
+        :param game_state: The current state of the game
+        :returns: The botstate of the winner and the number of game points, in case there is a winner already. Otherwise None.
+
+        """
         pass
 
     @ abstractmethod
     def rank_to_points(self, rank: Rank) -> int:
+        """Get the point value for a given rank
+
+        :param rank: the rank of a card for which you want to obtain the points
+        :returns: The score for that card
+        """
         pass
 
     @ abstractmethod
     def marriage(self, move: Marriage, gamestate: GameState) -> 'Score':
+        """Get the score which the player obtains for the given marriage
+
+        :param move: The marriage for which to get the score
+        :param gamestate: the current state of the game, usually used to get the trump suit
+        :returns: The score for this marriage
+        """
         pass
 
 
 class SchnapsenTrickScorer(TrickScorer):
+    """
+    A TrickScorer that scores ac cording to the Schnapsen rules
+    """
 
     SCORES = {
         Rank.ACE: 11,
@@ -1343,6 +1403,9 @@ class SchnapsenTrickScorer(TrickScorer):
 
 @ dataclass
 class GamePlayEngine:
+    """
+    The GamePlayengine combines the different aspects of the game into an engine that can execute games.
+    """
     deck_generator: DeckGenerator
     hand_generator: HandGenerator
     trick_implementer: TrickImplementer
@@ -1466,6 +1529,10 @@ class GamePlayEngine:
 
 
 class SchnapsenGamePlayEngine(GamePlayEngine):
+    """
+    A GamePlayEngine configured according to the rules of Schnapsen
+    """
+
     def __init__(self) -> None:
         super().__init__(
             deck_generator=SchnapsenDeckGenerator(),
