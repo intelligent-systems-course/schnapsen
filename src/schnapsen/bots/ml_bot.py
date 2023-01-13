@@ -2,6 +2,7 @@ from schnapsen.game import Bot, PlayerPerspective, SchnapsenDeckGenerator, Move,
 from typing import List, Optional, cast
 from schnapsen.deck import Suit, Rank
 from sklearn.neural_network import MLPClassifier
+from sklearn.linear_model import LogisticRegression
 import joblib
 import os
 import time
@@ -54,7 +55,7 @@ class MLPlayingBot(Bot):
             if value > highest_value:
                 highest_value = value
                 best_move = my_valid_moves[index]
-        assert best_move
+        assert best_move is not None
         return best_move
 
 
@@ -86,7 +87,7 @@ class MLDataBot(Bot):
         """
         return self.bot.get_move(state=state, leader_move=leader_move)
 
-    def notify_game_end(self, won: bool, player_perspective: PlayerPerspective) -> None:
+    def notify_game_end(self, won: bool, state: PlayerPerspective) -> None:
         """
         When the game ends, this function retrieves the game history and more specifically all the replay memories that can
         be derived from it, and stores them in the form of state-actions vector representations and the corresponding outcome of the game
@@ -95,7 +96,7 @@ class MLDataBot(Bot):
         param player_perspective: The final state of the game.
         """
         # we retrieve the game history while actually discarding the last useless history record (which is after the game has ended), we know none of the Tricks can be None
-        game_history: list[tuple[PlayerPerspective, Trick]] = cast(list[tuple[PlayerPerspective, Trick]], player_perspective.get_game_history()[:-1])
+        game_history: list[tuple[PlayerPerspective, Trick]] = cast(list[tuple[PlayerPerspective, Trick]], state.get_game_history()[:-1])
         # we also save the training label "won or lost"
         won_label = won
 
@@ -114,7 +115,7 @@ class MLDataBot(Bot):
                 follower_move = None
 
             state_actions_representation = create_state_and_actions_vector_representation(
-                player_perspective=round_player_perspective, leader_move=leader_move, follower_move=follower_move)
+                state=round_player_perspective, leader_move=leader_move, follower_move=follower_move)
 
             # append replay memory to file
             with open(file=self.replay_memory_file_path, mode="a") as replay_memory_file:
@@ -125,7 +126,8 @@ class MLDataBot(Bot):
 
 def train_ML_model(replay_memory_filename: str = 'test_replay_memory',
                    replay_memories_directory: str = 'ML_replay_memories',
-                   model_name: str = 'test_model', model_dir: str = "ML_models", overwrite: bool = True) -> None:
+                   model_name: str = 'test_model', model_dir: str = "ML_models",
+                   use_neural_network: bool = False, overwrite: bool = True) -> None:
     # check if directory exists, and if not, then create it
     if not os.path.exists(model_dir):
         os.mkdir(model_dir)
@@ -165,50 +167,61 @@ def train_ML_model(replay_memory_filename: str = 'test_replay_memory',
     print("Samples of wins:", samples_of_wins)
     print("Samples of losses:", samples_of_losses)
 
-    # Play around with the model parameters below
+    # What type of model will be used depends on the value of the parameter use_neural_network
+    if use_neural_network:
+        #############################################
+        # Neural Network model parameters :
+        # learn more about the model or how to use better use it by checking out its documentation
+        # https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPClassifier.html#sklearn.neural_network.MLPClassifier
+        # Play around with the model parameters below
+        print("Training a Complex (Neural Network) model.")
 
-    # HINT: Use tournament fast mode (-f flag) to quickly test your different models.
+        # Feel free to experiment with different number of neural layers or differnt type of neurons per layer
+        # Tips: more neurons or more layers of neurons create a more complicated model that takes more time to train and
+        # needs a bigger dataset, but if you find the correct combination of neurons and neural layers and provide a big enough training dataset can lead to better performance
 
-    # The following tuple specifies the number of hidden layers in the neural
-    # network, as well as the number of layers, implicitly through its length.
-    # You can set any number of hidden layers, even just one. Experiment and see what works.
-    hidden_layer_sizes = (64, 32)
+        # one layer of 30 neurons
+        hidden_layer_sizes = (30)
+        # two layers of 30 and 5 neurons respectively
+        # hidden_layer_sizes = (30, 5)
 
-    # The learning rate determines how fast we move towards the optimal solution.
-    # A low learning rate will converge slowly, but a large one might overshoot.
-    learning_rate = 0.0001
+        # The learning rate determines how fast we move towards the optimal solution.
+        # A low learning rate will converge slowly, but a large one might overshoot.
+        learning_rate = 0.0001
 
-    # The regularization term aims to prevent overfitting, and we can tweak its strength here.
-    regularization_strength = 0.0001
+        # The regularization term aims to prevent over-fitting, and we can tweak its strength here.
+        regularization_strength = 0.0001
 
-    #############################################
+        # Train a neural network
+        learner = MLPClassifier(hidden_layer_sizes=hidden_layer_sizes, learning_rate_init=learning_rate,
+                                alpha=regularization_strength, verbose=True, early_stopping=True, n_iter_no_change=6,
+                                activation='tanh')
+    else:
+        # Train a simpler Linear Logistic Regression model
+        # learn more about the model or how to use better use it by checking out its documentation
+        # https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html#sklearn.linear_model.LogisticRegression
+        print("Training a Simple (Linear Logistic Regression model)")
+
+        # Usually there is no reason to change the hyperparameters of such a simple model but fill free to experiment:
+        learner = LogisticRegression(max_iter=1000)
 
     start = time.time()
-
     print("Starting training phase...")
 
-    # Train a neural network
-    learner = MLPClassifier(hidden_layer_sizes=hidden_layer_sizes, learning_rate_init=learning_rate,
-                            alpha=regularization_strength, verbose=True, early_stopping=True, n_iter_no_change=6)
-    # learner = sklearn.linear_model.LogisticRegression()
-
     model = learner.fit(data, targets)
-
-    # Store the model
+    # Save the model in a file
     joblib.dump(model, model_file_path)
-
     end = time.time()
+    print('The model was trained in ', (end - start) / 60, 'minutes.')
 
-    print('Done. Time to train:', (end - start) / 60, 'minutes.')
 
-
-def create_state_and_actions_vector_representation(player_perspective: PlayerPerspective, leader_move: Optional[Move],
+def create_state_and_actions_vector_representation(state: PlayerPerspective, leader_move: Optional[Move],
                                                    follower_move: Optional[Move]) -> List[int]:
     """
     This function takes as input a PlayerPerspective variable, and the two moves of leader and follower,
     and returns a list of complete feature representation that contains all information
     """
-    player_game_state_representation = get_state_feature_vector(player_perspective)
+    player_game_state_representation = get_state_feature_vector(state)
     leader_move_representation = get_move_feature_vector(leader_move)
     follower_move_representation = get_move_feature_vector(follower_move)
 
@@ -304,7 +317,7 @@ def get_move_feature_vector(move: Optional[Move]) -> List[int]:
     return move_type_one_hot_encoding_numpy_array + card_rank_one_hot_encoding_numpy_array + card_suit_one_hot_encoding_numpy_array
 
 
-def get_state_feature_vector(player_perspective: PlayerPerspective) -> List[int]:
+def get_state_feature_vector(state: PlayerPerspective) -> List[int]:
     """
         This function gathers all subjective information that this bot has access to, that can be used to decide its next move, including:
         - points of this player (int)
@@ -323,7 +336,7 @@ def get_state_feature_vector(player_perspective: PlayerPerspective) -> List[int]
     # a list of all the features that consist the state feature set, of type np.ndarray
     state_feature_list: list[int] = []
 
-    player_score = player_perspective.get_my_score()
+    player_score = state.get_my_score()
     # - points of this player (int)
     player_points = player_score.direct_points
     # - pending points of this player (int)
@@ -333,7 +346,7 @@ def get_state_feature_vector(player_perspective: PlayerPerspective) -> List[int]
     state_feature_list += [player_points]
     state_feature_list += [player_pending_points]
 
-    opponents_score = player_perspective.get_opponent_score()
+    opponents_score = state.get_opponent_score()
     # - points of the opponent (int)
     opponents_points = opponents_score.direct_points
     # - pending points of opponent (int)
@@ -344,32 +357,32 @@ def get_state_feature_vector(player_perspective: PlayerPerspective) -> List[int]
     state_feature_list += [opponents_pending_points]
 
     # - the trump suit (1-hot encoding)
-    trump_suit = player_perspective.get_trump_suit()
+    trump_suit = state.get_trump_suit()
     trump_suit_one_hot = get_one_hot_encoding_of_card_suit(trump_suit)
     # add this features to the feature set
     state_feature_list += trump_suit_one_hot
 
     # - phase of game (1-hot encoding)
-    game_phase_encoded = [1, 0] if player_perspective.get_phase() == GamePhase.TWO else [0, 1]
+    game_phase_encoded = [1, 0] if state.get_phase() == GamePhase.TWO else [0, 1]
     # add this features to the feature set
     state_feature_list += game_phase_encoded
 
     # - talon size (int)
-    talon_size = player_perspective.get_talon_size()
+    talon_size = state.get_talon_size()
     # add this features to the feature set
     state_feature_list += [talon_size]
 
     # - if this player is leader (1-hot encoding)
-    i_am_leader = [0, 1] if player_perspective.am_i_leader() else [1, 0]
+    i_am_leader = [0, 1] if state.am_i_leader() else [1, 0]
     # add this features to the feature set
     state_feature_list += i_am_leader
 
     # gather all known deck information
-    hand_cards = player_perspective.get_hand().cards
-    trump_card = player_perspective.get_trump_card()
-    won_cards = player_perspective.get_won_cards().get_cards()
-    opponent_won_cards = player_perspective.get_opponent_won_cards().get_cards()
-    opponent_known_cards = player_perspective.get_known_cards_of_opponent_hand().get_cards()
+    hand_cards = state.get_hand().cards
+    trump_card = state.get_trump_card()
+    won_cards = state.get_won_cards().get_cards()
+    opponent_won_cards = state.get_opponent_won_cards().get_cards()
+    opponent_known_cards = state.get_known_cards_of_opponent_hand().get_cards()
     # each card can either be i) on player's hand, ii) on player's won cards, iii) on opponent's hand, iv) on opponent's won cards
     # v) be the trump card or vi) in an unknown position -> either on the talon or on the opponent's hand
     # There are all different cases regarding card's knowledge, and we represent these 6 cases using one hot encoding vectors as seen bellow.
