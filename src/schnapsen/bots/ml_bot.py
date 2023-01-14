@@ -389,7 +389,7 @@ def get_state_feature_vector(state: PlayerPerspective) -> List[int]:
 
     deck_knowledge_in_consecutive_one_hot_encodings: list[int] = []
 
-    for card in SchnapsenDeckGenerator.get_initial_deck():
+    for card in SchnapsenDeckGenerator().get_initial_deck():
         card_knowledge_in_one_hot_encoding: list[int]
         # i) on player's hand
         if card in hand_cards:

@@ -29,7 +29,7 @@
 <pre><code class="python">from abc import ABC, abstractmethod
 from enum import Enum, auto
 import enum
-from typing import Any, Iterable, Iterator, List, Optional
+from typing import Any, Iterable, Iterator, Optional
 import itertools
 
 
@@ -157,12 +157,12 @@ class CardCollection(ABC):
 
     def filter_suit(self, suit: Suit) -&gt; Iterable[Card]:
         &#34;&#34;&#34;Returns an Iterable with in it all cards which have the provided suit&#34;&#34;&#34;
-        results: List[Card] = list(filter(lambda x: x.suit is suit, self.get_cards()))
+        results: list[Card] = list(filter(lambda x: x.suit is suit, self.get_cards()))
         return results
 
     def filter_rank(self, rank: Rank) -&gt; Iterable[Card]:
         &#34;&#34;&#34;Returns an Iterable with in it all cards which have the provided rank&#34;&#34;&#34;
-        results: List[Card] = list(filter(lambda x: x.rank is rank, self.get_cards()))
+        results: list[Card] = list(filter(lambda x: x.rank is rank, self.get_cards()))
         return results
 
     @abstractmethod
@@ -187,7 +187,7 @@ class OrderedCardCollection(CardCollection):
         By default the Collection is empty.
         This constructor will make a defensive copy of the argument.
         &#34;&#34;&#34;
-        self._cards: List[Card] = list(cards or [])
+        self._cards: list[Card] = list(cards or [])
 
     def is_empty(self) -&gt; bool:
         return len(self._cards) == 0
@@ -572,12 +572,12 @@ def get_card(rank: Rank, suit: Suit) -&gt; &#39;Card&#39;:
 
     def filter_suit(self, suit: Suit) -&gt; Iterable[Card]:
         &#34;&#34;&#34;Returns an Iterable with in it all cards which have the provided suit&#34;&#34;&#34;
-        results: List[Card] = list(filter(lambda x: x.suit is suit, self.get_cards()))
+        results: list[Card] = list(filter(lambda x: x.suit is suit, self.get_cards()))
         return results
 
     def filter_rank(self, rank: Rank) -&gt; Iterable[Card]:
         &#34;&#34;&#34;Returns an Iterable with in it all cards which have the provided rank&#34;&#34;&#34;
-        results: List[Card] = list(filter(lambda x: x.rank is rank, self.get_cards()))
+        results: list[Card] = list(filter(lambda x: x.rank is rank, self.get_cards()))
         return results
 
     @abstractmethod
@@ -616,7 +616,7 @@ def get_card(rank: Rank, suit: Suit) -&gt; &#39;Card&#39;:
 </summary>
 <pre><code class="python">def filter_rank(self, rank: Rank) -&gt; Iterable[Card]:
     &#34;&#34;&#34;Returns an Iterable with in it all cards which have the provided rank&#34;&#34;&#34;
-    results: List[Card] = list(filter(lambda x: x.rank is rank, self.get_cards()))
+    results: list[Card] = list(filter(lambda x: x.rank is rank, self.get_cards()))
     return results</code></pre>
 </details>
 </dd>
@@ -631,7 +631,7 @@ def get_card(rank: Rank, suit: Suit) -&gt; &#39;Card&#39;:
 </summary>
 <pre><code class="python">def filter_suit(self, suit: Suit) -&gt; Iterable[Card]:
     &#34;&#34;&#34;Returns an Iterable with in it all cards which have the provided suit&#34;&#34;&#34;
-    results: List[Card] = list(filter(lambda x: x.suit is suit, self.get_cards()))
+    results: list[Card] = list(filter(lambda x: x.suit is suit, self.get_cards()))
     return results</code></pre>
 </details>
 </dd>
@@ -688,7 +688,7 @@ This constructor will make a defensive copy of the argument.</p></div>
         By default the Collection is empty.
         This constructor will make a defensive copy of the argument.
         &#34;&#34;&#34;
-        self._cards: List[Card] = list(cards or [])
+        self._cards: list[Card] = list(cards or [])
 
     def is_empty(self) -&gt; bool:
         return len(self._cards) == 0

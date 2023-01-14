@@ -4,7 +4,7 @@ from schnapsen.deck import Card, OrderedCardCollection, Rank, Suit
 
 class MyDeckGenerator(DeckGenerator):
     def get_initial_deck(self) -> OrderedCardCollection:
-        normal = SchnapsenDeckGenerator.get_initial_deck()
+        normal = SchnapsenDeckGenerator().get_initial_deck()
         cards = list(normal.get_cards())
         for suit in Suit:
             cards.append(Card.get_card(Rank.NINE, suit))

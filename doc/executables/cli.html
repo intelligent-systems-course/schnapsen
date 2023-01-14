@@ -176,15 +176,15 @@ def rdeep_game() -&gt; None:
     rdeep = bot1 = RdeepBot(num_samples=16, depth=4, rand=random.Random(4564654644))
     bot2 = RandBot(464566)
     wins = 0
-    amount = 101
-    for i in range(amount):
-        if i % 2 == 0:
+    amount = 100
+    for game_number in range(1, amount + 1):
+        if game_number % 2 == 0:
             bot1, bot2 = bot2, bot1
-        winner_id, _, _ = engine.play_game(bot1, bot2, random.Random(5))
+        winner_id, _, _ = engine.play_game(bot1, bot2, random.Random(game_number))
         if winner_id == rdeep:
             wins += 1
-        if i &gt; 0 and i % 10 == 0:
-            print(f&#34;won {wins} out of {i}&#34;)
+        if game_number % 10 == 0:
+            print(f&#34;won {wins} out of {game_number}&#34;)
 
 
 @main.command()

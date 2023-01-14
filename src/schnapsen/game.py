@@ -1,8 +1,12 @@
+"""
+In this module you will find all parts related to playing a game of Schnapsen.
+"""
+
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
 from random import Random
-from typing import Iterable, List, Optional, Tuple, Union, cast, Any
+from typing import Iterable, Optional, Tuple, Union, cast, Any
 from .deck import CardCollection, OrderedCardCollection, Card, Rank, Suit
 import itertools
 
@@ -19,7 +23,6 @@ class Bot(ABC):
         Get the move this Bot wants to play.
         If this Bot is leading, the leader_move will be None. If this both is following, the leader_move will contain the move the opponent just played
         """
-        pass
 
     def notify_trump_exchange(self, move: 'Trump_Exchange') -> None:
         """
@@ -27,7 +30,6 @@ class Bot(ABC):
 
         :param move: the Trump Exchange move that was played.
         """
-        pass
 
     def notify_game_end(self, won: bool, state: 'PlayerPerspective') -> None:
         """
@@ -36,7 +38,6 @@ class Bot(ABC):
         :param won: Did this bot win the game?
         :param state: The final state of the game.
         """
-        pass
 
 
 class Move(ABC):
@@ -44,7 +45,7 @@ class Move(ABC):
     A single move during a game. There are several types of move possible: normal moves, trump exchanges, and marriages. They are implmented in classes inheriting from this class.
     """
 
-    cards: List[Card]  # implementation detail: The creation of this list is defered to the derived classes in _cards()
+    cards: list[Card]  # implementation detail: The creation of this list is defered to the derived classes in _cards()
     """The cards played in this move"""
 
     def is_marriage(self) -> bool:
@@ -70,8 +71,10 @@ class Move(ABC):
         return object.__getattribute__(self, __name)
 
     @abstractmethod
-    def _cards(self) -> Iterable[Card]:
-        pass
+    def _cards(self) -> list[Card]:
+        """
+        Get the list of cards in this move. This method should not be called direcly, use the cards property instead.
+        """
 
 
 @dataclass(frozen=True)
@@ -87,7 +90,7 @@ class Trump_Exchange(Move):
     def is_trump_exchange(self) -> bool:
         return True
 
-    def _cards(self) -> Iterable[Card]:
+    def _cards(self) -> list[Card]:
         return [self.jack]
 
     def __repr__(self) -> str:
@@ -101,11 +104,11 @@ class RegularMove(Move):
     card: Card
     """The card which is played"""
 
-    def _cards(self) -> Iterable[Card]:
+    def _cards(self) -> list[Card]:
         return [self.card]
 
     @staticmethod
-    def from_cards(cards: Iterable[Card]) -> Iterable[Move]:
+    def from_cards(cards: Iterable[Card]) -> list[Move]:
         """Create an iterable of Moves from an iterable of cards."""
         return [RegularMove(card) for card in cards]
 
@@ -132,6 +135,10 @@ class Marriage(Move):
     """The suit of this marriage, gets derived from the suit of the queen and king."""
 
     def __post_init__(self) -> None:
+        """
+        Make sure that the suits of the fields all have the same suit and are a king and a queen.
+        Finally, sets the suit field.
+        """
         assert self.queen_card.rank is Rank.QUEEN
         assert self.king_card.rank is Rank.KING
         assert self.queen_card.suit == self.king_card.suit
@@ -141,10 +148,11 @@ class Marriage(Move):
         return True
 
     def as_regular_move(self) -> RegularMove:
-        # TODO this limits you to only have the queen to play after a marriage, while in general you would ahve a choice
+        # this limits you to only have the queen to play after a marriage, while in general you would have a choice.
+        # This is not an issue since playing the queen give you the highest score.
         return RegularMove(self.queen_card)
 
-    def _cards(self) -> Iterable[Card]:
+    def _cards(self) -> list[Card]:
         return [self.queen_card, self.king_card]
 
     def __repr__(self) -> str:
@@ -170,8 +178,8 @@ class Hand(CardCollection):
         """Remove one occurence of the card from this hand"""
         try:
             self.cards.remove(card)
-        except ValueError:
-            raise Exception(f"Trying to remove a card from the hand which is not in the hand. Hand is {self.cards}, trying to remove {card}")
+        except ValueError as ve:
+            raise Exception(f"Trying to remove a card from the hand which is not in the hand. Hand is {self.cards}, trying to remove {card}") from ve
 
     def add(self, card: Card) -> None:
         """
@@ -189,7 +197,7 @@ class Hand(CardCollection):
         :param cards: An iterable of cards which need to be checked
         :returns: Whether all cards in the provided iterable are in this Hand
         """
-        return all([card in self.cards for card in cards])
+        return all(card in self.cards for card in cards)
 
     def copy(self) -> 'Hand':
         """
@@ -207,7 +215,7 @@ class Hand(CardCollection):
         """
         return len(self.cards) == 0
 
-    def get_cards(self) -> List[Card]:
+    def get_cards(self) -> list[Card]:
         return list(self.cards)
 
     def filter_suit(self, suit: Suit) -> Iterable[Card]:
@@ -223,6 +231,9 @@ class Hand(CardCollection):
 
 
 class Talon(OrderedCardCollection):
+    """
+    The Talon contains the cards which have not yet been given to the players.
+    """
 
     def __init__(self, cards: Iterable[Card], trump_suit: Optional[Suit] = None) -> None:
         """
@@ -232,7 +243,7 @@ class Talon(OrderedCardCollection):
         The trump_suit can also be specified explicitly, which is important when the Talon is empty.
         If the trump_suit is specified and there are cards, then the suit of the bottommost card must be the same.
 
-        :param cards: The cards to be put on this talon
+        :param cards: The cards to be put on this talon, a defensive copy will be made.
         :param trump_suit: The trump suit of the Talon, important if there are no more cards to be taken.
         """
         if cards:
@@ -246,6 +257,9 @@ class Talon(OrderedCardCollection):
         super().__init__(cards)
 
     def copy(self) -> 'Talon':
+        """
+        Create an independent copy of this talon.
+        """
         # We do not need to make a copy of the cards as this happend in the constructor of Talon.
         return Talon(self._cards, self.__trump_suit)
 
@@ -285,8 +299,7 @@ class Talon(OrderedCardCollection):
         """
         if len(self._cards) > 0:
             return self._cards[-1]
-        else:
-            return None
+        return None
 
     def __repr__(self) -> str:
         return f"Talon(cards={self._cards}, trump_suit={self.__trump_suit})"
@@ -323,11 +336,18 @@ class Trick(ABC):
 
     @abstractmethod
     def _cards(self) -> Iterable[Card]:
-        pass
+        """
+        Get all cards used in this tick. This method should not be called directly.
+        Use the cards property instead.
+        """
 
 
 @dataclass(frozen=True)
 class ExchangeTrick(Trick):
+    """
+    A Trick in which the player does a trump exchange.
+    """
+
     exchange: Trump_Exchange
     """A trump exchange by the leading player"""
 
@@ -355,6 +375,9 @@ class PartialTrick:
     """The move played by the leader of the trick"""
 
     def is_trump_exchange(self) -> bool:
+        """
+        is this PartialTrick a Trump exchange?
+        """
         return False
 
     def __repr__(self) -> str:
@@ -431,7 +454,7 @@ class BotState:
     implementation: Bot
     hand: Hand
     score: Score = field(default_factory=Score)
-    won_cards: List[Card] = field(default_factory=list)
+    won_cards: list[Card] = field(default_factory=list)
 
     def get_move(self, state: 'PlayerPerspective', leader_move: Optional[Move]) -> Move:
         """
@@ -445,8 +468,7 @@ class BotState:
         assert move is not None, f"The bot {self.implementation} returned a move which is None"
         if not isinstance(move, Move):
             raise AssertionError(f"The bot {self.implementation} returned an object which is not a Move, got {move}")
-        else:
-            return move
+        return move
 
     def copy(self) -> 'BotState':
         """
@@ -542,8 +564,7 @@ class GameState:
         """
         if self.talon.is_empty():
             return GamePhase.TWO
-        else:
-            return GamePhase.ONE
+        return GamePhase.ONE
 
     def are_all_cards_played(self) -> bool:
         """Returns True in case the players have played all their cards and the game is has come to an end
@@ -570,13 +591,12 @@ class PlayerPerspective(ABC):
         self.__engine = engine
 
     @abstractmethod
-    def valid_moves(self) -> List[Move]:
+    def valid_moves(self) -> list[Move]:
         """
         Get a list of all valid moves the bot can play at this point in the game.
 
-        Design note: this could also return an Iterable[Move], but List[Move] was chosen to make the API easier to use.
+        Design note: this could also return an Iterable[Move], but list[Move] was chosen to make the API easier to use.
         """
-        pass
 
     def get_game_history(self) -> list[tuple['PlayerPerspective', Optional[Trick]]]:
         """
@@ -588,7 +608,7 @@ class PlayerPerspective(ABC):
         """
 
         # We reconstruct the history backwards.
-        game_state_history: List[Tuple[PlayerPerspective, Optional[Trick]]] = []
+        game_state_history: list[Tuple[PlayerPerspective, Optional[Trick]]] = []
         # We first push the current state to the end
         game_state_history.insert(0, (self, None))
 
@@ -620,17 +640,14 @@ class PlayerPerspective(ABC):
     @abstractmethod
     def get_hand(self) -> Hand:
         """Get the cards in the hand of the current player"""
-        pass
 
     @abstractmethod
     def get_my_score(self) -> Score:
         """Get the socre of the current player. The return Score object contains both the direct points and pending points from a marriage."""
-        pass
 
     @abstractmethod
     def get_opponent_score(self) -> Score:
         """Get the socre of the other player. The return Score object contains both the direct points and pending points from a marriage."""
-        pass
 
     def get_trump_suit(self) -> Suit:
         """Get the suit of the trump"""
@@ -655,22 +672,18 @@ class PlayerPerspective(ABC):
         """If the game is in the second phase, you can get the cards in the hand of the opponent.
         If this gets called, but the second pahse has not started yet, this will throw en Exception
         """
-        pass
 
     @abstractmethod
     def am_i_leader(self) -> bool:
         """Returns True if the bot is the leader of this trick, False if it is a follower."""
-        pass
 
     @abstractmethod
     def get_won_cards(self) -> CardCollection:
         """Get a list of all cards this Bot has won until now."""
-        pass
 
     @abstractmethod
     def get_opponent_won_cards(self) -> CardCollection:
         """Get the list of cards the opponent has won until now."""
-        pass
 
     def __get_own_bot_state(self) -> BotState:
         """Get the internal state object of this bot. This should not be used by a bot."""
@@ -750,8 +763,7 @@ class PlayerPerspective(ABC):
 
         if self.get_phase() == GamePhase.TWO:
             return self.__game_state.copy_with_other_bots(_DummyBot(), _DummyBot())
-        else:
-            raise AssertionError("You cannot get the state in phase one")
+        raise AssertionError("You cannot get the state in phase one")
 
     def make_assumption(self, leader_move: Optional[Move], rand: Random) -> GameState:
         """
@@ -769,7 +781,7 @@ class PlayerPerspective(ABC):
 
         if leader_move is not None:
             self.__game_state.leader.hand.get_cards()
-            assert all([card in opponent_hand for card in leader_move.cards]), f"The specified leader_move {leader_move} is not in the hand of the opponent {opponent_hand}"
+            assert all(card in opponent_hand for card in leader_move.cards), f"The specified leader_move {leader_move} is not in the hand of the opponent {opponent_hand}"
 
         full_state = self.__game_state.copy_with_other_bots(_DummyBot(), _DummyBot())
         if self.get_phase() == GamePhase.TWO:
@@ -810,7 +822,7 @@ class PlayerPerspective(ABC):
         else:
             full_state.leader.hand = Hand(new_opponent_hand)
 
-        assert len(unseen_cards) == 0, "All cards must be consumed by wither the opponent hand or talon by now"
+        assert len(unseen_cards) == 0, "All cards must be consumed by either the opponent hand or talon by now"
 
         return full_state
 
@@ -835,7 +847,7 @@ class LeaderPerspective(PlayerPerspective):
         self.__game_state = state
         self.__engine = engine
 
-    def valid_moves(self) -> List[Move]:
+    def valid_moves(self) -> list[Move]:
         moves = self.__engine.move_validator.get_legal_leader_moves(self.__engine, self.__game_state)
         return list(moves)
 
@@ -872,7 +884,7 @@ class FollowerPerspective(PlayerPerspective):
         self.__engine = engine
         self.__partial_trick = partial_trick
 
-    def valid_moves(self) -> List[Move]:
+    def valid_moves(self) -> list[Move]:
         assert self.__partial_trick, "There is no partial trick for this follower, so no valid moves."
         return list(self.__engine.move_validator.get_legal_follower_moves(self.__engine, self.__game_state, self.__partial_trick))
 
@@ -899,8 +911,7 @@ class FollowerPerspective(PlayerPerspective):
         return OrderedCardCollection(self.__game_state.leader.won_cards)
 
     def __repr__(self) -> str:
-        return f"FollowerGameState(state={self.__game_state}, engine={self.__engine}, "
-        f"partial_trick={self.__partial_trick})"
+        return f"FollowerPerspective(state={self.__game_state}, engine={self.__engine}, partial_trick={self.__partial_trick})"
 
 
 class ExchangeFollowerPerspective(PlayerPerspective):
@@ -913,11 +924,11 @@ class ExchangeFollowerPerspective(PlayerPerspective):
         self.__game_state = state
         super().__init__(state, engine)
 
-    def valid_moves(self) -> List[Move]:
+    def valid_moves(self) -> list[Move]:
         """
         Get a list of all valid moves the bot can play at this point in the game.
 
-        Design note: this could also return an Iterable[Move], but List[Move] was chosen to make the API easier to use.
+        Design note: this could also return an Iterable[Move], but list[Move] was chosen to make the API easier to use.
         """
         return []
 
@@ -955,7 +966,7 @@ class WinnerPerspective(LeaderPerspective):
         self.__engine = engine
         super().__init__(state, engine)
 
-    def valid_moves(self) -> List[Move]:
+    def valid_moves(self) -> list[Move]:
         raise Exception("Cannot request valid moves from the final PlayerGameState because the game is over")
 
     def __repr__(self) -> str:
@@ -970,7 +981,7 @@ class LoserPerspective(FollowerPerspective):
         self.__engine = engine
         super().__init__(state, engine, None)
 
-    def valid_moves(self) -> List[Move]:
+    def valid_moves(self) -> list[Move]:
         raise Exception("Cannot request valid moves from the final PlayerGameState because the game is over")
 
     def __repr__(self) -> str:
@@ -978,12 +989,22 @@ class LoserPerspective(FollowerPerspective):
 
 
 class DeckGenerator(ABC):
-    @ abstractmethod
-    def get_initial_deck(self) -> OrderedCardCollection:
-        pass
+    """
+    A Deckgenerator specifies how what the cards for a game are.
+    """
 
-    @ classmethod
+    @abstractmethod
+    def get_initial_deck(self) -> OrderedCardCollection:
+        """
+        Get the intial deck of cards which are used in the game.
+        This method must always return the same set of cards in the same order.
+        """
+
+    @classmethod
     def shuffle_deck(self, deck: OrderedCardCollection, rng: Random) -> OrderedCardCollection:
+        """
+        Shuffle the given deck of cards, using the random number generator as a source of randomness.
+        """
         the_cards = list(deck.get_cards())
         rng.shuffle(the_cards)
         return OrderedCardCollection(the_cards)
@@ -991,23 +1012,30 @@ class DeckGenerator(ABC):
 
 class SchnapsenDeckGenerator(DeckGenerator):
 
-    @ classmethod
     def get_initial_deck(self) -> OrderedCardCollection:
-        deck = OrderedCardCollection()
+        deck = []
         for suit in Suit:
             for rank in [Rank.JACK, Rank.QUEEN, Rank.KING, Rank.TEN, Rank.ACE]:
-                deck._cards.append(Card.get_card(rank, suit))
-        return deck
+                deck.append(Card.get_card(rank, suit))
+        return OrderedCardCollection(deck)
 
 
 class HandGenerator(ABC):
-    @ abstractmethod
+    """
+    The HandGenerator specifies how the intial set of cards gets divided over the two player's hands and the talon
+    """
+    @abstractmethod
     def generateHands(self, cards: OrderedCardCollection) -> Tuple[Hand, Hand, Talon]:
-        pass
+        """
+        Divide the collection of cards over the two hands and the Talon
+
+        :param cards: The cards to be dealt
+        :returns: Two hands of cards and the talon. The first hand is for the first player, i.e, the one who will lead the first trick.
+        """
 
 
 class SchnapsenHandGenerator(HandGenerator):
-    @ classmethod
+    @classmethod
     def generateHands(self, cards: OrderedCardCollection) -> Tuple[Hand, Hand, Talon]:
         the_cards = list(cards.get_cards())
         hand1 = Hand([the_cards[i] for i in range(0, 10, 2)], max_size=5)
@@ -1017,14 +1045,30 @@ class SchnapsenHandGenerator(HandGenerator):
 
 
 class TrickImplementer(ABC):
-    @ abstractmethod
+    """
+    The TrickImplementer specifies how tricks are palyed in the game.
+    """
+    @abstractmethod
     def play_trick(self, game_engine: 'GamePlayEngine', game_state: GameState) -> GameState:
-        pass
+        """
+        Plays a single Trick the game by asking the bots in the game_state for their Moves,
+        using the MoveRequester from the game_engine.
+        These moves are then also validated using the MoveValidator of the game_engine.
+        Finally, the trick is recorder in the history (previous field) of the returned GameState.
 
-    @ abstractmethod
+        Note, the provided GameState does not get modified by this method.
+
+        :param game_engine: The engine used to preform the underlying actions of the Trick.
+        :param game_state: The state of the game before the trick is played. Thi state will not be modified.
+        :returns: The GameState after the trick is completed.
+        """
+
+    @abstractmethod
     def play_trick_with_fixed_leader_move(self, game_engine: 'GamePlayEngine', game_state: GameState,
                                           leader_move: Move) -> GameState:
-        pass
+        """
+        The same as play_trick, but also takes the leader_move to start with as an argument.
+        """
 
 
 class SchnapsenTrickImplementer(TrickImplementer):
@@ -1111,39 +1155,77 @@ class SchnapsenTrickImplementer(TrickImplementer):
         follower_game_state = FollowerPerspective(game_state, game_engine, partial_trick)
 
         follower_move = game_engine.move_requester.get_move(game_state.follower, follower_game_state, partial_trick)
-        if follower_move not in game_engine.move_validator.get_legal_follower_moves(game_engine, game_state, partial_trick):
+        if not game_engine.move_validator.is_legal_follower_move(game_engine, game_state, partial_trick, follower_move):
             raise Exception(f"Follower {game_state.follower.implementation} played an illegal move")
         return cast(RegularMove, follower_move)
 
 
 class MoveRequester:
-    """An the logic of requesting a move from a bot.
-    This logic also determines what happens in case the bot is to slow, throws an exception during operation, etc"""
+    """
+    An moveRequester captures the logic of requesting a move from a bot.
+    This logic also determines what happens in case the bot is to slow, throws an exception during operation, etc
+    """
 
-    @ abstractmethod
+    @abstractmethod
     def get_move(self, bot: BotState, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
-        pass
+        """
+        Get a move from the bot, potentially applying timeout logic.
+
+        """
 
 
 class SimpleMoveRequester(MoveRequester):
-
-    """The simplest just asks the move"""
+    """The SimplemoveRquester just asks the move, and does nto time out"""
 
     def get_move(self, bot: BotState, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         return bot.get_move(state, leader_move=leader_move)
 
 
 class MoveValidator(ABC):
-    @ abstractmethod
+    """
+    An object of this class can be used to check whether a move is valid.
+    """
+    @abstractmethod
     def get_legal_leader_moves(self, game_engine: 'GamePlayEngine', game_state: GameState) -> Iterable[Move]:
-        pass
+        """
+        Get all legal moves for the current leader of the game.
 
-    @ abstractmethod
-    def get_legal_follower_moves(self, game_engine: 'GamePlayEngine', game_state: GameState, partial_trick: Move) -> Iterable[Move]:
-        pass
+        :param game_engine: The engine which is playing the game
+        :param game_state: The current state of the game
+
+        :returns: An iterable containing the current legal moves.
+        """
 
     def is_legal_leader_move(self, game_engine: 'GamePlayEngine', game_state: GameState, move: Move) -> bool:
+        """
+        Whether the provided move is legal for the leader to play.
+        The basic implementation checks whether the move is in the legal leader moves.
+        Derived classes might implement this more performantly.
+        """
+        assert move, 'The move played by the leader cannot be None'
         return move in self.get_legal_leader_moves(game_engine, game_state)
+
+    @abstractmethod
+    def get_legal_follower_moves(self, game_engine: 'GamePlayEngine', game_state: GameState, partial_trick: Move) -> Iterable[Move]:
+        """
+        Get all legal moves for the current follower of the game.
+
+        :param game_engine: The engine which is playing the game
+        :param game_state: The current state of the game
+        :param partial_trick: The move played by the leader of the trick.
+
+        :returns: An iterable containing the current legal moves.
+        """
+
+    def is_legal_follower_move(self, game_engine: 'GamePlayEngine', game_state: GameState, leader_move: Move, move: Move) -> bool:
+        """
+        Whether the provided move is legal for the follower to play.
+        The basic implementation checks whether the move is in the legal fllower moves.
+        Derived classes might implement this more performantly.
+        """
+        assert move, 'The move played by the follower cannot be None'
+        assert leader_move, 'The move played by the leader cannot be None'
+        return move in self.get_legal_follower_moves(game_engine=game_engine, game_state=game_state, partial_trick=leader_move)
 
 
 class SchnapsenMoveValidator(MoveValidator):
@@ -1151,7 +1233,7 @@ class SchnapsenMoveValidator(MoveValidator):
     def get_legal_leader_moves(self, game_engine: 'GamePlayEngine', game_state: GameState) -> Iterable[Move]:
         # all cards in the hand can be played
         cards_in_hand = game_state.leader.hand
-        valid_moves: List[Move] = [RegularMove(card) for card in cards_in_hand]
+        valid_moves: list[Move] = [RegularMove(card) for card in cards_in_hand]
         # trump exchanges
         if not game_state.talon.is_empty():
             trump_jack = Card.get_card(Rank.JACK, game_state.trump_suit)
@@ -1188,70 +1270,84 @@ class SchnapsenMoveValidator(MoveValidator):
         if game_state.game_phase() is GamePhase.ONE:
             # no need to follow, any card in the hand is a legal move
             return RegularMove.from_cards(hand.get_cards())
-        else:
-            # information from https://www.pagat.com/marriage/schnaps.html
-            # ## original formulation ##
-            # if your opponent leads a non-trump:
-            #     you must play a higher card of the same suit if you can;
-            #     failing this you must play a lower card of the same suit;
-            #     if you have no card of the suit that was led you must play a trump;
-            #     if you have no trumps either you may play anything.
-            # If your opponent leads a trump:
-            #     you must play a higher trump if possible;
-            #     if you have no higher trump you must play a lower trump;
-            #     if you have no trumps at all you may play anything.
-            # ## implemented version, realizing that the rules for trump are overlapping with the normal case ##
-            # you must play a higher card of the same suit if you can
-            # failing this, you must play a lower card of the same suit;
-            # --new--> failing this, if the opponen did not play a trump, you must play a trump
-            # failing this, you can play anything
-            leader_card_score = game_engine.trick_scorer.rank_to_points(leader_card.rank)
-            # you must play a higher card of the same suit if you can;
-            same_suit_cards = hand.filter_suit(leader_card.suit)
-            if same_suit_cards:
-                higher_same_suit, lower_same_suit = [], []
-                for card in same_suit_cards:
-                    # TODO this is slightly ambigousm should this be >= ??
-                    higher_same_suit.append(card) if game_engine.trick_scorer.rank_to_points(card.rank) > leader_card_score else lower_same_suit.append(card)
-                if higher_same_suit:
-                    return RegularMove.from_cards(higher_same_suit)
-            # failing this, you must play a lower card of the same suit;
-                elif lower_same_suit:
-                    return RegularMove.from_cards(lower_same_suit)
-                raise AssertionError("Somethign is wrong in the logic here. There should be cards, but they are neither placed in the low, nor higher list")
-            # failing this, if the opponen did not play a trump, you must play a trump
-            trump_cards = hand.filter_suit(game_state.trump_suit)
-            if leader_card.suit != game_state.trump_suit and trump_cards:
-                return RegularMove.from_cards(trump_cards)
-            # failing this, you can play anything
-            return RegularMove.from_cards(hand.get_cards())
+        # information from https://www.pagat.com/marriage/schnaps.html
+        # ## original formulation ##
+        # if your opponent leads a non-trump:
+        #     you must play a higher card of the same suit if you can;
+        #     failing this you must play a lower card of the same suit;
+        #     if you have no card of the suit that was led you must play a trump;
+        #     if you have no trumps either you may play anything.
+        # If your opponent leads a trump:
+        #     you must play a higher trump if possible;
+        #     if you have no higher trump you must play a lower trump;
+        #     if you have no trumps at all you may play anything.
+        # ## implemented version, realizing that the rules for trump are overlapping with the normal case ##
+        # you must play a higher card of the same suit if you can
+        # failing this, you must play a lower card of the same suit;
+        # --new--> failing this, if the opponen did not play a trump, you must play a trump
+        # failing this, you can play anything
+        leader_card_score = game_engine.trick_scorer.rank_to_points(leader_card.rank)
+        # you must play a higher card of the same suit if you can;
+        same_suit_cards = hand.filter_suit(leader_card.suit)
+        if same_suit_cards:
+            higher_same_suit, lower_same_suit = [], []
+            for card in same_suit_cards:
+                # TODO this is slightly ambigousm should this be >= ??
+                higher_same_suit.append(card) if game_engine.trick_scorer.rank_to_points(card.rank) > leader_card_score else lower_same_suit.append(card)
+            if higher_same_suit:
+                return RegularMove.from_cards(higher_same_suit)
+        # failing this, you must play a lower card of the same suit;
+            elif lower_same_suit:
+                return RegularMove.from_cards(lower_same_suit)
+            raise AssertionError("Somethign is wrong in the logic here. There should be cards, but they are neither placed in the low, nor higher list")
+        # failing this, if the opponen did not play a trump, you must play a trump
+        trump_cards = hand.filter_suit(game_state.trump_suit)
+        if leader_card.suit != game_state.trump_suit and trump_cards:
+            return RegularMove.from_cards(trump_cards)
+        # failing this, you can play anything
+        return RegularMove.from_cards(hand.get_cards())
 
 
 class TrickScorer(ABC):
-    @ abstractmethod
+    @abstractmethod
     def score(self, trick: RegularTrick, leader: BotState, follower: BotState, trump: Suit) -> Tuple[BotState, BotState, bool]:
         """
         Score the trick for the given leader and follower. The returned bots are copies and have the score of the trick applied.
         They are returned in order (new_leader, new_follower). If appropriate, also pending points have been applied.
         The boolean is True if the leading bot remained the same, i.e., the past leader remains the leader
         """
-        pass
 
-    @ abstractmethod
+    @abstractmethod
     def declare_winner(self, game_state: GameState) -> Optional[Tuple[BotState, int]]:
-        """return a bot and the number of points if there is a winner of this game already"""
-        pass
+        """return a bot and the number of points if there is a winner of this game already
 
-    @ abstractmethod
+        :param game_state: The current state of the game
+        :returns: The botstate of the winner and the number of game points, in case there is a winner already. Otherwise None.
+
+        """
+
+    @abstractmethod
     def rank_to_points(self, rank: Rank) -> int:
-        pass
+        """Get the point value for a given rank
 
-    @ abstractmethod
+        :param rank: the rank of a card for which you want to obtain the points
+        :returns: The score for that card
+        """
+
+    @abstractmethod
     def marriage(self, move: Marriage, gamestate: GameState) -> 'Score':
-        pass
+        """Get the score which the player obtains for the given marriage
+
+        :param move: The marriage for which to get the score
+        :param gamestate: the current state of the game, usually used to get the trump suit
+        :returns: The score for this marriage
+        """
 
 
 class SchnapsenTrickScorer(TrickScorer):
+    """
+    A TrickScorer that scores ac cording to the Schnapsen rules
+    """
 
     SCORES = {
         Rank.ACE: 11,
@@ -1268,9 +1364,8 @@ class SchnapsenTrickScorer(TrickScorer):
         if move.suit is gamestate.trump_suit:
             # royal marriage
             return Score(pending_points=40)
-        else:
-            # any other marriage
-            return Score(pending_points=20)
+        # any other marriage
+        return Score(pending_points=20)
 
     def score(self, trick: RegularTrick, leader: BotState, follower: BotState, trump: Suit) -> Tuple[BotState, BotState, bool]:
 
@@ -1341,8 +1436,11 @@ class SchnapsenTrickScorer(TrickScorer):
             return None
 
 
-@ dataclass
+@dataclass
 class GamePlayEngine:
+    """
+    The GamePlayengine combines the different aspects of the game into an engine that can execute games.
+    """
     deck_generator: DeckGenerator
     hand_generator: HandGenerator
     trick_implementer: TrickImplementer
@@ -1466,6 +1564,10 @@ class GamePlayEngine:
 
 
 class SchnapsenGamePlayEngine(GamePlayEngine):
+    """
+    A GamePlayEngine configured according to the rules of Schnapsen
+    """
+
     def __init__(self) -> None:
         super().__init__(
             deck_generator=SchnapsenDeckGenerator(),

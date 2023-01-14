@@ -78,9 +78,8 @@ __all__ = [&#34;SchnapsenServer&#34;]</code></pre>
             print(&#34;Closing the server, because an Exception was raised&#34;)
             # by returning False, we indicate that the exception was not handled.
             return False
-        else:
-            print(&#34;Server closed&#34;)
-            return True
+        print(&#34;Server closed&#34;)
+        return True
 
     def __init__(self, host_name: str = &#34;0.0.0.0&#34;, port: int = 8080) -&gt; None:
         &#34;&#34;&#34;Creates and starts the schnapsen server&#34;&#34;&#34;
