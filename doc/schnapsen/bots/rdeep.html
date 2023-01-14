@@ -46,7 +46,7 @@ class RdeepBot(Bot):
         self.__depth = depth
         self.__rand = rand
 
-    def get_move(self, state: &#39;PlayerPerspective&#39;, leader_move: Optional[&#39;Move&#39;]) -&gt; &#39;Move&#39;:
+    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -&gt; Move:
         # get the list of valid moves, and shuffle it such
         # that we get a random move of the highest scoring
         # ones if there are multiple highest scoring moves.
@@ -119,12 +119,11 @@ class FirstFixedMoveThenBaseBot(Bot):
         self.first_move_played = False
         self.base_bot = base_bot
 
-    def get_move(self, state: &#39;PlayerPerspective&#39;, leader_move: Optional[&#39;Move&#39;]) -&gt; &#39;Move&#39;:
+    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -&gt; Move:
         if not self.first_move_played:
             self.first_move_played = True
             return self.first_move
-        else:
-            return self.base_bot.get_move(state=state, leader_move=leader_move)</code></pre>
+        return self.base_bot.get_move(state=state, leader_move=leader_move)</code></pre>
 </details>
 </section>
 <section>
@@ -153,12 +152,11 @@ class FirstFixedMoveThenBaseBot(Bot):
         self.first_move_played = False
         self.base_bot = base_bot
 
-    def get_move(self, state: &#39;PlayerPerspective&#39;, leader_move: Optional[&#39;Move&#39;]) -&gt; &#39;Move&#39;:
+    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -&gt; Move:
         if not self.first_move_played:
             self.first_move_played = True
             return self.first_move
-        else:
-            return self.base_bot.get_move(state=state, leader_move=leader_move)</code></pre>
+        return self.base_bot.get_move(state=state, leader_move=leader_move)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -241,7 +239,7 @@ class FirstFixedMoveThenBaseBot(Bot):
         self.__depth = depth
         self.__rand = rand
 
-    def get_move(self, state: &#39;PlayerPerspective&#39;, leader_move: Optional[&#39;Move&#39;]) -&gt; &#39;Move&#39;:
+    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -&gt; Move:
         # get the list of valid moves, and shuffle it such
         # that we get a random move of the highest scoring
         # ones if there are multiple highest scoring moves.

@@ -48,7 +48,7 @@ class MLPlayingBot(Bot):
             # load model
             self.__model = joblib.load(model_file_path)
 
-    def get_move(self, player_perspective: &#39;PlayerPerspective&#39;, leader_move: Optional[Move]) -&gt; &#39;Move&#39;:
+    def get_move(self, player_perspective: PlayerPerspective, leader_move: Optional[Move]) -&gt; Move:
         # get the sate feature representation
         state_representation = get_state_feature_vector(player_perspective)
         # get the leader&#39;s move representation, even if it is None
@@ -114,7 +114,7 @@ class MLDataBot(Bot):
         &#34;&#34;&#34;
         return self.bot.get_move(state=state, leader_move=leader_move)
 
-    def notify_game_end(self, won: bool, player_perspective: &#39;PlayerPerspective&#39;) -&gt; None:
+    def notify_game_end(self, won: bool, player_perspective: PlayerPerspective) -&gt; None:
         &#34;&#34;&#34;
         When the game ends, this function retrieves the game history and more specifically all the replay memories that can
         be derived from it, and stores them in the form of state-actions vector representations and the corresponding outcome of the game
@@ -404,7 +404,7 @@ def get_state_feature_vector(player_perspective: PlayerPerspective) -&gt; List[i
 
     deck_knowledge_in_consecutive_one_hot_encodings: list[int] = []
 
-    for card in SchnapsenDeckGenerator.get_initial_deck():
+    for card in SchnapsenDeckGenerator().get_initial_deck():
         card_knowledge_in_one_hot_encoding: list[int]
         # i) on player&#39;s hand
         if card in hand_cards:
@@ -675,7 +675,7 @@ It should only include any earlier actions of other agents (so the action of the
 
     deck_knowledge_in_consecutive_one_hot_encodings: list[int] = []
 
-    for card in SchnapsenDeckGenerator.get_initial_deck():
+    for card in SchnapsenDeckGenerator().get_initial_deck():
         card_knowledge_in_one_hot_encoding: list[int]
         # i) on player&#39;s hand
         if card in hand_cards:
@@ -846,7 +846,7 @@ replay_memory_filename: the filename under which the replay memory records will 
         &#34;&#34;&#34;
         return self.bot.get_move(state=state, leader_move=leader_move)
 
-    def notify_game_end(self, won: bool, player_perspective: &#39;PlayerPerspective&#39;) -&gt; None:
+    def notify_game_end(self, won: bool, player_perspective: PlayerPerspective) -&gt; None:
         &#34;&#34;&#34;
         When the game ends, this function retrieves the game history and more specifically all the replay memories that can
         be derived from it, and stores them in the form of state-actions vector representations and the corresponding outcome of the game
@@ -906,7 +906,7 @@ replay_memory_filename: the filename under which the replay memory records will 
 </details>
 </dd>
 <dt id="schnapsen.bots.ml_bot.MLDataBot.notify_game_end"><code class="name flex">
-<span>def <span class="ident">notify_game_end</span></span>(<span>self, won: bool, player_perspective: PlayerPerspective) ‑> None</span>
+<span>def <span class="ident">notify_game_end</span></span>(<span>self, won: bool, player_perspective: <a title="schnapsen.game.PlayerPerspective" href="../game.html#schnapsen.game.PlayerPerspective">PlayerPerspective</a>) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>When the game ends, this function retrieves the game history and more specifically all the replay memories that can
@@ -917,7 +917,7 @@ param player_perspective: The final state of the game.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def notify_game_end(self, won: bool, player_perspective: &#39;PlayerPerspective&#39;) -&gt; None:
+<pre><code class="python">def notify_game_end(self, won: bool, player_perspective: PlayerPerspective) -&gt; None:
     &#34;&#34;&#34;
     When the game ends, this function retrieves the game history and more specifically all the replay memories that can
     be derived from it, and stores them in the form of state-actions vector representations and the corresponding outcome of the game
@@ -987,7 +987,7 @@ param player_perspective: The final state of the game.</p></div>
             # load model
             self.__model = joblib.load(model_file_path)
 
-    def get_move(self, player_perspective: &#39;PlayerPerspective&#39;, leader_move: Optional[Move]) -&gt; &#39;Move&#39;:
+    def get_move(self, player_perspective: PlayerPerspective, leader_move: Optional[Move]) -&gt; Move:
         # get the sate feature representation
         state_representation = get_state_feature_vector(player_perspective)
         # get the leader&#39;s move representation, even if it is None

@@ -250,7 +250,7 @@ replay_memory_filename: the filename under which the replay memory records will 
         &#34;&#34;&#34;
         return self.bot.get_move(state=state, leader_move=leader_move)
 
-    def notify_game_end(self, won: bool, player_perspective: &#39;PlayerPerspective&#39;) -&gt; None:
+    def notify_game_end(self, won: bool, player_perspective: PlayerPerspective) -&gt; None:
         &#34;&#34;&#34;
         When the game ends, this function retrieves the game history and more specifically all the replay memories that can
         be derived from it, and stores them in the form of state-actions vector representations and the corresponding outcome of the game
@@ -310,7 +310,7 @@ replay_memory_filename: the filename under which the replay memory records will 
 </details>
 </dd>
 <dt id="schnapsen.bots.MLDataBot.notify_game_end"><code class="name flex">
-<span>def <span class="ident">notify_game_end</span></span>(<span>self, won: bool, player_perspective: PlayerPerspective) ‑> None</span>
+<span>def <span class="ident">notify_game_end</span></span>(<span>self, won: bool, player_perspective: <a title="schnapsen.game.PlayerPerspective" href="../game.html#schnapsen.game.PlayerPerspective">PlayerPerspective</a>) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>When the game ends, this function retrieves the game history and more specifically all the replay memories that can
@@ -321,7 +321,7 @@ param player_perspective: The final state of the game.</p></div>
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def notify_game_end(self, won: bool, player_perspective: &#39;PlayerPerspective&#39;) -&gt; None:
+<pre><code class="python">def notify_game_end(self, won: bool, player_perspective: PlayerPerspective) -&gt; None:
     &#34;&#34;&#34;
     When the game ends, this function retrieves the game history and more specifically all the replay memories that can
     be derived from it, and stores them in the form of state-actions vector representations and the corresponding outcome of the game
@@ -391,7 +391,7 @@ param player_perspective: The final state of the game.</p></div>
             # load model
             self.__model = joblib.load(model_file_path)
 
-    def get_move(self, player_perspective: &#39;PlayerPerspective&#39;, leader_move: Optional[Move]) -&gt; &#39;Move&#39;:
+    def get_move(self, player_perspective: PlayerPerspective, leader_move: Optional[Move]) -&gt; Move:
         # get the sate feature representation
         state_representation = get_state_feature_vector(player_perspective)
         # get the leader&#39;s move representation, even if it is None
@@ -518,7 +518,7 @@ param player_perspective: The final state of the game.</p></div>
         self.__depth = depth
         self.__rand = rand
 
-    def get_move(self, state: &#39;PlayerPerspective&#39;, leader_move: Optional[&#39;Move&#39;]) -&gt; &#39;Move&#39;:
+    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -&gt; Move:
         # get the list of valid moves, and shuffle it such
         # that we get a random move of the highest scoring
         # ones if there are multiple highest scoring moves.
@@ -615,9 +615,8 @@ param player_perspective: The final state of the game.</p></div>
             print(&#34;Closing the server, because an Exception was raised&#34;)
             # by returning False, we indicate that the exception was not handled.
             return False
-        else:
-            print(&#34;Server closed&#34;)
-            return True
+        print(&#34;Server closed&#34;)
+        return True
 
     def __init__(self, host_name: str = &#34;0.0.0.0&#34;, port: int = 8080) -&gt; None:
         &#34;&#34;&#34;Creates and starts the schnapsen server&#34;&#34;&#34;

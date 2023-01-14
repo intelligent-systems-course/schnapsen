@@ -26,18 +26,37 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from schnapsen.bots import SchnapsenServer
-from schnapsen.bots import RandBot
-from schnapsen.game import SchnapsenGamePlayEngine
-import random
+<pre><code class="python">import random
+from schnapsen.bots import SchnapsenServer
+from schnapsen.bots import RandBot, AlphaBetaBot, RdeepBot
+from schnapsen.game import SchnapsenGamePlayEngine, Bot
+import click
 
-if __name__ == &#34;__main__&#34;:
+
+@click.command()
+@click.option(&#39;--bot&#39;, &#39;-b&#39;,
+              type=click.Choice([&#39;AlphaBetaBot&#39;, &#39;RdeepBot&#39;, &#39;MLDataBot&#39;, &#39;MLPlayingBot&#39;, &#39;RandBot&#39;], case_sensitive=False),
+              default=&#39;RandBot&#39;, help=&#34;The bot you want to play against.&#34;)
+def main(bot: str) -&gt; None:
+    &#34;&#34;&#34;Run the GUI.&#34;&#34;&#34;
     engine = SchnapsenGamePlayEngine()
+    bot1: Bot
     with SchnapsenServer() as s:
-        bot1 = RandBot(12)
+        if bot.lower() == &#34;randbot&#34;:
+            bot1 = RandBot(12)
+        elif bot.lower() in [&#34;alphabeta&#34;, &#34;alphabetabot&#34;]:
+            bot1 = AlphaBetaBot()
+        elif bot.lower() == &#34;rdeepbot&#34;:
+            bot1 = RdeepBot(num_samples=16, depth=4, rand=random.Random(42))
+        else:
+            raise NotImplementedError
         bot2 = s.make_gui_bot(name=&#34;mybot2&#34;)
         # bot1 = s.make_gui_bot(name=&#34;mybot1&#34;)
-        engine.play_game(bot1, bot2, random.Random(100))</code></pre>
+        engine.play_game(bot1, bot2, random.Random(100))
+
+
+if __name__ == &#34;__main__&#34;:
+    main()</code></pre>
 </details>
 </section>
 <section>
