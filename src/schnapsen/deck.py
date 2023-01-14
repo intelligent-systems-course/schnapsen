@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from enum import Enum, auto
 import enum
-from typing import Any, Iterable, Iterator, List, Optional
+from typing import Any, Iterable, Iterator, Optional
 import itertools
 
 
@@ -129,12 +129,12 @@ class CardCollection(ABC):
 
     def filter_suit(self, suit: Suit) -> Iterable[Card]:
         """Returns an Iterable with in it all cards which have the provided suit"""
-        results: List[Card] = list(filter(lambda x: x.suit is suit, self.get_cards()))
+        results: list[Card] = list(filter(lambda x: x.suit is suit, self.get_cards()))
         return results
 
     def filter_rank(self, rank: Rank) -> Iterable[Card]:
         """Returns an Iterable with in it all cards which have the provided rank"""
-        results: List[Card] = list(filter(lambda x: x.rank is rank, self.get_cards()))
+        results: list[Card] = list(filter(lambda x: x.rank is rank, self.get_cards()))
         return results
 
     @abstractmethod
@@ -159,7 +159,7 @@ class OrderedCardCollection(CardCollection):
         By default the Collection is empty.
         This constructor will make a defensive copy of the argument.
         """
-        self._cards: List[Card] = list(cards or [])
+        self._cards: list[Card] = list(cards or [])
 
     def is_empty(self) -> bool:
         return len(self._cards) == 0
