@@ -95,5 +95,4 @@ class FirstFixedMoveThenBaseBot(Bot):
         if not self.first_move_played:
             self.first_move_played = True
             return self.first_move
-        else:
-            return self.base_bot.get_move(state=state, leader_move=leader_move)
+        return self.base_bot.get_move(state=state, leader_move=leader_move)
