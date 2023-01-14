@@ -7,7 +7,7 @@ from random import Random
 
 class DeckGenerationTest(TestCase):
     def test_scnapsen_deck_generation(self) -> None:
-        deck: OrderedCardCollection = SchnapsenDeckGenerator.get_initial_deck()
+        deck: OrderedCardCollection = SchnapsenDeckGenerator().get_initial_deck()
         self.assertEqual(len(deck), 20, "Not the right number of cards")
         self.assertEqual(len(deck), len(set(deck.get_cards())), "Duplicates found in the cards")
         cards = set(deck.get_cards())
@@ -18,8 +18,8 @@ class DeckGenerationTest(TestCase):
 
 class DealingTest (TestCase):
     def test_dealing(self) -> None:
-        deck: OrderedCardCollection = SchnapsenDeckGenerator.get_initial_deck()
-        shuffled_deck = SchnapsenDeckGenerator.shuffle_deck(deck, Random())
+        deck: OrderedCardCollection = SchnapsenDeckGenerator().get_initial_deck()
+        shuffled_deck = SchnapsenDeckGenerator().shuffle_deck(deck, Random())
         cards = list(shuffled_deck.get_cards())
 
         hand1, hand2, rest = SchnapsenHandGenerator.generateHands(shuffled_deck)
