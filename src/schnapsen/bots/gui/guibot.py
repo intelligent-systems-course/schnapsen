@@ -50,9 +50,8 @@ class SchnapsenServer:
             print("Closing the server, because an Exception was raised")
             # by returning False, we indicate that the exception was not handled.
             return False
-        else:
-            print("Server closed")
-            return True
+        print("Server closed")
+        return True
 
     def __init__(self, host_name: str = "0.0.0.0", port: int = 8080) -> None:
         """Creates and starts the schnapsen server"""

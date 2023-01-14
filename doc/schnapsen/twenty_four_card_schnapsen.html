@@ -32,7 +32,7 @@ from schnapsen.deck import Card, OrderedCardCollection, Rank, Suit
 
 class MyDeckGenerator(DeckGenerator):
     def get_initial_deck(self) -&gt; OrderedCardCollection:
-        normal = SchnapsenDeckGenerator.get_initial_deck()
+        normal = SchnapsenDeckGenerator().get_initial_deck()
         cards = list(normal.get_cards())
         for suit in Suit:
             cards.append(Card.get_card(Rank.NINE, suit))
@@ -80,15 +80,14 @@ class TwentyFourSchnapsenGamePlayEngine(GamePlayEngine):
 <span>class <span class="ident">MyDeckGenerator</span></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Helper class that provides a standard way to create an ABC using
-inheritance.</p></div>
+<div class="desc"><p>A Deckgenerator specifies how what the cards for a game are.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class MyDeckGenerator(DeckGenerator):
     def get_initial_deck(self) -&gt; OrderedCardCollection:
-        normal = SchnapsenDeckGenerator.get_initial_deck()
+        normal = SchnapsenDeckGenerator().get_initial_deck()
         cards = list(normal.get_cards())
         for suit in Suit:
             cards.append(Card.get_card(Rank.NINE, suit))
@@ -99,33 +98,21 @@ inheritance.</p></div>
 <li><a title="schnapsen.game.DeckGenerator" href="game.html#schnapsen.game.DeckGenerator">DeckGenerator</a></li>
 <li>abc.ABC</li>
 </ul>
-<h3>Methods</h3>
-<dl>
-<dt id="schnapsen.twenty_four_card_schnapsen.MyDeckGenerator.get_initial_deck"><code class="name flex">
-<span>def <span class="ident">get_initial_deck</span></span>(<span>self) ‑> <a title="schnapsen.deck.OrderedCardCollection" href="deck.html#schnapsen.deck.OrderedCardCollection">OrderedCardCollection</a></span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def get_initial_deck(self) -&gt; OrderedCardCollection:
-    normal = SchnapsenDeckGenerator.get_initial_deck()
-    cards = list(normal.get_cards())
-    for suit in Suit:
-        cards.append(Card.get_card(Rank.NINE, suit))
-    return OrderedCardCollection(cards)</code></pre>
-</details>
-</dd>
-</dl>
+<h3>Inherited members</h3>
+<ul class="hlist">
+<li><code><b><a title="schnapsen.game.DeckGenerator" href="game.html#schnapsen.game.DeckGenerator">DeckGenerator</a></b></code>:
+<ul class="hlist">
+<li><code><a title="schnapsen.game.DeckGenerator.get_initial_deck" href="game.html#schnapsen.game.DeckGenerator.get_initial_deck">get_initial_deck</a></code></li>
+<li><code><a title="schnapsen.game.DeckGenerator.shuffle_deck" href="game.html#schnapsen.game.DeckGenerator.shuffle_deck">shuffle_deck</a></code></li>
+</ul>
+</li>
+</ul>
 </dd>
 <dt id="schnapsen.twenty_four_card_schnapsen.MyTrickScorer"><code class="flex name class">
 <span>class <span class="ident">MyTrickScorer</span></span>
 </code></dt>
 <dd>
-<div class="desc"><p>Helper class that provides a standard way to create an ABC using
-inheritance.</p></div>
+<div class="desc"><p>A TrickScorer that scores ac cording to the Schnapsen rules</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -158,27 +145,13 @@ inheritance.</p></div>
 <div class="desc"></div>
 </dd>
 </dl>
-<h3>Methods</h3>
-<dl>
-<dt id="schnapsen.twenty_four_card_schnapsen.MyTrickScorer.rank_to_points"><code class="name flex">
-<span>def <span class="ident">rank_to_points</span></span>(<span>self, rank: <a title="schnapsen.deck.Rank" href="deck.html#schnapsen.deck.Rank">Rank</a>) ‑> int</span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def rank_to_points(self, rank: Rank) -&gt; int:
-    return MyTrickScorer.scores[rank]</code></pre>
-</details>
-</dd>
-</dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
 <li><code><b><a title="schnapsen.game.SchnapsenTrickScorer" href="game.html#schnapsen.game.SchnapsenTrickScorer">SchnapsenTrickScorer</a></b></code>:
 <ul class="hlist">
 <li><code><a title="schnapsen.game.SchnapsenTrickScorer.declare_winner" href="game.html#schnapsen.game.SchnapsenTrickScorer.declare_winner">declare_winner</a></code></li>
+<li><code><a title="schnapsen.game.SchnapsenTrickScorer.marriage" href="game.html#schnapsen.game.TrickScorer.marriage">marriage</a></code></li>
+<li><code><a title="schnapsen.game.SchnapsenTrickScorer.rank_to_points" href="game.html#schnapsen.game.TrickScorer.rank_to_points">rank_to_points</a></code></li>
 <li><code><a title="schnapsen.game.SchnapsenTrickScorer.score" href="game.html#schnapsen.game.TrickScorer.score">score</a></code></li>
 </ul>
 </li>
@@ -188,7 +161,7 @@ inheritance.</p></div>
 <span>class <span class="ident">TwentyFourSchnapsenGamePlayEngine</span></span>
 </code></dt>
 <dd>
-<div class="desc"><p>GamePlayEngine(deck_generator: schnapsen.game.DeckGenerator, hand_generator: schnapsen.game.HandGenerator, trick_implementer: schnapsen.game.TrickImplementer, move_requester: schnapsen.game.MoveRequester, move_validator: schnapsen.game.MoveValidator, trick_scorer: schnapsen.game.TrickScorer)</p></div>
+<div class="desc"><p>The GamePlayengine combines the different aspects of the game into an engine that can execute games.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -265,14 +238,10 @@ inheritance.</p></div>
 <ul>
 <li>
 <h4><code><a title="schnapsen.twenty_four_card_schnapsen.MyDeckGenerator" href="#schnapsen.twenty_four_card_schnapsen.MyDeckGenerator">MyDeckGenerator</a></code></h4>
-<ul class="">
-<li><code><a title="schnapsen.twenty_four_card_schnapsen.MyDeckGenerator.get_initial_deck" href="#schnapsen.twenty_four_card_schnapsen.MyDeckGenerator.get_initial_deck">get_initial_deck</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="schnapsen.twenty_four_card_schnapsen.MyTrickScorer" href="#schnapsen.twenty_four_card_schnapsen.MyTrickScorer">MyTrickScorer</a></code></h4>
 <ul class="">
-<li><code><a title="schnapsen.twenty_four_card_schnapsen.MyTrickScorer.rank_to_points" href="#schnapsen.twenty_four_card_schnapsen.MyTrickScorer.rank_to_points">rank_to_points</a></code></li>
 <li><code><a title="schnapsen.twenty_four_card_schnapsen.MyTrickScorer.scores" href="#schnapsen.twenty_four_card_schnapsen.MyTrickScorer.scores">scores</a></code></li>
 </ul>
 </li>

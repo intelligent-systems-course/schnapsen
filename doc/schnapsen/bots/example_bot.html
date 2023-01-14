@@ -26,13 +26,18 @@
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">from schnapsen.game import Bot, PlayerPerspective, Move, SchnapsenTrickScorer
+<pre><code class="python">from schnapsen.game import Bot, PlayerPerspective, Move, SchnapsenTrickScorer, Score
 from schnapsen.deck import Suit, Card, Rank
 from typing import Optional
 
 
 class ExampleBot(Bot):
-    def get_move(self, state: &#39;PlayerPerspective&#39;, leader_move: Optional[&#39;Move&#39;]) -&gt; &#39;Move&#39;:
+    &#34;&#34;&#34;
+    This Bot is here to serve as an example of the different methods the PlayerPerspective provides.
+    In the end it is just playing the first valid move.
+    &#34;&#34;&#34;
+
+    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -&gt; Move:
         # You can get information on the state from your perspective
         print(state.am_i_leader())
         print(state.get_my_score())
@@ -46,21 +51,38 @@ class ExampleBot(Bot):
         print(one_move.is_marriage())
         print(one_move.is_trump_exchange())
 
+        # we can get our current score
+        my_score: Score = state.get_my_score()
+        # A score has both direct and pending points
+        print(f&#34;I have {my_score.direct_points} direct points and {my_score.pending_points} pending points.&#34;)
+
+        if leader_move is not None:
+            if leader_move.cards[0].suit == state.get_trump_suit():
+                print(&#34;The opponent played a card of the trump suit&#34;)
+
         # Check the cards in the moves
         if one_move.is_marriage():
             marriage = one_move
-            queen = marriage.cards[0]
-            king = marriage.cards[1]
+            queen: Card = marriage.cards[0]
+            king: Card = marriage.cards[1]
+            print(king)
+            print(queen)
+            # Find the suits and ranks of cards
+            print(king.suit)
+            print(queen.rank)
+            if queen.suit == Suit.DIAMONDS:
+                print(&#34;The opponent played a diamond marriage&#34;)
         elif one_move.is_trump_exchange():
             exchange = one_move
-            jack = exchange.cards[0]
+            jack: Card = exchange.cards[0]
+            assert jack.rank == Rank.JACK
         else:
             normal_move = one_move
             card: Card = normal_move.cards[0]
             print(card.suit)
             print(card.rank)
             scorer = SchnapsenTrickScorer()
-            points = scorer.rank_to_points(card.rank)
+            points: int = scorer.rank_to_points(card.rank)
             print(points)
         return one_move</code></pre>
 </details>
@@ -78,14 +100,19 @@ class ExampleBot(Bot):
 <span>class <span class="ident">ExampleBot</span></span>
 </code></dt>
 <dd>
-<div class="desc"><p>The Bot baseclass. Derive your own bots from this class and implement the get_move method to use it in games.</p>
-<p>Besides the get_move method, it is also possible to override notify_trump_exchange and notify_game_end to get notified when these events happen.</p></div>
+<div class="desc"><p>This Bot is here to serve as an example of the different methods the PlayerPerspective provides.
+In the end it is just playing the first valid move.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class ExampleBot(Bot):
-    def get_move(self, state: &#39;PlayerPerspective&#39;, leader_move: Optional[&#39;Move&#39;]) -&gt; &#39;Move&#39;:
+    &#34;&#34;&#34;
+    This Bot is here to serve as an example of the different methods the PlayerPerspective provides.
+    In the end it is just playing the first valid move.
+    &#34;&#34;&#34;
+
+    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -&gt; Move:
         # You can get information on the state from your perspective
         print(state.am_i_leader())
         print(state.get_my_score())
@@ -99,21 +126,38 @@ class ExampleBot(Bot):
         print(one_move.is_marriage())
         print(one_move.is_trump_exchange())
 
+        # we can get our current score
+        my_score: Score = state.get_my_score()
+        # A score has both direct and pending points
+        print(f&#34;I have {my_score.direct_points} direct points and {my_score.pending_points} pending points.&#34;)
+
+        if leader_move is not None:
+            if leader_move.cards[0].suit == state.get_trump_suit():
+                print(&#34;The opponent played a card of the trump suit&#34;)
+
         # Check the cards in the moves
         if one_move.is_marriage():
             marriage = one_move
-            queen = marriage.cards[0]
-            king = marriage.cards[1]
+            queen: Card = marriage.cards[0]
+            king: Card = marriage.cards[1]
+            print(king)
+            print(queen)
+            # Find the suits and ranks of cards
+            print(king.suit)
+            print(queen.rank)
+            if queen.suit == Suit.DIAMONDS:
+                print(&#34;The opponent played a diamond marriage&#34;)
         elif one_move.is_trump_exchange():
             exchange = one_move
-            jack = exchange.cards[0]
+            jack: Card = exchange.cards[0]
+            assert jack.rank == Rank.JACK
         else:
             normal_move = one_move
             card: Card = normal_move.cards[0]
             print(card.suit)
             print(card.rank)
             scorer = SchnapsenTrickScorer()
-            points = scorer.rank_to_points(card.rank)
+            points: int = scorer.rank_to_points(card.rank)
             print(points)
         return one_move</code></pre>
 </details>
