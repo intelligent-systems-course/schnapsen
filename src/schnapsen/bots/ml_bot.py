@@ -1,10 +1,11 @@
 from schnapsen.game import Bot, PlayerPerspective, SchnapsenDeckGenerator, Move, Trick, GamePhase
-from typing import List, Optional, cast
+from typing import List, Optional, cast, Literal
 from schnapsen.deck import Suit, Rank
 from sklearn.neural_network import MLPClassifier
+from sklearn.linear_model import LogisticRegression
 import joblib
-import os
 import time
+import pathlib
 
 
 class MLPlayingBot(Bot):
@@ -12,21 +13,25 @@ class MLPlayingBot(Bot):
     This class loads a trained ML model and uses it to play
     """
 
-    def __init__(self, model_name: str = 'test_model', model_dir: str = "ML_models") -> None:
-        model_file_path = os.path.join(model_dir, model_name)
-        if not os.path.exists(model_file_path):
-            raise ValueError("Model could not be found at: " + model_file_path)
-        else:
-            # load model
-            self.__model = joblib.load(model_file_path)
+    def __init__(self, model_location: Optional[pathlib.Path]) -> None:
+        """
+        Create a new MLPlayingBot which uses the model stored in the mofel_location.
 
-    def get_move(self, player_perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+        :param model_location: The file containing the model.
+        """
+        if model_location is None:
+            model_location = pathlib.Path("ML_models/") / "test_model"
+        assert model_location.exists(), f"Model could not be found at: {model_location}"
+        # load model
+        self.__model = joblib.load(model_location)
+
+    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         # get the sate feature representation
-        state_representation = get_state_feature_vector(player_perspective)
+        state_representation = get_state_feature_vector(state)
         # get the leader's move representation, even if it is None
         leader_move_representation = get_move_feature_vector(leader_move)
         # get all my valid moves
-        my_valid_moves = player_perspective.valid_moves()
+        my_valid_moves = state.valid_moves()
         # get the feature representations for all my valid moves
         my_move_representations: list[list[int]] = []
         for my_move in my_valid_moves:
@@ -35,11 +40,10 @@ class MLPlayingBot(Bot):
         # create all model inputs, for all bot's valid moves
         action_state_representations: list[list[int]] = []
 
-        if player_perspective.am_i_leader():
+        if state.am_i_leader():
             follower_move_representation = get_move_feature_vector(None)
             for my_move_representation in my_move_representations:
                 action_state_representations.append(
-
                     state_representation + my_move_representation + follower_move_representation)
         else:
             for my_move_representation in my_move_representations:
@@ -54,7 +58,7 @@ class MLPlayingBot(Bot):
             if value > highest_value:
                 highest_value = value
                 best_move = my_valid_moves[index]
-        assert best_move
+        assert best_move is not None
         return best_move
 
 
@@ -67,18 +71,16 @@ class MLDataBot(Bot):
     This way we can then train a bot according to the assumption that:
         "decisions in earlier games that ended up in victories should be preferred over decisions that lead to lost games"
     This class only records the decisions and game outcomes of the provided bot, according to its own perspective - incomplete game state knowledge.
-    The replay memories are stored under the directory "ML_replay_memories" in a file whose filename
-    is passed through the parameter "replay_memory_filename" when creating a MLDataBot object.
     """
 
-    def __init__(self, bot: Bot, replay_memory_file_path: str) -> None:
+    def __init__(self, bot: Bot, replay_memory_location: pathlib.Path) -> None:
         """
-        bot: the provided bot that will actually play the game and make decisions
-        replay_memory_filename: the filename under which the replay memory records will be stored, under the directory "ML_replay_memories"
+        :param bot: the provided bot that will actually play the game and make decisions
+        :param replay_memory_location: the filename under which the replay memory records will be
         """
+
         self.bot: Bot = bot
-        # self.my_history: Optional[list[tuple[PlayerPerspective, Optional[PartialTrick]]]] = None
-        self.replay_memory_file_path: str = replay_memory_file_path
+        self.replay_memory_file_path: pathlib.Path = replay_memory_location
 
     def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         """
@@ -86,16 +88,17 @@ class MLDataBot(Bot):
         """
         return self.bot.get_move(state=state, leader_move=leader_move)
 
-    def notify_game_end(self, won: bool, player_perspective: PlayerPerspective) -> None:
+    def notify_game_end(self, won: bool, state: PlayerPerspective) -> None:
         """
         When the game ends, this function retrieves the game history and more specifically all the replay memories that can
         be derived from it, and stores them in the form of state-actions vector representations and the corresponding outcome of the game
 
-        param won: Did this bot win the game?
-        param player_perspective: The final state of the game.
+        :param won: Did this bot win the game?
+        :param state: The final state of the game.
         """
-        # we retrieve the game history while actually discarding the last useless history record (which is after the game has ended), we know none of the Tricks can be None
-        game_history: list[tuple[PlayerPerspective, Trick]] = cast(list[tuple[PlayerPerspective, Trick]], player_perspective.get_game_history()[:-1])
+        # we retrieve the game history while actually discarding the last useless history record (which is after the game has ended),
+        # we know none of the Tricks can be None because that is only for the last record
+        game_history: list[tuple[PlayerPerspective, Trick]] = cast(list[tuple[PlayerPerspective, Trick]], state.get_game_history()[:-1])
         # we also save the training label "won or lost"
         won_label = won
 
@@ -114,7 +117,7 @@ class MLDataBot(Bot):
                 follower_move = None
 
             state_actions_representation = create_state_and_actions_vector_representation(
-                player_perspective=round_player_perspective, leader_move=leader_move, follower_move=follower_move)
+                state=round_player_perspective, leader_move=leader_move, follower_move=follower_move)
 
             # append replay memory to file
             with open(file=self.replay_memory_file_path, mode="a") as replay_memory_file:
@@ -123,34 +126,41 @@ class MLDataBot(Bot):
                 replay_memory_file.write(f"{str(state_actions_representation)[1:-1]} || {int(won_label)}\n")
 
 
-def train_ML_model(replay_memory_filename: str = 'test_replay_memory',
-                   replay_memories_directory: str = 'ML_replay_memories',
-                   model_name: str = 'test_model', model_dir: str = "ML_models", overwrite: bool = True) -> None:
-    # check if directory exists, and if not, then create it
-    if not os.path.exists(model_dir):
-        os.mkdir(model_dir)
+def train_ML_model(replay_memory_location: Optional[pathlib.Path],
+                   model_location: Optional[pathlib.Path],
+                   model_class: Literal["NN", "LR"] = "LR"
+                   ) -> None:
+    """
+    Train the ML model for the MLPlayingBot based on replay memory stored byt the MLDataBot.
+    This implementation has the option to train a neural network model or a model based on linear regression.
+    The model classes used in this implemntation are not necesarily optimal.
 
-    # Check if model exists already
-    model_file_path = os.path.join(model_dir, model_name)
-    if os.path.exists(model_file_path):
-        if overwrite:
-            print(
-                "Model with name: " + model_name + ", in directory: " + model_dir + ", exists already and will be overwritten as selected.")
-            os.remove(model_file_path)
-        else:
-            raise ValueError(
-                "Model with name: " + model_name + ", in directory: " + model_dir + ", exists already and overwrite is set to False."
-                "\nNo new model will be trained, process terminates")
-
-    replay_memory_file_path = os.path.join(replay_memories_directory, replay_memory_filename)
+    :param replay_memory_location: Location of the games stored by MLDataBot, default pathlib.Path('ML_replay_memories') / 'test_replay_memory'
+    :param model_location: Location where the model will be stored, default pathlib.Path("ML_models") / 'test_model'
+    :param model_class: The machine learning model class to be used, either 'NN' for a neural network, or 'LR' for a linear regression.
+    :param overwrite: Whether to overwrite a possibly existing model.
+    """
+    if replay_memory_location is None:
+        replay_memory_location = pathlib.Path('ML_replay_memories') / 'test_replay_memory'
+    if model_location is None:
+        model_location = pathlib.Path("ML_models") / 'test_model'
+    assert model_class == 'NN' or model_class == 'LR', "Unknown model class"
 
     # check that the replay memory dataset is found at the specified location
-    if not os.path.exists(replay_memory_file_path):
-        raise ValueError(f"Dataset was not found at: {replay_memory_file_path} !")
+    if not replay_memory_location.exists():
+        raise ValueError(f"Dataset was not found at: {replay_memory_location} !")
+
+    # Check if model exists already
+    if model_location.exists():
+        raise ValueError(
+            f"Model at {model_location} exists already and overwrite is set to False. \nNo new model will be trained, process terminates")
+
+    # check if directory exists, and if not, then create it
+    model_location.parent.mkdir(parents=True, exist_ok=True)
 
     data: list[list[int]] = []
     targets: list[int] = []
-    with open(file=replay_memory_file_path, mode="r") as replay_memory_file:
+    with open(file=replay_memory_location, mode="r") as replay_memory_file:
         for line in replay_memory_file:
             feature_string, won_label_str = line.split("||")
             feature_list_strings: list[str] = feature_string.split(",")
@@ -165,50 +175,63 @@ def train_ML_model(replay_memory_filename: str = 'test_replay_memory',
     print("Samples of wins:", samples_of_wins)
     print("Samples of losses:", samples_of_losses)
 
-    # Play around with the model parameters below
+    # What type of model will be used depends on the value of the parameter use_neural_network
+    if model_class == 'NN':
+        #############################################
+        # Neural Network model parameters :
+        # learn more about the model or how to use better use it by checking out its documentation
+        # https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPClassifier.html#sklearn.neural_network.MLPClassifier
+        # Play around with the model parameters below
+        print("Training a Complex (Neural Network) model.")
 
-    # HINT: Use tournament fast mode (-f flag) to quickly test your different models.
+        # Feel free to experiment with different number of neural layers or differnt type of neurons per layer
+        # Tips: more neurons or more layers of neurons create a more complicated model that takes more time to train and
+        # needs a bigger dataset, but if you find the correct combination of neurons and neural layers and provide a big enough training dataset can lead to better performance
 
-    # The following tuple specifies the number of hidden layers in the neural
-    # network, as well as the number of layers, implicitly through its length.
-    # You can set any number of hidden layers, even just one. Experiment and see what works.
-    hidden_layer_sizes = (64, 32)
+        # one layer of 30 neurons
+        hidden_layer_sizes = (30)
+        # two layers of 30 and 5 neurons respectively
+        # hidden_layer_sizes = (30, 5)
 
-    # The learning rate determines how fast we move towards the optimal solution.
-    # A low learning rate will converge slowly, but a large one might overshoot.
-    learning_rate = 0.0001
+        # The learning rate determines how fast we move towards the optimal solution.
+        # A low learning rate will converge slowly, but a large one might overshoot.
+        learning_rate = 0.0001
 
-    # The regularization term aims to prevent overfitting, and we can tweak its strength here.
-    regularization_strength = 0.0001
+        # The regularization term aims to prevent over-fitting, and we can tweak its strength here.
+        regularization_strength = 0.0001
 
-    #############################################
+        # Train a neural network
+        learner = MLPClassifier(hidden_layer_sizes=hidden_layer_sizes, learning_rate_init=learning_rate,
+                                alpha=regularization_strength, verbose=True, early_stopping=True, n_iter_no_change=6,
+                                activation='tanh')
+    elif model_class == 'LR':
+        # Train a simpler Linear Logistic Regression model
+        # learn more about the model or how to use better use it by checking out its documentation
+        # https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html#sklearn.linear_model.LogisticRegression
+        print("Training a Simple (Linear Logistic Regression model)")
+
+        # Usually there is no reason to change the hyperparameters of such a simple model but fill free to experiment:
+        learner = LogisticRegression(max_iter=1000)
+    else:
+        raise AssertionError("Unknown model class")
 
     start = time.time()
-
     print("Starting training phase...")
 
-    # Train a neural network
-    learner = MLPClassifier(hidden_layer_sizes=hidden_layer_sizes, learning_rate_init=learning_rate,
-                            alpha=regularization_strength, verbose=True, early_stopping=True, n_iter_no_change=6)
-    # learner = sklearn.linear_model.LogisticRegression()
-
     model = learner.fit(data, targets)
-
-    # Store the model
-    joblib.dump(model, model_file_path)
-
+    # Save the model in a file
+    joblib.dump(model, model_location)
     end = time.time()
+    print('The model was trained in ', (end - start) / 60, 'minutes.')
 
-    print('Done. Time to train:', (end - start) / 60, 'minutes.')
 
-
-def create_state_and_actions_vector_representation(player_perspective: PlayerPerspective, leader_move: Optional[Move],
+def create_state_and_actions_vector_representation(state: PlayerPerspective, leader_move: Optional[Move],
                                                    follower_move: Optional[Move]) -> List[int]:
     """
     This function takes as input a PlayerPerspective variable, and the two moves of leader and follower,
     and returns a list of complete feature representation that contains all information
     """
-    player_game_state_representation = get_state_feature_vector(player_perspective)
+    player_game_state_representation = get_state_feature_vector(state)
     leader_move_representation = get_move_feature_vector(leader_move)
     follower_move_representation = get_move_feature_vector(follower_move)
 
@@ -217,7 +240,7 @@ def create_state_and_actions_vector_representation(player_perspective: PlayerPer
 
 def get_one_hot_encoding_of_card_suit(card_suit: Suit) -> List[int]:
     """
-    Translating the suit of a card into one hot vector encoding of size 4 and type of numpy ndarray.
+    Translating the suit of a card into one hot vector encoding of size 4.
     """
     card_suit_one_hot: list[int]
     if card_suit == Suit.HEARTS:
@@ -236,7 +259,7 @@ def get_one_hot_encoding_of_card_suit(card_suit: Suit) -> List[int]:
 
 def get_one_hot_encoding_of_card_rank(card_rank: Rank) -> List[int]:
     """
-    Translating the rank of a card into one hot vector encoding of size 13 and type of numpy ndarray.
+    Translating the rank of a card into one hot vector encoding of size 13.
     """
     card_rank_one_hot: list[int]
     if card_rank == Rank.ACE:
@@ -272,7 +295,7 @@ def get_one_hot_encoding_of_card_rank(card_rank: Rank) -> List[int]:
 
 def get_move_feature_vector(move: Optional[Move]) -> List[int]:
     """
-        in case there isn't any move provided move to encode, we still need to create a "padding"-"meaningless" vector of the same size,
+        In case there isn't any move provided move to encode, we still need to create a "padding"-"meaningless" vector of the same size,
         filled with 0s, since the ML models need to receive input of the same dimensionality always.
         Otherwise, we create all the information of the move i) move type, ii) played card rank and iii) played card suit
         translate this information into one-hot vectors respectively, and concatenate these vectors into one move feature representation vector
@@ -304,7 +327,7 @@ def get_move_feature_vector(move: Optional[Move]) -> List[int]:
     return move_type_one_hot_encoding_numpy_array + card_rank_one_hot_encoding_numpy_array + card_suit_one_hot_encoding_numpy_array
 
 
-def get_state_feature_vector(player_perspective: PlayerPerspective) -> List[int]:
+def get_state_feature_vector(state: PlayerPerspective) -> List[int]:
     """
         This function gathers all subjective information that this bot has access to, that can be used to decide its next move, including:
         - points of this player (int)
@@ -323,7 +346,7 @@ def get_state_feature_vector(player_perspective: PlayerPerspective) -> List[int]
     # a list of all the features that consist the state feature set, of type np.ndarray
     state_feature_list: list[int] = []
 
-    player_score = player_perspective.get_my_score()
+    player_score = state.get_my_score()
     # - points of this player (int)
     player_points = player_score.direct_points
     # - pending points of this player (int)
@@ -333,7 +356,7 @@ def get_state_feature_vector(player_perspective: PlayerPerspective) -> List[int]
     state_feature_list += [player_points]
     state_feature_list += [player_pending_points]
 
-    opponents_score = player_perspective.get_opponent_score()
+    opponents_score = state.get_opponent_score()
     # - points of the opponent (int)
     opponents_points = opponents_score.direct_points
     # - pending points of opponent (int)
@@ -344,32 +367,32 @@ def get_state_feature_vector(player_perspective: PlayerPerspective) -> List[int]
     state_feature_list += [opponents_pending_points]
 
     # - the trump suit (1-hot encoding)
-    trump_suit = player_perspective.get_trump_suit()
+    trump_suit = state.get_trump_suit()
     trump_suit_one_hot = get_one_hot_encoding_of_card_suit(trump_suit)
     # add this features to the feature set
     state_feature_list += trump_suit_one_hot
 
     # - phase of game (1-hot encoding)
-    game_phase_encoded = [1, 0] if player_perspective.get_phase() == GamePhase.TWO else [0, 1]
+    game_phase_encoded = [1, 0] if state.get_phase() == GamePhase.TWO else [0, 1]
     # add this features to the feature set
     state_feature_list += game_phase_encoded
 
     # - talon size (int)
-    talon_size = player_perspective.get_talon_size()
+    talon_size = state.get_talon_size()
     # add this features to the feature set
     state_feature_list += [talon_size]
 
     # - if this player is leader (1-hot encoding)
-    i_am_leader = [0, 1] if player_perspective.am_i_leader() else [1, 0]
+    i_am_leader = [0, 1] if state.am_i_leader() else [1, 0]
     # add this features to the feature set
     state_feature_list += i_am_leader
 
     # gather all known deck information
-    hand_cards = player_perspective.get_hand().cards
-    trump_card = player_perspective.get_trump_card()
-    won_cards = player_perspective.get_won_cards().get_cards()
-    opponent_won_cards = player_perspective.get_opponent_won_cards().get_cards()
-    opponent_known_cards = player_perspective.get_known_cards_of_opponent_hand().get_cards()
+    hand_cards = state.get_hand().cards
+    trump_card = state.get_trump_card()
+    won_cards = state.get_won_cards().get_cards()
+    opponent_won_cards = state.get_opponent_won_cards().get_cards()
+    opponent_known_cards = state.get_known_cards_of_opponent_hand().get_cards()
     # each card can either be i) on player's hand, ii) on player's won cards, iii) on opponent's hand, iv) on opponent's won cards
     # v) be the trump card or vi) in an unknown position -> either on the talon or on the opponent's hand
     # There are all different cases regarding card's knowledge, and we represent these 6 cases using one hot encoding vectors as seen bellow.
