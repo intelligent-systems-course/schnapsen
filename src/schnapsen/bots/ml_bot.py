@@ -1,11 +1,11 @@
 from schnapsen.game import Bot, PlayerPerspective, SchnapsenDeckGenerator, Move, Trick, GamePhase
-from typing import List, Optional, cast
+from typing import List, Optional, cast, Literal
 from schnapsen.deck import Suit, Rank
 from sklearn.neural_network import MLPClassifier
 from sklearn.linear_model import LogisticRegression
 import joblib
-import os
 import time
+import pathlib
 
 
 class MLPlayingBot(Bot):
@@ -13,13 +13,17 @@ class MLPlayingBot(Bot):
     This class loads a trained ML model and uses it to play
     """
 
-    def __init__(self, model_name: str = 'test_model', model_dir: str = "ML_models") -> None:
-        model_file_path = os.path.join(model_dir, model_name)
-        if not os.path.exists(model_file_path):
-            raise ValueError("Model could not be found at: " + model_file_path)
-        else:
-            # load model
-            self.__model = joblib.load(model_file_path)
+    def __init__(self, model_location: Optional[pathlib.Path]) -> None:
+        """
+        Create a new MLPlayingBot which uses the model stored in the mofel_location.
+
+        :param model_location: The file containing the model.
+        """
+        if model_location is None:
+            model_location = pathlib.Path("ML_models/") / "test_model"
+        assert model_location.exists(), f"Model could not be found at: {model_location}"
+        # load model
+        self.__model = joblib.load(model_location)
 
     def get_move(self, player_perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         # get the sate feature representation
@@ -40,7 +44,6 @@ class MLPlayingBot(Bot):
             follower_move_representation = get_move_feature_vector(None)
             for my_move_representation in my_move_representations:
                 action_state_representations.append(
-
                     state_representation + my_move_representation + follower_move_representation)
         else:
             for my_move_representation in my_move_representations:
@@ -68,18 +71,16 @@ class MLDataBot(Bot):
     This way we can then train a bot according to the assumption that:
         "decisions in earlier games that ended up in victories should be preferred over decisions that lead to lost games"
     This class only records the decisions and game outcomes of the provided bot, according to its own perspective - incomplete game state knowledge.
-    The replay memories are stored under the directory "ML_replay_memories" in a file whose filename
-    is passed through the parameter "replay_memory_filename" when creating a MLDataBot object.
     """
 
-    def __init__(self, bot: Bot, replay_memory_file_path: str) -> None:
+    def __init__(self, bot: Bot, replay_memory_location: pathlib.Path) -> None:
         """
-        bot: the provided bot that will actually play the game and make decisions
-        replay_memory_filename: the filename under which the replay memory records will be stored, under the directory "ML_replay_memories"
+        :param bot: the provided bot that will actually play the game and make decisions
+        :param replay_memory_location: the filename under which the replay memory records will be
         """
+
         self.bot: Bot = bot
-        # self.my_history: Optional[list[tuple[PlayerPerspective, Optional[PartialTrick]]]] = None
-        self.replay_memory_file_path: str = replay_memory_file_path
+        self.replay_memory_file_path: pathlib.Path = replay_memory_location
 
     def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         """
@@ -92,10 +93,11 @@ class MLDataBot(Bot):
         When the game ends, this function retrieves the game history and more specifically all the replay memories that can
         be derived from it, and stores them in the form of state-actions vector representations and the corresponding outcome of the game
 
-        param won: Did this bot win the game?
-        param player_perspective: The final state of the game.
+        :param won: Did this bot win the game?
+        :param state: The final state of the game.
         """
-        # we retrieve the game history while actually discarding the last useless history record (which is after the game has ended), we know none of the Tricks can be None
+        # we retrieve the game history while actually discarding the last useless history record (which is after the game has ended),
+        # we know none of the Tricks can be None because that is only for the last record
         game_history: list[tuple[PlayerPerspective, Trick]] = cast(list[tuple[PlayerPerspective, Trick]], state.get_game_history()[:-1])
         # we also save the training label "won or lost"
         won_label = won
@@ -124,35 +126,41 @@ class MLDataBot(Bot):
                 replay_memory_file.write(f"{str(state_actions_representation)[1:-1]} || {int(won_label)}\n")
 
 
-def train_ML_model(replay_memory_filename: str = 'test_replay_memory',
-                   replay_memories_directory: str = 'ML_replay_memories',
-                   model_name: str = 'test_model', model_dir: str = "ML_models",
-                   use_neural_network: bool = False, overwrite: bool = True) -> None:
-    # check if directory exists, and if not, then create it
-    if not os.path.exists(model_dir):
-        os.mkdir(model_dir)
+def train_ML_model(replay_memory_location: Optional[pathlib.Path],
+                   model_location: Optional[pathlib.Path],
+                   model_class: Literal["NN", "LR"] = "LR"
+                   ) -> None:
+    """
+    Train the ML model for the MLPlayingBot based on replay memory stored byt the MLDataBot.
+    This implementation has the option to train a neural network model or a model based on linear regression.
+    The model classes used in this implemntation are not necesarily optimal.
 
-    # Check if model exists already
-    model_file_path = os.path.join(model_dir, model_name)
-    if os.path.exists(model_file_path):
-        if overwrite:
-            print(
-                "Model with name: " + model_name + ", in directory: " + model_dir + ", exists already and will be overwritten as selected.")
-            os.remove(model_file_path)
-        else:
-            raise ValueError(
-                "Model with name: " + model_name + ", in directory: " + model_dir + ", exists already and overwrite is set to False."
-                "\nNo new model will be trained, process terminates")
-
-    replay_memory_file_path = os.path.join(replay_memories_directory, replay_memory_filename)
+    :param replay_memory_location: Location of the games stored by MLDataBot, default pathlib.Path('ML_replay_memories') / 'test_replay_memory'
+    :param model_location: Location where the model will be stored, default pathlib.Path("ML_models") / 'test_model'
+    :param model_class: The machine learning model class to be used, either 'NN' for a neural network, or 'LR' for a linear regression.
+    :param overwrite: Whether to overwrite a possibly existing model.
+    """
+    if replay_memory_location is None:
+        replay_memory_location = pathlib.Path('ML_replay_memories') / 'test_replay_memory'
+    if model_location is None:
+        model_location = pathlib.Path("ML_models") / 'test_model'
+    assert model_class == 'NN' or model_class == 'LR', "Unknown model class"
 
     # check that the replay memory dataset is found at the specified location
-    if not os.path.exists(replay_memory_file_path):
-        raise ValueError(f"Dataset was not found at: {replay_memory_file_path} !")
+    if not replay_memory_location.exists():
+        raise ValueError(f"Dataset was not found at: {replay_memory_location} !")
+
+    # Check if model exists already
+    if model_location.exists():
+        raise ValueError(
+            f"Model at {model_location} exists already and overwrite is set to False. \nNo new model will be trained, process terminates")
+
+    # check if directory exists, and if not, then create it
+    model_location.parent.mkdir(parents=True, exist_ok=True)
 
     data: list[list[int]] = []
     targets: list[int] = []
-    with open(file=replay_memory_file_path, mode="r") as replay_memory_file:
+    with open(file=replay_memory_location, mode="r") as replay_memory_file:
         for line in replay_memory_file:
             feature_string, won_label_str = line.split("||")
             feature_list_strings: list[str] = feature_string.split(",")
@@ -168,7 +176,7 @@ def train_ML_model(replay_memory_filename: str = 'test_replay_memory',
     print("Samples of losses:", samples_of_losses)
 
     # What type of model will be used depends on the value of the parameter use_neural_network
-    if use_neural_network:
+    if model_class == 'NN':
         #############################################
         # Neural Network model parameters :
         # learn more about the model or how to use better use it by checking out its documentation
@@ -196,7 +204,7 @@ def train_ML_model(replay_memory_filename: str = 'test_replay_memory',
         learner = MLPClassifier(hidden_layer_sizes=hidden_layer_sizes, learning_rate_init=learning_rate,
                                 alpha=regularization_strength, verbose=True, early_stopping=True, n_iter_no_change=6,
                                 activation='tanh')
-    else:
+    elif model_class == 'LR':
         # Train a simpler Linear Logistic Regression model
         # learn more about the model or how to use better use it by checking out its documentation
         # https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html#sklearn.linear_model.LogisticRegression
@@ -204,13 +212,15 @@ def train_ML_model(replay_memory_filename: str = 'test_replay_memory',
 
         # Usually there is no reason to change the hyperparameters of such a simple model but fill free to experiment:
         learner = LogisticRegression(max_iter=1000)
+    else:
+        raise AssertionError("Unknown model class")
 
     start = time.time()
     print("Starting training phase...")
 
     model = learner.fit(data, targets)
     # Save the model in a file
-    joblib.dump(model, model_file_path)
+    joblib.dump(model, model_location)
     end = time.time()
     print('The model was trained in ', (end - start) / 60, 'minutes.')
 
@@ -230,7 +240,7 @@ def create_state_and_actions_vector_representation(state: PlayerPerspective, lea
 
 def get_one_hot_encoding_of_card_suit(card_suit: Suit) -> List[int]:
     """
-    Translating the suit of a card into one hot vector encoding of size 4 and type of numpy ndarray.
+    Translating the suit of a card into one hot vector encoding of size 4.
     """
     card_suit_one_hot: list[int]
     if card_suit == Suit.HEARTS:
@@ -249,7 +259,7 @@ def get_one_hot_encoding_of_card_suit(card_suit: Suit) -> List[int]:
 
 def get_one_hot_encoding_of_card_rank(card_rank: Rank) -> List[int]:
     """
-    Translating the rank of a card into one hot vector encoding of size 13 and type of numpy ndarray.
+    Translating the rank of a card into one hot vector encoding of size 13.
     """
     card_rank_one_hot: list[int]
     if card_rank == Rank.ACE:
@@ -285,7 +295,7 @@ def get_one_hot_encoding_of_card_rank(card_rank: Rank) -> List[int]:
 
 def get_move_feature_vector(move: Optional[Move]) -> List[int]:
     """
-        in case there isn't any move provided move to encode, we still need to create a "padding"-"meaningless" vector of the same size,
+        In case there isn't any move provided move to encode, we still need to create a "padding"-"meaningless" vector of the same size,
         filled with 0s, since the ML models need to receive input of the same dimensionality always.
         Otherwise, we create all the information of the move i) move type, ii) played card rank and iii) played card suit
         translate this information into one-hot vectors respectively, and concatenate these vectors into one move feature representation vector
