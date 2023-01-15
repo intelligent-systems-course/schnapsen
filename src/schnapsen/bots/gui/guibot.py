@@ -197,7 +197,14 @@ class _Old_GUI_Compatibility:
         opponent_known_cards = state.get_known_cards_of_opponent_hand()
 
         partial_move_cards = leader_move.cards if leader_move else []
-        partial_move_down = leader_move.as_regular_move().card if leader_move else None
+        if leader_move:
+            if leader_move.is_regular_move():
+                partial_move_down = leader_move.as_regular_move().card
+            else:
+                assert leader_move.is_marriage()
+                partial_move_down = leader_move.as_marriage().underlying_regular_move().card
+        else:
+            partial_move_down = None
 
         card_state: list[str] = ["None"] * 20
         p1_perspective: list[str] = ["None"] * 20

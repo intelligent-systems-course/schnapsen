@@ -53,7 +53,7 @@ class MoveTest(TestCase):
             marriage = Marriage(queen_card=queen, king_card=king)
             self.assertTrue(marriage.is_marriage())
             self.assertFalse(marriage.is_trump_exchange())
-            self.assertEqual(marriage.as_regular_move().cards[0], queen)
+            self.assertEqual(marriage.underlying_regular_move().cards[0], queen)
             self.assertEqual(marriage.cards, [queen, king])
 
 
