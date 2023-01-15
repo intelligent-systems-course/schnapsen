@@ -48,6 +48,18 @@ class Move(ABC):
     cards: list[Card]  # implementation detail: The creation of this list is defered to the derived classes in _cards()
     """The cards played in this move"""
 
+    def is_regular_move(self) -> bool:
+        """
+        Is this Move a regular move (not a mariage or trump exchange)
+
+        :returns: a bool indicating whether this is a regular move
+        """
+        return False
+
+    def as_regular_move(self) -> 'RegularMove':
+        """Returns this same move but as a Marriage."""
+        raise AssertionError("as_regular_move called on a Move which is not a regular move. Check with is_regular_move first.")
+
     def is_marriage(self) -> bool:
         """
         Is this Move a marriage?
@@ -56,6 +68,10 @@ class Move(ABC):
         """
         return False
 
+    def as_marriage(self) -> 'Marriage':
+        """Returns this same move but as a Marriage."""
+        raise AssertionError("as_marriage called on a Move which is not a Marriage. Check with is_marriage first.")
+
     def is_trump_exchange(self) -> bool:
         """
         Is this Move a trump exchange move?
@@ -63,6 +79,10 @@ class Move(ABC):
         :returns: a bool indicating whether this move is a trump exchange
         """
         return False
+
+    def as_trump_exchange(self) -> 'Trump_Exchange':
+        """Returns this same move but as a Trump_Exchange."""
+        raise AssertionError("as_marriage called on a Move which is not a Trump_Exchange. Check with is_trump_exchange first.")
 
     def __getattribute__(self, __name: str) -> Any:
         if __name == "cards":
@@ -90,6 +110,9 @@ class Trump_Exchange(Move):
     def is_trump_exchange(self) -> bool:
         return True
 
+    def as_trump_exchange(self) -> 'Trump_Exchange':
+        return self
+
     def _cards(self) -> list[Card]:
         return [self.jack]
 
@@ -111,6 +134,9 @@ class RegularMove(Move):
     def from_cards(cards: Iterable[Card]) -> list[Move]:
         """Create an iterable of Moves from an iterable of cards."""
         return [RegularMove(card) for card in cards]
+
+    def is_regular_move(self) -> bool:
+        return True
 
     def as_regular_move(self) -> 'RegularMove':
         return self
@@ -147,7 +173,13 @@ class Marriage(Move):
     def is_marriage(self) -> bool:
         return True
 
-    def as_regular_move(self) -> RegularMove:
+    def as_marriage(self) -> 'Marriage':
+        return self
+
+    def underlying_regular_move(self) -> RegularMove:
+        """
+        Get the regular move which was played because of the marriage. In this engine this is always the queen card.
+        """
         # this limits you to only have the queen to play after a marriage, while in general you would have a choice.
         # This is not an issue since playing the queen give you the highest score.
         return RegularMove(self.queen_card)
@@ -1106,7 +1138,7 @@ class SchnapsenTrickImplementer(TrickImplementer):
         if trick.leader_move.is_marriage():
             marriage_move: Marriage = cast(Marriage, trick.leader_move)
             self._play_marriage(game_engine, next_game_state, marriage_move=marriage_move)
-            regular_leader_move: RegularMove = cast(Marriage, trick.leader_move).as_regular_move()
+            regular_leader_move: RegularMove = cast(Marriage, trick.leader_move).underlying_regular_move()
         else:
             regular_leader_move = cast(RegularMove, trick.leader_move)
 
@@ -1370,7 +1402,7 @@ class SchnapsenTrickScorer(TrickScorer):
     def score(self, trick: RegularTrick, leader: BotState, follower: BotState, trump: Suit) -> Tuple[BotState, BotState, bool]:
 
         if trick.leader_move.is_marriage():
-            regular_leader_move: RegularMove = cast(Marriage, trick.leader_move).as_regular_move()
+            regular_leader_move: RegularMove = cast(Marriage, trick.leader_move).underlying_regular_move()
         else:
             regular_leader_move = cast(RegularMove, trick.leader_move)
 
