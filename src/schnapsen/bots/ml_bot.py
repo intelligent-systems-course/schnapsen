@@ -25,13 +25,13 @@ class MLPlayingBot(Bot):
         # load model
         self.__model = joblib.load(model_location)
 
-    def get_move(self, player_perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         # get the sate feature representation
-        state_representation = get_state_feature_vector(player_perspective)
+        state_representation = get_state_feature_vector(state)
         # get the leader's move representation, even if it is None
         leader_move_representation = get_move_feature_vector(leader_move)
         # get all my valid moves
-        my_valid_moves = player_perspective.valid_moves()
+        my_valid_moves = state.valid_moves()
         # get the feature representations for all my valid moves
         my_move_representations: list[list[int]] = []
         for my_move in my_valid_moves:
@@ -40,7 +40,7 @@ class MLPlayingBot(Bot):
         # create all model inputs, for all bot's valid moves
         action_state_representations: list[list[int]] = []
 
-        if player_perspective.am_i_leader():
+        if state.am_i_leader():
             follower_move_representation = get_move_feature_vector(None)
             for my_move_representation in my_move_representations:
                 action_state_representations.append(

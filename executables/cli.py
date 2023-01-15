@@ -52,8 +52,8 @@ def random_game() -> None:
 
 class NotificationExampleBot(Bot):
 
-    def get_move(self, player_perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
-        moves = player_perspective.valid_moves()
+    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+        moves = state.valid_moves()
         return moves[0]
 
     def notify_game_end(self, won: bool, state: PlayerPerspective) -> None:
@@ -73,10 +73,10 @@ def notification_game() -> None:
 
 
 class HistoryBot(Bot):
-    def get_move(self, player_perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
-        history = player_perspective.get_game_history()
+    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+        history = state.get_game_history()
         print(f'the initial state of this game was {history[0][0]}')
-        moves = player_perspective.valid_moves()
+        moves = state.valid_moves()
         return moves[0]
 
 
