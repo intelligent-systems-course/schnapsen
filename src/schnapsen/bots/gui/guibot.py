@@ -266,7 +266,10 @@ class _Old_GUI_Compatibility:
             else:
                 previous_regular_trick = cast(RegularTrick, previous_trick)
                 # we only care about the cards which will go, not marriage
-                leadercard = previous_regular_trick.leader_move.as_regular_move().card
+                if previous_regular_trick.leader_move.is_regular_move():
+                    leadercard = previous_regular_trick.leader_move.as_regular_move().card
+                elif previous_regular_trick.leader_move.is_marriage():
+                    leadercard = previous_regular_trick.leader_move.as_marriage().queen_card
                 followercard = previous_regular_trick.follower_move.card
 
                 old_shape_previous_trick[0] = _Old_GUI_Compatibility.old_engine_order.index(leadercard)
