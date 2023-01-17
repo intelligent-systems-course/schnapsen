@@ -1344,7 +1344,7 @@ class TrickScorer(ABC):
     @abstractmethod
     def score(self, trick: RegularTrick, leader: BotState, follower: BotState, trump: Suit) -> Tuple[BotState, BotState, bool]:
         """
-        Score the trick for the given leader and follower. The returned bots are copies and have the score of the trick applied.
+        Score the trick for the given leader and follower. The returned bots are the same bots provided (not copies) and have the score of the trick applied.
         They are returned in order (new_leader, new_follower). If appropriate, also pending points have been applied.
         The boolean is True if the leading bot remained the same, i.e., the past leader remains the leader
         """
