@@ -96,6 +96,10 @@ class Move(ABC):
         Get the list of cards in this move. This method should not be called direcly, use the cards property instead.
         """
 
+    @abstractmethod
+    def __eq__(self, __o: object) -> bool:
+        """Compare the two moves with each other. Two moves are equal in case they are of the same type and if they contain the same cards."""
+
 
 @dataclass(frozen=True)
 class Trump_Exchange(Move):
@@ -118,6 +122,11 @@ class Trump_Exchange(Move):
 
     def __repr__(self) -> str:
         return f"Trump_Exchange(jack={self.jack})"
+
+    def __eq__(self, __o: object) -> bool:
+        if not isinstance(__o, Trump_Exchange):
+            return False
+        return self.jack == __o.jack
 
 
 @dataclass(frozen=True)
@@ -143,6 +152,11 @@ class RegularMove(Move):
 
     def __repr__(self) -> str:
         return f"RegularMove(card={self.card})"
+
+    def __eq__(self, __o: object) -> bool:
+        if not isinstance(__o, RegularMove):
+            return False
+        return self.card == __o.card
 
 
 @dataclass(frozen=True)
@@ -189,6 +203,11 @@ class Marriage(Move):
 
     def __repr__(self) -> str:
         return f"Marriage(queen_card={self.queen_card}, king_card={self.king_card})"
+
+    def __eq__(self, __o: object) -> bool:
+        if not isinstance(__o, Marriage):
+            return False
+        return self.queen_card == __o.queen_card and self.king_card == self.king_card
 
 
 class Hand(CardCollection):
