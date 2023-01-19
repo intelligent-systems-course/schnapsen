@@ -119,3 +119,6 @@ A pregenerated version of the documentation can be found int he doc folder. It c
 pip install pdoc
 pdoc --html src/schnapsen executables/ -o doc/
 ```
+
+if above doesn't work, try pdoc3, instead of pdoc
+
