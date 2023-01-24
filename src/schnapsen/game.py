@@ -812,7 +812,6 @@ class PlayerPerspective(ABC):
         opponent_hand = self.__get_opponent_bot_state().hand.copy()
 
         if leader_move is not None:
-            self.__game_state.leader.hand.get_cards()
             assert all(card in opponent_hand for card in leader_move.cards), f"The specified leader_move {leader_move} is not in the hand of the opponent {opponent_hand}"
 
         full_state = self.__game_state.copy_with_other_bots(_DummyBot(), _DummyBot())
@@ -829,7 +828,8 @@ class PlayerPerspective(ABC):
         unseen_talon = list(filter(lambda card: card not in seen_cards, talon))
 
         unseen_cards = list(filter(lambda card: card not in seen_cards, full_deck))
-        rand.shuffle(unseen_cards)
+        if len(unseen_cards) > 1:
+            rand.shuffle(unseen_cards)
 
         assert len(unseen_talon) + len(unseen_opponent_hand) == len(unseen_cards), "Logical error. The number of unseen cards in the opponents hand and in the talon must be equal to the number of unseen cards"
 
@@ -1044,12 +1044,14 @@ class DeckGenerator(ABC):
 
 class SchnapsenDeckGenerator(DeckGenerator):
 
-    def get_initial_deck(self) -> OrderedCardCollection:
-        deck = []
+    def __init__(self) -> None:
+        self.deck = []
         for suit in Suit:
             for rank in [Rank.JACK, Rank.QUEEN, Rank.KING, Rank.TEN, Rank.ACE]:
-                deck.append(Card.get_card(rank, suit))
-        return OrderedCardCollection(deck)
+                self.deck.append(Card.get_card(rank, suit))
+
+    def get_initial_deck(self) -> OrderedCardCollection:
+        return OrderedCardCollection(self.deck)
 
 
 class HandGenerator(ABC):
