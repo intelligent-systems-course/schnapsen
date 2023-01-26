@@ -421,26 +421,18 @@ function other(player) {
     return 1;
 }
 
-function winner(state) {
-    var winner = null;
-
-    if (state.revoked !== null) {
-        winner = other(state.revoked);
+function highlightWinner(state) {
+    if (state.won) {
+        console.log("GUI Player wins!");
+        $("#p1_points").css("color", "#55c68f");
+        $("#p2_points").css("color", "#e34f51");
+        $("#p1_points").html(state.p1_points + " points    &lt;---winner--");
     } else {
-        if (state.p1_points >= 66) {
-            winner = 1;
-        } else if (state.p2_points >= 66) {
-            winner = 2;
-        }
+        console.log("Other Player wins!");
+        $("#p1_points").css("color", "#e34f51");
+        $("#p2_points").css("color", "#55c68f");
+        $("#p2_points").html("---winner--&gt; " + state.p2_points + " points");
     }
-
-    return winner;
-}
-
-function highlightWinner(winner) {
-    console.log("Player " + winner + " wins!");
-    $("#p" + winner + "_points").css("color", "#55c68f");
-    $("#p" + other(winner) + "_points").css("color", "#e34f51");
     disableClickable();
 }
 
@@ -492,7 +484,7 @@ function gameLoop(deck, state) {
         }
 
     } else {
-        highlightWinner(winner(state));
+        highlightWinner(state);
     }
 
 }
