@@ -21,7 +21,7 @@ class GUIBot(Bot):
         return self.server._get_move(self.name, state, leader_move)
 
     def notify_game_end(self, won: bool, state: PlayerPerspective) -> None:
-        self.server._post_final_state(self.name, state)
+        self.server._post_final_state(self.name, won, state)
 
 
 @dataclass
@@ -34,6 +34,8 @@ class _StateExchange:
     leader_move: Optional[Move]
     browser_move: Optional[Move]
     is_game_over: bool = False
+    won: bool = False
+    """The value of this variable is only valid once is_game_over has been set to True."""
 
 
 class SchnapsenServer:
@@ -73,9 +75,10 @@ class SchnapsenServer:
         self.__bots[name] = _StateExchange(bot=bot, browser_game_started=False, is_state_ready=Event(), is_move_ready=Event(), state=None, leader_move=None, browser_move=None)
         return bot
 
-    def _post_final_state(self, botname: str, state: PlayerPerspective) -> None:
+    def _post_final_state(self, botname: str, won: bool, state: PlayerPerspective) -> None:
         state_exchange = self.__bots[botname]
         state_exchange.state = state
+        state_exchange.won = won
         state_exchange.is_game_over = True
         state_exchange.is_state_ready.set()
 
@@ -109,7 +112,7 @@ class SchnapsenServer:
         state = state_exchange.state
         assert state  # cannot be None, because we waited for it.
         leader_move = state_exchange.leader_move
-        json = _Old_GUI_Compatibility.player_game_state_to_json(state=state, leader_move=leader_move, game_over=state_exchange.is_game_over)
+        json = _Old_GUI_Compatibility.player_game_state_to_json(state=state, leader_move=leader_move, game_over=state_exchange.is_game_over, won=state_exchange.won)
         return json
 
     def __setup_routes(self, app: Flask) -> None:
@@ -174,7 +177,7 @@ class _Old_GUI_Compatibility:
         return Marriage(queen_card=_Old_GUI_Compatibility.old_engine_order[old_move[0]], king_card=_Old_GUI_Compatibility.old_engine_order[old_move[1]])
 
     @staticmethod
-    def player_game_state_to_json(state: PlayerPerspective, leader_move: Optional[Move], game_over: bool) -> str:
+    def player_game_state_to_json(state: PlayerPerspective, leader_move: Optional[Move], game_over: bool, won: bool) -> str:
 
         # Deck.convert_to_json
         # return {"card_state":self.__card_state, "p1_perspective":self.__p1_perspective,
@@ -336,7 +339,7 @@ class _Old_GUI_Compatibility:
 
         # TODO We removed the revoked indication. There is no comparable thing on the new platform.
 
-        old_state = {"deck": deck, "moves": moves, "finished": finished, "phase": phase,
+        old_state = {"deck": deck, "moves": moves, "finished": finished, "won": won, "phase": phase,
                      "leads_turn": leads_turn, "player1s_turn": player1s_turn, "p1_points": p1_points, "p2_points": p2_points,
                      "p1_pending_points": p1_pending, "p2_pending_points": p2_pending}
 
