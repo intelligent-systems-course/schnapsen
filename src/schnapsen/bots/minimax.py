@@ -43,8 +43,19 @@ class MiniMaxBot(Bot):
         best_value = float('-inf') if maximizing else float('inf')
         best_move: Optional[Move] = None
         for move in valid_moves:
+            leader: Bot
+            follower: Bot
             if leader_move is None:
-                # we are leader, call self to get the follower to play
+                # we are leader,
+                # The following is a shortcut to not branch for all possible follower moves in the next recursive call (none of them would be actively played)
+                # however, from some limite benchmarking, it appears this is slower than just doing the normal call.
+                # if move.is_trump_exchange():
+                #     leader = OneFixedMoveBot(move)
+                #     follower = NoMoveBot()
+                #     state, rounds = engine.play_at_most_n_tricks(game_state=state, new_leader=leader, new_follower=follower, n=1)
+                #     assert rounds == 1
+
+                # call self to get the follower to play
                 value, _ = self.value(state=state, engine=engine, leader_move=move, maximizing=not maximizing)
             else:
                 # We are the follower. We need to complete the trick and then call self to play the next trick, with the correct maximizing, depending on who is the new leader
@@ -94,3 +105,8 @@ class OneFixedMoveBot(Bot):
         move = self.first_move
         self.first_move = None
         return move
+
+
+class NoMoveBot(Bot):
+    def get_move(self, state: 'PlayerPerspective', leader_move: Optional['Move']) -> 'Move':
+        raise AssertionError("NoMoveBot was requested a move, while this must never be requested")
