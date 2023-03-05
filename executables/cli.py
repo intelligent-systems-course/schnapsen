@@ -10,8 +10,7 @@ from schnapsen.bots.example_bot import ExampleBot
 
 from schnapsen.game import (Bot, Move, PlayerPerspective,
                             SchnapsenGamePlayEngine, Trump_Exchange)
-from schnapsen.twenty_four_card_schnapsen import \
-    TwentyFourSchnapsenGamePlayEngine
+from schnapsen.alternative_engines.twenty_four_card_schnapsen import TwentyFourSchnapsenGamePlayEngine
 
 from schnapsen.bots.rdeep import RdeepBot
 
