@@ -4,14 +4,14 @@ import pathlib
 from typing import Optional
 
 import click
+from schnapsen.alternative_engines.negative_ace_engine import NegativeAceGamePlayEngine
 from schnapsen.bots import MLDataBot, train_ML_model, MLPlayingBot, RandBot
 
 from schnapsen.bots.example_bot import ExampleBot
 
 from schnapsen.game import (Bot, Move, PlayerPerspective,
                             SchnapsenGamePlayEngine, Trump_Exchange)
-from schnapsen.twenty_four_card_schnapsen import \
-    TwentyFourSchnapsenGamePlayEngine
+from schnapsen.alternative_engines.twenty_four_card_schnapsen import TwentyFourSchnapsenGamePlayEngine
 
 from schnapsen.bots.rdeep import RdeepBot
 
@@ -188,6 +188,16 @@ def try_bot_game() -> None:
 @main.command()
 def game_24() -> None:
     engine = TwentyFourSchnapsenGamePlayEngine()
+    bot1 = RandBot(12112121)
+    bot2 = RandBot(464566)
+    for i in range(1000):
+        winner_id, game_points, score = engine.play_game(bot1, bot2, random.Random(i))
+        print(f"Game ended. Winner is {winner_id} with {game_points} points, score {score}")
+
+
+@main.command()
+def game_negative_ace() -> None:
+    engine = NegativeAceGamePlayEngine()
     bot1 = RandBot(12112121)
     bot2 = RandBot(464566)
     for i in range(1000):
