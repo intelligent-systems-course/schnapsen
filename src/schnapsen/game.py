@@ -1441,7 +1441,7 @@ class SchnapsenTrickScorer(TrickScorer):
 
     def declare_winner(self, game_state: GameState) -> Optional[Tuple[BotState, int]]:
         """
-        Declaring a winner uses the logic from https://www.pagat.com/marriage/schnaps.html#marriages , but simplified, because we do not have closing of the Talon and no need to guess the scores.
+        Declaring a winner uses the logic from https://web.archive.org/web/20230303074822/https://www.pagat.com/marriage/schnaps.html#out , but simplified, because we do not have closing of the Talon and no need to guess the scores.
         The following text adapted accordingly from that website.
 
         If a player has 66 or more points, she scores points toward game as follows:

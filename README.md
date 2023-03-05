@@ -8,7 +8,7 @@ This is the improved platform for the schnapsen card game. To get to know the co
 
 To use the platform, your python version must be at least 3.9, we suggest installing conda an using an environment.
 
-To get started, install the schnapsen package and itse dependencies in editable mode by running:
+To get started, install the schnapsen package and its dependencies in editable mode by running:
 
 ```sh
 pip install -e .
