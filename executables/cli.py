@@ -4,12 +4,13 @@ import pathlib
 from typing import Optional
 
 import click
-from schnapsen.alternative_engines.negative_ace_engine import NegativeAceGamePlayEngine
+from schnapsen.alternative_engines.ace_one_engine import AceOneGamePlayEngine
+
 from schnapsen.bots import MLDataBot, train_ML_model, MLPlayingBot, RandBot
 
 from schnapsen.bots.example_bot import ExampleBot
 
-from schnapsen.game import (Bot, Move, PlayerPerspective,
+from schnapsen.game import (Bot, GamePlayEngine, Move, PlayerPerspective,
                             SchnapsenGamePlayEngine, Trump_Exchange)
 from schnapsen.alternative_engines.twenty_four_card_schnapsen import TwentyFourSchnapsenGamePlayEngine
 
@@ -21,7 +22,7 @@ def main() -> None:
     """Various Schnapsen Game Examples"""
 
 
-def play_games_and_return_stats(engine: SchnapsenGamePlayEngine, bot1: Bot, bot2: Bot, number_of_games: int) -> int:
+def play_games_and_return_stats(engine: GamePlayEngine, bot1: Bot, bot2: Bot, number_of_games: int) -> int:
     """
     Play number_of_games games between bot1 and bot2, using the SchnapsenGamePlayEngine, and return how often bot1 won.
     Prints progress.
@@ -86,7 +87,7 @@ def try_example_bot_game() -> None:
     bot1 = ExampleBot()
     bot2 = RandBot(464566)
     winner, points, score = engine.play_game(bot1, bot2, random.Random(1))
-    print(f"Winner is: {winner}, with {points} points!")
+    print(f"Winner is: {winner}, with {points} points, score {score}!")
 
 
 @main.command()
@@ -196,10 +197,10 @@ def game_24() -> None:
 
 
 @main.command()
-def game_negative_ace() -> None:
-    engine = NegativeAceGamePlayEngine()
+def game_ace_one() -> None:
+    engine = AceOneGamePlayEngine()
     bot1 = RandBot(12112121)
-    bot2 = RandBot(464566)
+    bot2 = RdeepBot(num_samples=16, depth=4, rand=random.Random(464566))
     for i in range(1000):
         winner_id, game_points, score = engine.play_game(bot1, bot2, random.Random(i))
         print(f"Game ended. Winner is {winner_id} with {game_points} points, score {score}")
