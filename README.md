@@ -10,11 +10,11 @@ To use the platform, your **python version must be at least 3.10**, we suggest i
 If you just want to install and use the schnapsen python package (probably for those who take the Intelligent Systems course), but nothing more, you can run:
 
 ```sh
-pip install schnapsen-dev
+pip install schnapsen
 ```
 
-You can also specify the version, e.g., `pip install schnapsen-dev==0.0.5`.
-[The list of versions can be found here](https://pypi.org/project/schnapsen-dev/#history).
+You can also specify the version, e.g., `pip install schnapsen==0.0.5`.
+[The list of versions can be found here](https://pypi.org/project/schnapsen/#history).
 
 If you want to modify the schnapsen code, add your own bot etc. (probably for those who take the Project Intelligent Systems course), then install this package by running:
 
