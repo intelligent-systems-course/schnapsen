@@ -17,6 +17,9 @@ class Bot(ABC):
 
     Besides the get_move method, it is also possible to override notify_trump_exchange and notify_game_end to get notified when these events happen.
     """
+    def __init__(self, name: str = "bot") -> None:
+        self.name = name
+
     @abstractmethod
     def get_move(self, state: 'PlayerPerspective', leader_move: Optional['Move']) -> 'Move':
         """

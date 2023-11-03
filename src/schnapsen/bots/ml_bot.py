@@ -13,12 +13,13 @@ class MLPlayingBot(Bot):
     This class loads a trained ML model and uses it to play
     """
 
-    def __init__(self, model_location: Optional[pathlib.Path]) -> None:
+    def __init__(self, model_location: Optional[pathlib.Path], name: str = "mlplayingbot") -> None:
         """
         Create a new MLPlayingBot which uses the model stored in the mofel_location.
 
         :param model_location: The file containing the model.
         """
+        super().__init__(name)
         if model_location is None:
             model_location = pathlib.Path("ML_models/") / "test_model"
         assert model_location.exists(), f"Model could not be found at: {model_location}"

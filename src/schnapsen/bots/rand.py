@@ -4,7 +4,8 @@ from schnapsen.game import Bot, PlayerPerspective, Move
 
 
 class RandBot(Bot):
-    def __init__(self, seed: int) -> None:
+    def __init__(self, seed: int, name: str = "randbot") -> None:
+        super().__init__(name)
         self.seed = seed
         self.rng = random.Random(self.seed)
 

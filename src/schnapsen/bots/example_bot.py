@@ -8,6 +8,8 @@ class ExampleBot(Bot):
     This Bot is here to serve as an example of the different methods the PlayerPerspective provides.
     In the end it is just playing the first valid move.
     """
+    def __init__(self, seed: int, name: str = "examplebot") -> None:
+        super().__init__(name)
 
     def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         # You can get information on the state from your perspective
