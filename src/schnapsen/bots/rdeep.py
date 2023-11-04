@@ -4,19 +4,20 @@ from random import Random
 
 
 class RdeepBot(Bot):
-    def __init__(self, num_samples: int, depth: int, rand: Random) -> None:
+    def __init__(self, num_samples: int, depth: int, seed: int) -> None:
         """
         Create a new rdeep bot.
 
         :param num_samples: how many samples to take per move
         :param depth: how deep to sample
-        :param rand: the source of randomness for this Bot
+        :param rand: the seed number for the source of randomness for this Bot
         """
         assert num_samples >= 1, f"we cannot work with less than one sample, got {num_samples}"
         assert depth >= 1, f"it does not make sense to use a dept <1. got {depth}"
         self.__num_samples = num_samples
         self.__depth = depth
-        self.__rand = rand
+        self.seed = seed
+        self.__rand = Random(self.seed)
 
     def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         # get the list of valid moves, and shuffle it such

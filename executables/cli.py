@@ -95,7 +95,7 @@ def rdeep_game() -> None:
     bot1: Bot
     bot2: Bot
     engine = SchnapsenGamePlayEngine()
-    rdeep = bot1 = RdeepBot(num_samples=16, depth=4, rand=random.Random(4564654644))
+    rdeep = bot1 = RdeepBot(num_samples=16, depth=4, seed=4564654644)
     bot2 = RandBot(464566)
     wins = 0
     amount = 100
@@ -123,9 +123,9 @@ def create_replay_memory_dataset() -> None:
     replay_memory_location = pathlib.Path(replay_memory_dir) / replay_memory_filename
 
     bot_1_behaviour: Bot = RandBot(5234243)
-    # bot_1_behaviour: Bot = RdeepBot(num_samples=4, depth=4, rand=random.Random(4564654644))
+    # bot_1_behaviour: Bot = RdeepBot(num_samples=4, depth=4, seed=4564654644)
     bot_2_behaviour: Bot = RandBot(54354)
-    # bot_2_behaviour: Bot = RdeepBot(num_samples=4, depth=4, rand=random.Random(68438))
+    # bot_2_behaviour: Bot = RdeepBot(num_samples=4, depth=4, seed=68438)
     delete_existing_older_dataset = False
 
     # check if needed to delete any older versions of the dataset
@@ -200,7 +200,7 @@ def game_24() -> None:
 def game_ace_one() -> None:
     engine = AceOneGamePlayEngine()
     bot1 = RandBot(12112121)
-    bot2 = RdeepBot(num_samples=16, depth=4, rand=random.Random(464566))
+    bot2 = RdeepBot(num_samples=16, depth=4, seed=464566)
     for i in range(1000):
         winner_id, game_points, score = engine.play_game(bot1, bot2, random.Random(i))
         print(f"Game ended. Winner is {winner_id} with {game_points} points, score {score}")
