@@ -13,7 +13,7 @@ class MLPlayingBot(Bot):
     This class loads a trained ML model and uses it to play
     """
 
-    def __init__(self, model_location: Optional[pathlib.Path], name: str = "mlplayingbot") -> None:
+    def __init__(self, model_location: Optional[pathlib.Path], name: Optional[str] = None) -> None:
         """
         Create a new MLPlayingBot which uses the model stored in the mofel_location.
 

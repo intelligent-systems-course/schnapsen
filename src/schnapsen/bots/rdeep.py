@@ -6,7 +6,7 @@ from .rand import RandBot
 
 
 class RdeepBot(Bot):
-    def __init__(self, num_samples: int, depth: int, rand: random.Random, name: str = "rdeepbot") -> None:
+    def __init__(self, num_samples: int, depth: int, rand: random.Random, name: Optional[str] = None) -> None:
         """
         Create a new rdeep bot.
 

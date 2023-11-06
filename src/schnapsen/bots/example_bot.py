@@ -9,7 +9,7 @@ class ExampleBot(Bot):
     This Bot is here to serve as an example of the different methods the PlayerPerspective provides.
     In the end it is just playing the first valid move.
     """
-    def __init__(self, rand: random.Random, name: str = "examplebot") -> None:
+    def __init__(self, rand: random.Random, name: Optional[str] = None) -> None:
         super().__init__(name)
         self.rng = rand
 

@@ -17,8 +17,13 @@ class Bot(ABC):
 
     Besides the get_move method, it is also possible to override notify_trump_exchange and notify_game_end to get notified when these events happen.
     """
-    def __init__(self, name: str = "bot") -> None:
-        self.name = name
+    def __init__(self, name: Optional[str] = None) -> None:
+        """
+        Args:
+            name: Optionally, specify a name for the bot.
+        """
+        if name:
+            self.__name = name
 
     @abstractmethod
     def get_move(self, state: 'PlayerPerspective', leader_move: Optional['Move']) -> 'Move':
@@ -41,6 +46,14 @@ class Bot(ABC):
         :param won: Did this bot win the game?
         :param state: The final state of the game.
         """
+    
+    def __str__(self) -> str:
+        """
+        A string representation of the Bot. If the bot was constructed with a name, it will be that name.
+        Otherwise it will be the class name and the memory address of the bot.
+        """
+        return self.__name if self.__name else super().__str__()
+
 
 
 class Move(ABC):

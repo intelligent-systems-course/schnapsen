@@ -4,7 +4,7 @@ from schnapsen.game import Bot, Move, PlayerPerspective
 
 
 class AlphaBetaBot(Bot):
-    def __init__(self, name: str = "alphabetabot") -> None:
+    def __init__(self, name: Optional[str] = None) -> None:
         super().__init__(name)
 
     def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:

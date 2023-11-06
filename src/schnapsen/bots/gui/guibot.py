@@ -121,8 +121,9 @@ class SchnapsenServer:
 
 
 class GUIBot(Bot):
-    def __init__(self, server: SchnapsenServer, name: str = "guibot") -> None:
+    def __init__(self, server: SchnapsenServer, name: str) -> None:
         super().__init__(name)
+        self.name = name
         self.server = server
 
     def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
