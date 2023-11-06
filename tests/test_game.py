@@ -400,7 +400,7 @@ class GameTest(TestCase):
 
         # TODO lgs should be tested as well
         # lgs = LeaderGameState(state=gs, engine=sgpe)
-        fgs = FollowerPerspective(state=gs, engine=sgpe, partial_trick=mv)
+        fgs = FollowerPerspective(state=gs, engine=sgpe, leader_move=mv)
         self.assertEqual(
             fgs.valid_moves(),
             [

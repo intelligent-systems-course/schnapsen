@@ -925,15 +925,15 @@ class LeaderPerspective(PlayerPerspective):
 
 
 class FollowerPerspective(PlayerPerspective):
-    def __init__(self, state: 'GameState', engine: 'GamePlayEngine', partial_trick: Optional[Move]) -> None:
+    def __init__(self, state: 'GameState', engine: 'GamePlayEngine', leader_move: Optional[Move]) -> None:
         super().__init__(state, engine)
         self.__game_state = state
         self.__engine = engine
-        self.__partial_trick = partial_trick
+        self.__leader_move = leader_move
 
     def valid_moves(self) -> list[Move]:
-        assert self.__partial_trick, "There is no partial trick for this follower, so no valid moves."
-        return list(self.__engine.move_validator.get_legal_follower_moves(self.__engine, self.__game_state, self.__partial_trick))
+        assert self.__leader_move, "There is no leader move for this follower, so no valid moves."
+        return list(self.__engine.move_validator.get_legal_follower_moves(self.__engine, self.__game_state, self.__leader_move))
 
     def get_hand(self) -> Hand:
         return self.__game_state.follower.hand.copy()
@@ -958,7 +958,7 @@ class FollowerPerspective(PlayerPerspective):
         return OrderedCardCollection(self.__game_state.leader.won_cards)
 
     def __repr__(self) -> str:
-        return f"FollowerPerspective(state={self.__game_state}, engine={self.__engine}, partial_trick={self.__partial_trick})"
+        return f"FollowerPerspective(state={self.__game_state}, engine={self.__engine}, leader_move={self.__leader_move})"
 
 
 class ExchangeFollowerPerspective(PlayerPerspective):
@@ -1140,10 +1140,10 @@ class SchnapsenTrickImplementer(TrickImplementer):
             return next_game_state
 
         # We have a PartialTrick, ask the follower for its move
-        partial_trick = cast(Union[Marriage, RegularMove], leader_move)
-        follower_move = self.get_follower_move(game_engine, game_state, partial_trick)
+        leader_move = cast(Union[Marriage, RegularMove], leader_move)
+        follower_move = self.get_follower_move(game_engine, game_state, leader_move)
 
-        trick = RegularTrick(leader_move=partial_trick, follower_move=follower_move)
+        trick = RegularTrick(leader_move=leader_move, follower_move=follower_move)
         return self._apply_regular_trick(game_engine=game_engine, game_state=game_state, trick=trick)
 
     def _apply_regular_trick(self, game_engine: 'GamePlayEngine', game_state: GameState, trick: RegularTrick) -> GameState:
@@ -1200,11 +1200,11 @@ class SchnapsenTrickImplementer(TrickImplementer):
         score = game_engine.trick_scorer.marriage(marriage_move, game_state)
         game_state.leader.score += score
 
-    def get_follower_move(self, game_engine: 'GamePlayEngine', game_state: 'GameState', partial_trick: Move) -> RegularMove:
-        follower_game_state = FollowerPerspective(game_state, game_engine, partial_trick)
+    def get_follower_move(self, game_engine: 'GamePlayEngine', game_state: 'GameState', leader_move: Move) -> RegularMove:
+        follower_game_state = FollowerPerspective(game_state, game_engine, leader_move)
 
-        follower_move = game_engine.move_requester.get_move(game_state.follower, follower_game_state, partial_trick)
-        if not game_engine.move_validator.is_legal_follower_move(game_engine, game_state, partial_trick, follower_move):
+        follower_move = game_engine.move_requester.get_move(game_state.follower, follower_game_state, leader_move)
+        if not game_engine.move_validator.is_legal_follower_move(game_engine, game_state, leader_move, follower_move):
             raise Exception(f"Follower {game_state.follower.implementation} played an illegal move")
         return cast(RegularMove, follower_move)
 
@@ -1255,13 +1255,13 @@ class MoveValidator(ABC):
         return move in self.get_legal_leader_moves(game_engine, game_state)
 
     @abstractmethod
-    def get_legal_follower_moves(self, game_engine: 'GamePlayEngine', game_state: GameState, partial_trick: Move) -> Iterable[Move]:
+    def get_legal_follower_moves(self, game_engine: 'GamePlayEngine', game_state: GameState, leader_move: Move) -> Iterable[Move]:
         """
         Get all legal moves for the current follower of the game.
 
         :param game_engine: The engine which is playing the game
         :param game_state: The current state of the game
-        :param partial_trick: The move played by the leader of the trick.
+        :param leader_move: The move played by the leader of the trick.
 
         :returns: An iterable containing the current legal moves.
         """
@@ -1274,7 +1274,7 @@ class MoveValidator(ABC):
         """
         assert move, 'The move played by the follower cannot be None'
         assert leader_move, 'The move played by the leader cannot be None'
-        return move in self.get_legal_follower_moves(game_engine=game_engine, game_state=game_state, partial_trick=leader_move)
+        return move in self.get_legal_follower_moves(game_engine=game_engine, game_state=game_state, leader_move=leader_move)
 
 
 class SchnapsenMoveValidator(MoveValidator):
@@ -1310,12 +1310,12 @@ class SchnapsenMoveValidator(MoveValidator):
         regular_move = cast(RegularMove, move)
         return regular_move.card in cards_in_hand
 
-    def get_legal_follower_moves(self, game_engine: 'GamePlayEngine', game_state: GameState, partial_trick: Move) -> Iterable[Move]:
+    def get_legal_follower_moves(self, game_engine: 'GamePlayEngine', game_state: GameState, leader_move: Move) -> Iterable[Move]:
         hand = game_state.follower.hand
-        if partial_trick.is_marriage():
-            leader_card = cast(Marriage, partial_trick).queen_card
+        if leader_move.is_marriage():
+            leader_card = cast(Marriage, leader_move).queen_card
         else:
-            leader_card = cast(RegularMove, partial_trick).card
+            leader_card = cast(RegularMove, leader_move).card
         if game_state.game_phase() is GamePhase.ONE:
             # no need to follow, any card in the hand is a legal move
             return RegularMove.from_cards(hand.get_cards())
