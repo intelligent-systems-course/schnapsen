@@ -52,7 +52,7 @@ class Bot(ABC):
         A string representation of the Bot. If the bot was constructed with a name, it will be that name.
         Otherwise it will be the class name and the memory address of the bot.
         """
-        return self.__name if self.__name else super().__str__()
+        return self.__name if hasattr(self, '_Bot__name') else super().__str__()
 
 
 
