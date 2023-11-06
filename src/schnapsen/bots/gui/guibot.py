@@ -8,7 +8,7 @@ from flask import Flask, abort, render_template, request
 
 from schnapsen.deck import Card, Rank, Suit
 from schnapsen.game import (Bot, GamePhase, Marriage, Move, PlayerPerspective,
-                            RegularMove, RegularTrick, Trump_Exchange)
+                            RegularMove, RegularTrick, TrumpExchange)
 
 
 @dataclass
@@ -168,7 +168,7 @@ class _Old_GUI_Compatibility:
             return RegularMove(_Old_GUI_Compatibility.old_engine_order[old_move[0]])
         if not old_move[0]:
             assert old_move[1] is not None, "In the old endinge, all moves with the first part not set must be Trump exchanges"
-            return Trump_Exchange(_Old_GUI_Compatibility.old_engine_order[old_move[1]])
+            return TrumpExchange(_Old_GUI_Compatibility.old_engine_order[old_move[1]])
         assert old_move[0] and old_move[1]
         if _Old_GUI_Compatibility.old_engine_order[old_move[0]].rank == Rank.KING:
             # swap
@@ -317,7 +317,7 @@ class _Old_GUI_Compatibility:
         if not game_over:
             for move in state.valid_moves():
                 if move.is_trump_exchange():
-                    trump_move = cast(Trump_Exchange, move)
+                    trump_move = cast(TrumpExchange, move)
                     moves.append((None, _Old_GUI_Compatibility.old_engine_order.index(trump_move.jack)))
                 elif move.is_marriage():
                     marriage_move = cast(Marriage, move)

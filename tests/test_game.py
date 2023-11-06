@@ -2,7 +2,7 @@ import random
 from unittest import TestCase
 from schnapsen.deck import Card, Rank, Suit
 from schnapsen.game import (
-    Trump_Exchange,
+    TrumpExchange,
     Marriage,
     Hand,
     Talon,
@@ -28,7 +28,7 @@ class MoveTest(TestCase):
 
     def test_trump_exchange_creation(self) -> None:
         for jack in self.jacks:
-            exchange = Trump_Exchange(jack=jack)
+            exchange = TrumpExchange(jack=jack)
             self.assertTrue(exchange.is_trump_exchange())
             self.assertFalse(exchange.is_marriage())
             self.assertEqual(len(exchange.cards), 1)
@@ -38,7 +38,7 @@ class MoveTest(TestCase):
         for card in Card:
             if card not in self.jacks:
                 with self.assertRaises(AssertionError):
-                    Trump_Exchange(jack=card)
+                    TrumpExchange(jack=card)
 
     def test_marriage_creation_fails(self) -> None:
         for card1 in Card:

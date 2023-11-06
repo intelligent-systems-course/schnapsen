@@ -32,7 +32,7 @@ class Bot(ABC):
         If this Bot is leading, the leader_move will be None. If this both is following, the leader_move will contain the move the opponent just played
         """
 
-    def notify_trump_exchange(self, move: 'Trump_Exchange') -> None:
+    def notify_trump_exchange(self, move: 'TrumpExchange') -> None:
         """
         Overide this method to get notified about trump exchanges. Note that this only notifies about the other bots exchanges.
 
@@ -95,9 +95,9 @@ class Move(ABC):
         """
         return False
 
-    def as_trump_exchange(self) -> 'Trump_Exchange':
-        """Returns this same move but as a Trump_Exchange."""
-        raise AssertionError("as_marriage called on a Move which is not a Trump_Exchange. Check with is_trump_exchange first.")
+    def as_trump_exchange(self) -> 'TrumpExchange':
+        """Returns this same move but as a TrumpExchange."""
+        raise AssertionError("as_marriage called on a Move which is not a TrumpExchange. Check with is_trump_exchange first.")
 
     def __getattribute__(self, __name: str) -> Any:
         if __name == "cards":
@@ -113,7 +113,7 @@ class Move(ABC):
 
 
 @dataclass(frozen=True)
-class Trump_Exchange(Move):
+class TrumpExchange(Move):
     """A move that implements the exchange of the trump card for a Jack of the same suit."""
 
     jack: Card
@@ -125,14 +125,14 @@ class Trump_Exchange(Move):
     def is_trump_exchange(self) -> bool:
         return True
 
-    def as_trump_exchange(self) -> 'Trump_Exchange':
+    def as_trump_exchange(self) -> 'TrumpExchange':
         return self
 
     def _cards(self) -> list[Card]:
         return [self.jack]
 
     def __repr__(self) -> str:
-        return f"Trump_Exchange(jack={self.jack})"
+        return f"TrumpExchange(jack={self.jack})"
 
 
 @dataclass(frozen=True)
@@ -395,7 +395,7 @@ class ExchangeTrick(Trick):
     A Trick in which the player does a trump exchange.
     """
 
-    exchange: Trump_Exchange
+    exchange: TrumpExchange
     """A trump exchange by the leading player"""
 
     trump_card: Card
@@ -883,7 +883,7 @@ class _DummyBot(Bot):
     def notify_game_end(self, won: bool, state: PlayerPerspective) -> None:
         raise Exception("The GameState from make_assumption removes the real bots from the Game. If you want to continue the game, provide new Bots. See copy_with_other_bots in the GameState class.")
 
-    def notify_trump_exchange(self, move: Trump_Exchange) -> None:
+    def notify_trump_exchange(self, move: TrumpExchange) -> None:
         raise Exception("The GameState from make_assumption removes the real bots from the Game. If you want to continue the game, provide new Bots. See copy_with_other_bots in the GameState class.")
 
 
@@ -1130,7 +1130,7 @@ class SchnapsenTrickImplementer(TrickImplementer):
                                           leader_move: Move) -> GameState:
         if leader_move.is_trump_exchange():
             next_game_state = game_state.copy_for_next()
-            exchange = cast(Trump_Exchange, leader_move)
+            exchange = cast(TrumpExchange, leader_move)
             old_trump_card = game_state.talon.trump_card()
             assert old_trump_card
             self.play_trump_exchange(next_game_state, exchange)
@@ -1186,7 +1186,7 @@ class SchnapsenTrickImplementer(TrickImplementer):
 
         return leader_move
 
-    def play_trump_exchange(self, game_state: GameState, trump_exchange: Trump_Exchange) -> None:
+    def play_trump_exchange(self, game_state: GameState, trump_exchange: TrumpExchange) -> None:
         assert trump_exchange.jack.suit is game_state.trump_suit, \
             f"A trump exchange can only be done with a Jack of the same suit as the current trump. Got a {trump_exchange.jack} while the  Trump card is a {game_state.trump_suit}"
         # apply the changes in the gamestate
@@ -1287,7 +1287,7 @@ class SchnapsenMoveValidator(MoveValidator):
         if not game_state.talon.is_empty():
             trump_jack = Card.get_card(Rank.JACK, game_state.trump_suit)
             if trump_jack in cards_in_hand:
-                valid_moves.append(Trump_Exchange(trump_jack))
+                valid_moves.append(TrumpExchange(trump_jack))
         # mariages
         for card in cards_in_hand.filter_rank(Rank.QUEEN):
             king_card = Card.get_card(Rank.KING, card.suit)
@@ -1304,7 +1304,7 @@ class SchnapsenMoveValidator(MoveValidator):
         if move.is_trump_exchange():
             if game_state.talon.is_empty():
                 return False
-            trump_move: Trump_Exchange = cast(Trump_Exchange, move)
+            trump_move: TrumpExchange = cast(TrumpExchange, move)
             return trump_move.jack in cards_in_hand
         # it has to be a regular move
         regular_move = cast(RegularMove, move)

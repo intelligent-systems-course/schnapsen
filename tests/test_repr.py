@@ -2,7 +2,7 @@ import random
 from unittest import TestCase
 from schnapsen.deck import Card, Suit, OrderedCardCollection
 from schnapsen.game import (
-    Trump_Exchange,
+    TrumpExchange,
     RegularMove,
     RegularTrick,
     Marriage,
@@ -114,9 +114,9 @@ class ReprTest(TestCase):
             "GameState(leader=BotState(implementation=RandBot(seed=42), hand=Hand(cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS], max_size=5), score=Score(direct_points=4, pending_points=2), won_cards=[Card.ACE_DIAMONDS]), follower=BotState(implementation=RandBot(seed=43), hand=Hand(cards=[Card.ACE_SPADES, Card.FIVE_HEARTS, Card.NINE_CLUBS, Card.SEVEN_SPADES], max_size=5), score=Score(direct_points=2, pending_points=4), won_cards=[Card.NINE_DIAMONDS]), talon=Talon(cards=[Card.ACE_HEARTS], trump_suit=HEARTS), previous=None)",
         )
 
-        te = Trump_Exchange(jack=Card.JACK_SPADES)
+        te = TrumpExchange(jack=Card.JACK_SPADES)
         output_te = str(te)
-        self.assertEqual(output_te, "Trump_Exchange(jack=Card.JACK_SPADES)")
+        self.assertEqual(output_te, "TrumpExchange(jack=Card.JACK_SPADES)")
 
         mv = RegularMove(Card.ACE_CLUBS)
         output_mv = str(mv)
