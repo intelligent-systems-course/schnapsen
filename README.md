@@ -57,6 +57,7 @@ By default, you are playing against RandBot. You can also play against other bot
 ```sh
 python executables/server.py --help
 ```
+
 for more details.
 
 ## Running the schnapsen python package on Google Colab
