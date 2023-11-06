@@ -16,4 +16,3 @@ class RandBot(Bot):
         moves: list[Move] = state.valid_moves()
         move = self.rng.choice(moves)
         return move
-
