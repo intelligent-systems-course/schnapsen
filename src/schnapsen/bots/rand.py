@@ -14,6 +14,6 @@ class RandBot(Bot):
         leader_move: Optional[Move],
     ) -> Move:
         moves: list[Move] = state.valid_moves()
-        move = self.rng.choice(list(moves))
+        move = self.rng.choice(moves)
         return move
 
