@@ -17,5 +17,3 @@ class RandBot(Bot):
         move = self.rng.choice(list(moves))
         return move
 
-    def __repr__(self) -> str:
-        return f"RandBot(rng={self.rng})"
