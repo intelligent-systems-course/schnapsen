@@ -6,7 +6,7 @@ This is the improved platform for the schnapsen card game. To get to know the co
 [this web page](https://www.pagat.com/marriage/schnaps.html).
 
 
-To use the platform, your python version must be at least 3.9, we suggest installing conda an using an environment.
+To use the platform, your python version must be at least **3.10**, we suggest installing conda an using an environment.
 
 To get started, install the schnapsen package and its dependencies in editable mode by running:
 
@@ -101,13 +101,13 @@ Most of the time, when you read Github python repo READMEs, they won't tell you 
 
 1. **Be super specific with your python binary.**
 
-   Don't just run `python bar` but do more like `python3.9 bar`. If you just run `python bar`, it's hard to know which python binary file your system is running.
+   Don't just run `python bar` but do more like `python3.10 bar`. If you just run `python bar`, it's hard to know which python binary file your system is running.
 
 2. **Be super specific with the modules (e.g., pip, pytest).**
 
-   Don't just run `pip install foo` but do more like `python3.9 -m pip install foo`. Again, if you just run `pip install foo`, we don't know exactly which `pip` your system will run. `python3.9 -m pip install foo` specifies that you want your `python3.9` to run the module (i.e., `-m`) `pip` to do something. The same goes for `python3.9 -m pytest ./tests`, instead of `pytest ./tests`.
+   Don't just run `pip install foo` but do more like `python3.10 -m pip install foo`. Again, if you just run `pip install foo`, we don't know exactly which `pip` your system will run. `python3.10 -m pip install foo` specifies that you want your `python3.10` to run the module (i.e., `-m`) `pip` to do something. The same goes for `python3.10 -m pytest ./tests`, instead of `pytest ./tests`.
 
-Things can be messy if you have multiple python3.9 versions (e.g., `python3.9.1`, `python3.9.10`, etc.). Things can get even more messy when your python binary can't be run as `python3.9` but more like `py3.9` or something. Good luck!
+Things can be messy if you have multiple python3.10 versions (e.g., `python3.10.1`, `python3.10.10`, etc.). Things can get even more messy when your python binary can't be run as `python3.10` but more like `py3.10` or something. Good luck!
 -->
 
 ## Documentation ##
