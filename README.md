@@ -59,6 +59,16 @@ python executables/server.py --help
 ```
 for more details.
 
+## Running the schnapsen python package on Google Colab
+
+Although the proper way of cloning & installing repos and coding them is to do on your
+local machine, we have also provided this Jupyter Notebook for those who can't.
+Everything you run here is running on a Google server, not your machine.
+So the changes you make here will not stay forever.
+
+[Click here to open the Colab file](./running_schnapsen.ipynb) and click on the button
+on top "Open in Colab" to run this Jupyter Notebook on a Google server.
+
 ## Implementing more bots
 
 You will find bot examples in the [`src/schnapsen/bots`](./src/schnapsen/bots) folder.
