@@ -97,13 +97,14 @@ __all__ = [&#34;SchnapsenServer&#34;]</code></pre>
         self.__process.start()
 
     def make_gui_bot(self, name: str) -&gt; Bot:
-        bot = GUIBot(name, self)
+        bot = GUIBot(self, name)
         self.__bots[name] = _StateExchange(bot=bot, browser_game_started=False, is_state_ready=Event(), is_move_ready=Event(), state=None, leader_move=None, browser_move=None)
         return bot
 
-    def _post_final_state(self, botname: str, state: PlayerPerspective) -&gt; None:
+    def _post_final_state(self, botname: str, won: bool, state: PlayerPerspective) -&gt; None:
         state_exchange = self.__bots[botname]
         state_exchange.state = state
+        state_exchange.won = won
         state_exchange.is_game_over = True
         state_exchange.is_state_ready.set()
 
@@ -137,7 +138,7 @@ __all__ = [&#34;SchnapsenServer&#34;]</code></pre>
         state = state_exchange.state
         assert state  # cannot be None, because we waited for it.
         leader_move = state_exchange.leader_move
-        json = _Old_GUI_Compatibility.player_game_state_to_json(state=state, leader_move=leader_move, game_over=state_exchange.is_game_over)
+        json = _Old_GUI_Compatibility.player_game_state_to_json(state=state, leader_move=leader_move, game_over=state_exchange.is_game_over, won=state_exchange.won)
         return json
 
     def __setup_routes(self, app: Flask) -&gt; None:
@@ -169,7 +170,7 @@ __all__ = [&#34;SchnapsenServer&#34;]</code></pre>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def make_gui_bot(self, name: str) -&gt; Bot:
-    bot = GUIBot(name, self)
+    bot = GUIBot(self, name)
     self.__bots[name] = _StateExchange(bot=bot, browser_game_started=False, is_state_ready=Event(), is_move_ready=Event(), state=None, leader_move=None, browser_move=None)
     return bot</code></pre>
 </details>

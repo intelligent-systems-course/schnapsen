@@ -1,3 +1,4 @@
+import random
 from unittest import TestCase
 from schnapsen.deck import Card, Rank, Suit
 from schnapsen.game import (
@@ -244,7 +245,7 @@ class ScoreTest(TestCase):
 class GameTest(TestCase):
 
     def test_BotState(self) -> None:
-        bot = RandBot(seed=42)
+        bot = RandBot(random.Random(42))
         hand = Hand(
             cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS]
         )
@@ -263,7 +264,7 @@ class GameTest(TestCase):
         self.assertEqual(bar.won_cards, won_cards)
 
     def test_GameState(self) -> None:
-        bot0 = RandBot(seed=42)
+        bot0 = RandBot(random.Random(42))
         hand0 = Hand(
             cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS]
         )
@@ -276,7 +277,7 @@ class GameTest(TestCase):
             won_cards=won_cards0,
         )
 
-        bot1 = RandBot(seed=43)
+        bot1 = RandBot(random.Random(43))
         hand1 = Hand(
             cards=[
                 Card.ACE_SPADES,
@@ -301,7 +302,7 @@ class GameTest(TestCase):
         self.assertFalse(gs.are_all_cards_played())
 
     def test_LeaderGameState(self) -> None:
-        bot0 = RandBot(seed=42)
+        bot0 = RandBot(random.Random(42))
         hand0 = Hand(
             cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS]
         )
@@ -314,7 +315,7 @@ class GameTest(TestCase):
             won_cards=won_cards0,
         )
 
-        bot1 = RandBot(seed=43)
+        bot1 = RandBot(random.Random(43))
         hand1 = Hand(
             cards=[
                 Card.ACE_SPADES,
@@ -358,7 +359,7 @@ class GameTest(TestCase):
         )
 
     def test_FollowerGameState(self) -> None:
-        bot0 = RandBot(seed=42)
+        bot0 = RandBot(random.Random(42))
         hand0 = Hand(
             cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS]
         )
@@ -371,7 +372,7 @@ class GameTest(TestCase):
             won_cards=won_cards0,
         )
 
-        bot1 = RandBot(seed=43)
+        bot1 = RandBot(random.Random(43))
         hand1 = Hand(
             cards=[
                 Card.ACE_SPADES,

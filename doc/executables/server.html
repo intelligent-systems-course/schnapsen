@@ -43,7 +43,7 @@ def main(bot: str) -&gt; None:
     bot1: Bot
     with SchnapsenServer() as s:
         if bot.lower() == &#34;randbot&#34;:
-            bot1 = RandBot(12)
+            bot1 = RandBot(random.Random(12))
         elif bot.lower() in [&#34;alphabeta&#34;, &#34;alphabetabot&#34;]:
             bot1 = AlphaBetaBot()
         elif bot.lower() == &#34;rdeepbot&#34;:

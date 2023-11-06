@@ -28,18 +28,22 @@
 </summary>
 <pre><code class="python">from typing import Optional
 from schnapsen.game import Bot, PlayerPerspective, Move, GameState, GamePlayEngine
-from random import Random
+import random
+
+from .rand import RandBot
 
 
 class RdeepBot(Bot):
-    def __init__(self, num_samples: int, depth: int, rand: Random) -&gt; None:
+    def __init__(self, num_samples: int, depth: int, rand: random.Random, name: str = &#34;rdeepbot&#34;) -&gt; None:
         &#34;&#34;&#34;
         Create a new rdeep bot.
 
         :param num_samples: how many samples to take per move
         :param depth: how deep to sample
         :param rand: the source of randomness for this Bot
+        :param name: the name of this Bot
         &#34;&#34;&#34;
+        super().__init__(name)
         assert num_samples &gt;= 1, f&#34;we cannot work with less than one sample, got {num_samples}&#34;
         assert depth &gt;= 1, f&#34;it does not make sense to use a dept &lt;1. got {depth}&#34;
         self.__num_samples = num_samples
@@ -104,15 +108,6 @@ class RdeepBot(Bot):
         return heuristic
 
 
-class RandBot(Bot):
-
-    def __init__(self, rand: Random) -&gt; None:
-        self.rand = rand
-
-    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -&gt; Move:
-        return self.rand.choice(state.valid_moves())
-
-
 class FirstFixedMoveThenBaseBot(Bot):
     def __init__(self, base_bot: Bot, first_move: Move) -&gt; None:
         self.first_move = first_move
@@ -174,44 +169,9 @@ class FirstFixedMoveThenBaseBot(Bot):
 </li>
 </ul>
 </dd>
-<dt id="schnapsen.bots.rdeep.RandBot"><code class="flex name class">
-<span>class <span class="ident">RandBot</span></span>
-<span>(</span><span>rand: random.Random)</span>
-</code></dt>
-<dd>
-<div class="desc"><p>The Bot baseclass. Derive your own bots from this class and implement the get_move method to use it in games.</p>
-<p>Besides the get_move method, it is also possible to override notify_trump_exchange and notify_game_end to get notified when these events happen.</p></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">class RandBot(Bot):
-
-    def __init__(self, rand: Random) -&gt; None:
-        self.rand = rand
-
-    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -&gt; Move:
-        return self.rand.choice(state.valid_moves())</code></pre>
-</details>
-<h3>Ancestors</h3>
-<ul class="hlist">
-<li><a title="schnapsen.game.Bot" href="../game.html#schnapsen.game.Bot">Bot</a></li>
-<li>abc.ABC</li>
-</ul>
-<h3>Inherited members</h3>
-<ul class="hlist">
-<li><code><b><a title="schnapsen.game.Bot" href="../game.html#schnapsen.game.Bot">Bot</a></b></code>:
-<ul class="hlist">
-<li><code><a title="schnapsen.game.Bot.get_move" href="../game.html#schnapsen.game.Bot.get_move">get_move</a></code></li>
-<li><code><a title="schnapsen.game.Bot.notify_game_end" href="../game.html#schnapsen.game.Bot.notify_game_end">notify_game_end</a></code></li>
-<li><code><a title="schnapsen.game.Bot.notify_trump_exchange" href="../game.html#schnapsen.game.Bot.notify_trump_exchange">notify_trump_exchange</a></code></li>
-</ul>
-</li>
-</ul>
-</dd>
 <dt id="schnapsen.bots.rdeep.RdeepBot"><code class="flex name class">
 <span>class <span class="ident">RdeepBot</span></span>
-<span>(</span><span>num_samples: int, depth: int, rand: random.Random)</span>
+<span>(</span><span>num_samples: int, depth: int, rand: random.Random, name: str = 'rdeepbot')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>The Bot baseclass. Derive your own bots from this class and implement the get_move method to use it in games.</p>
@@ -219,20 +179,23 @@ class FirstFixedMoveThenBaseBot(Bot):
 <p>Create a new rdeep bot.</p>
 <p>:param num_samples: how many samples to take per move
 :param depth: how deep to sample
-:param rand: the source of randomness for this Bot</p></div>
+:param rand: the source of randomness for this Bot
+:param name: the name of this Bot</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class RdeepBot(Bot):
-    def __init__(self, num_samples: int, depth: int, rand: Random) -&gt; None:
+    def __init__(self, num_samples: int, depth: int, rand: random.Random, name: str = &#34;rdeepbot&#34;) -&gt; None:
         &#34;&#34;&#34;
         Create a new rdeep bot.
 
         :param num_samples: how many samples to take per move
         :param depth: how deep to sample
         :param rand: the source of randomness for this Bot
+        :param name: the name of this Bot
         &#34;&#34;&#34;
+        super().__init__(name)
         assert num_samples &gt;= 1, f&#34;we cannot work with less than one sample, got {num_samples}&#34;
         assert depth &gt;= 1, f&#34;it does not make sense to use a dept &lt;1. got {depth}&#34;
         self.__num_samples = num_samples
@@ -330,9 +293,6 @@ class FirstFixedMoveThenBaseBot(Bot):
 <ul>
 <li>
 <h4><code><a title="schnapsen.bots.rdeep.FirstFixedMoveThenBaseBot" href="#schnapsen.bots.rdeep.FirstFixedMoveThenBaseBot">FirstFixedMoveThenBaseBot</a></code></h4>
-</li>
-<li>
-<h4><code><a title="schnapsen.bots.rdeep.RandBot" href="#schnapsen.bots.rdeep.RandBot">RandBot</a></code></h4>
 </li>
 <li>
 <h4><code><a title="schnapsen.bots.rdeep.RdeepBot" href="#schnapsen.bots.rdeep.RdeepBot">RdeepBot</a></code></h4>

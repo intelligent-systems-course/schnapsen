@@ -39,19 +39,6 @@ from schnapsen.game import (Bot, GamePhase, Marriage, Move, PlayerPerspective,
                             RegularMove, RegularTrick, Trump_Exchange)
 
 
-class GUIBot(Bot):
-
-    def __init__(self, name: str, server: &#39;SchnapsenServer&#39;) -&gt; None:
-        self.name = name
-        self.server = server
-
-    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -&gt; Move:
-        return self.server._get_move(self.name, state, leader_move)
-
-    def notify_game_end(self, won: bool, state: PlayerPerspective) -&gt; None:
-        self.server._post_final_state(self.name, state)
-
-
 @dataclass
 class _StateExchange:
     bot: Bot
@@ -62,6 +49,8 @@ class _StateExchange:
     leader_move: Optional[Move]
     browser_move: Optional[Move]
     is_game_over: bool = False
+    won: bool = False
+    &#34;&#34;&#34;The value of this variable is only valid once is_game_over has been set to True.&#34;&#34;&#34;
 
 
 class SchnapsenServer:
@@ -97,13 +86,14 @@ class SchnapsenServer:
         self.__process.start()
 
     def make_gui_bot(self, name: str) -&gt; Bot:
-        bot = GUIBot(name, self)
+        bot = GUIBot(self, name)
         self.__bots[name] = _StateExchange(bot=bot, browser_game_started=False, is_state_ready=Event(), is_move_ready=Event(), state=None, leader_move=None, browser_move=None)
         return bot
 
-    def _post_final_state(self, botname: str, state: PlayerPerspective) -&gt; None:
+    def _post_final_state(self, botname: str, won: bool, state: PlayerPerspective) -&gt; None:
         state_exchange = self.__bots[botname]
         state_exchange.state = state
+        state_exchange.won = won
         state_exchange.is_game_over = True
         state_exchange.is_state_ready.set()
 
@@ -137,7 +127,7 @@ class SchnapsenServer:
         state = state_exchange.state
         assert state  # cannot be None, because we waited for it.
         leader_move = state_exchange.leader_move
-        json = _Old_GUI_Compatibility.player_game_state_to_json(state=state, leader_move=leader_move, game_over=state_exchange.is_game_over)
+        json = _Old_GUI_Compatibility.player_game_state_to_json(state=state, leader_move=leader_move, game_over=state_exchange.is_game_over, won=state_exchange.won)
         return json
 
     def __setup_routes(self, app: Flask) -&gt; None:
@@ -156,6 +146,18 @@ class SchnapsenServer:
 
         self.__bots[botname].browser_game_started = True
         return render_template(&#34;index_interactive.html&#34;, botname=botname)
+
+
+class GUIBot(Bot):
+    def __init__(self, server: SchnapsenServer, name: str = &#34;guibot&#34;) -&gt; None:
+        super().__init__(name)
+        self.server = server
+
+    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -&gt; Move:
+        return self.server._get_move(self.name, state, leader_move)
+
+    def notify_game_end(self, won: bool, state: PlayerPerspective) -&gt; None:
+        self.server._post_final_state(self.name, won, state)
 
 
 class _Old_GUI_Compatibility:
@@ -202,7 +204,7 @@ class _Old_GUI_Compatibility:
         return Marriage(queen_card=_Old_GUI_Compatibility.old_engine_order[old_move[0]], king_card=_Old_GUI_Compatibility.old_engine_order[old_move[1]])
 
     @staticmethod
-    def player_game_state_to_json(state: PlayerPerspective, leader_move: Optional[Move], game_over: bool) -&gt; str:
+    def player_game_state_to_json(state: PlayerPerspective, leader_move: Optional[Move], game_over: bool, won: bool) -&gt; str:
 
         # Deck.convert_to_json
         # return {&#34;card_state&#34;:self.__card_state, &#34;p1_perspective&#34;:self.__p1_perspective,
@@ -225,7 +227,14 @@ class _Old_GUI_Compatibility:
         opponent_known_cards = state.get_known_cards_of_opponent_hand()
 
         partial_move_cards = leader_move.cards if leader_move else []
-        partial_move_down = leader_move.as_regular_move().card if leader_move else None
+        if leader_move:
+            if leader_move.is_regular_move():
+                partial_move_down = leader_move.as_regular_move().card
+            else:
+                assert leader_move.is_marriage()
+                partial_move_down = leader_move.as_marriage().underlying_regular_move().card
+        else:
+            partial_move_down = None
 
         card_state: list[str] = [&#34;None&#34;] * 20
         p1_perspective: list[str] = [&#34;None&#34;] * 20
@@ -287,7 +296,10 @@ class _Old_GUI_Compatibility:
             else:
                 previous_regular_trick = cast(RegularTrick, previous_trick)
                 # we only care about the cards which will go, not marriage
-                leadercard = previous_regular_trick.leader_move.as_regular_move().card
+                if previous_regular_trick.leader_move.is_regular_move():
+                    leadercard = previous_regular_trick.leader_move.as_regular_move().card
+                elif previous_regular_trick.leader_move.is_marriage():
+                    leadercard = previous_regular_trick.leader_move.as_marriage().queen_card
                 followercard = previous_regular_trick.follower_move.card
 
                 old_shape_previous_trick[0] = _Old_GUI_Compatibility.old_engine_order.index(leadercard)
@@ -354,7 +366,7 @@ class _Old_GUI_Compatibility:
 
         # TODO We removed the revoked indication. There is no comparable thing on the new platform.
 
-        old_state = {&#34;deck&#34;: deck, &#34;moves&#34;: moves, &#34;finished&#34;: finished, &#34;phase&#34;: phase,
+        old_state = {&#34;deck&#34;: deck, &#34;moves&#34;: moves, &#34;finished&#34;: finished, &#34;won&#34;: won, &#34;phase&#34;: phase,
                      &#34;leads_turn&#34;: leads_turn, &#34;player1s_turn&#34;: player1s_turn, &#34;p1_points&#34;: p1_points, &#34;p2_points&#34;: p2_points,
                      &#34;p1_pending_points&#34;: p1_pending, &#34;p2_pending_points&#34;: p2_pending}
 
@@ -372,7 +384,7 @@ class _Old_GUI_Compatibility:
 <dl>
 <dt id="schnapsen.bots.gui.guibot.GUIBot"><code class="flex name class">
 <span>class <span class="ident">GUIBot</span></span>
-<span>(</span><span>name: str, server: <a title="schnapsen.bots.gui.guibot.SchnapsenServer" href="#schnapsen.bots.gui.guibot.SchnapsenServer">SchnapsenServer</a>)</span>
+<span>(</span><span>server: <a title="schnapsen.bots.gui.guibot.SchnapsenServer" href="#schnapsen.bots.gui.guibot.SchnapsenServer">SchnapsenServer</a>, name: str = 'guibot')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>The Bot baseclass. Derive your own bots from this class and implement the get_move method to use it in games.</p>
@@ -382,16 +394,15 @@ class _Old_GUI_Compatibility:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class GUIBot(Bot):
-
-    def __init__(self, name: str, server: &#39;SchnapsenServer&#39;) -&gt; None:
-        self.name = name
+    def __init__(self, server: SchnapsenServer, name: str = &#34;guibot&#34;) -&gt; None:
+        super().__init__(name)
         self.server = server
 
     def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -&gt; Move:
         return self.server._get_move(self.name, state, leader_move)
 
     def notify_game_end(self, won: bool, state: PlayerPerspective) -&gt; None:
-        self.server._post_final_state(self.name, state)</code></pre>
+        self.server._post_final_state(self.name, won, state)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -452,13 +463,14 @@ class _Old_GUI_Compatibility:
         self.__process.start()
 
     def make_gui_bot(self, name: str) -&gt; Bot:
-        bot = GUIBot(name, self)
+        bot = GUIBot(self, name)
         self.__bots[name] = _StateExchange(bot=bot, browser_game_started=False, is_state_ready=Event(), is_move_ready=Event(), state=None, leader_move=None, browser_move=None)
         return bot
 
-    def _post_final_state(self, botname: str, state: PlayerPerspective) -&gt; None:
+    def _post_final_state(self, botname: str, won: bool, state: PlayerPerspective) -&gt; None:
         state_exchange = self.__bots[botname]
         state_exchange.state = state
+        state_exchange.won = won
         state_exchange.is_game_over = True
         state_exchange.is_state_ready.set()
 
@@ -492,7 +504,7 @@ class _Old_GUI_Compatibility:
         state = state_exchange.state
         assert state  # cannot be None, because we waited for it.
         leader_move = state_exchange.leader_move
-        json = _Old_GUI_Compatibility.player_game_state_to_json(state=state, leader_move=leader_move, game_over=state_exchange.is_game_over)
+        json = _Old_GUI_Compatibility.player_game_state_to_json(state=state, leader_move=leader_move, game_over=state_exchange.is_game_over, won=state_exchange.won)
         return json
 
     def __setup_routes(self, app: Flask) -&gt; None:
@@ -524,7 +536,7 @@ class _Old_GUI_Compatibility:
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def make_gui_bot(self, name: str) -&gt; Bot:
-    bot = GUIBot(name, self)
+    bot = GUIBot(self, name)
     self.__bots[name] = _StateExchange(bot=bot, browser_game_started=False, is_state_ready=Event(), is_move_ready=Event(), state=None, leader_move=None, browser_move=None)
     return bot</code></pre>
 </details>

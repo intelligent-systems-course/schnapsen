@@ -77,42 +77,55 @@ it by from schnapsen.bots import MyBot.</p></div>
 <h2 class="section-title" id="header-functions">Functions</h2>
 <dl>
 <dt id="schnapsen.bots.train_ML_model"><code class="name flex">
-<span>def <span class="ident">train_ML_model</span></span>(<span>replay_memory_filename: str = 'test_replay_memory', replay_memories_directory: str = 'ML_replay_memories', model_name: str = 'test_model', model_dir: str = 'ML_models', overwrite: bool = True) ‑> None</span>
+<span>def <span class="ident">train_ML_model</span></span>(<span>replay_memory_location: Optional[pathlib.Path], model_location: Optional[pathlib.Path], model_class: Literal['NN', 'LR'] = 'LR') ‑> None</span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Train the ML model for the MLPlayingBot based on replay memory stored byt the MLDataBot.
+This implementation has the option to train a neural network model or a model based on linear regression.
+The model classes used in this implemntation are not necesarily optimal.</p>
+<p>:param replay_memory_location: Location of the games stored by MLDataBot, default pathlib.Path('ML_replay_memories') / 'test_replay_memory'
+:param model_location: Location where the model will be stored, default pathlib.Path("ML_models") / 'test_model'
+:param model_class: The machine learning model class to be used, either 'NN' for a neural network, or 'LR' for a linear regression.
+:param overwrite: Whether to overwrite a possibly existing model.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def train_ML_model(replay_memory_filename: str = &#39;test_replay_memory&#39;,
-                   replay_memories_directory: str = &#39;ML_replay_memories&#39;,
-                   model_name: str = &#39;test_model&#39;, model_dir: str = &#34;ML_models&#34;, overwrite: bool = True) -&gt; None:
-    # check if directory exists, and if not, then create it
-    if not os.path.exists(model_dir):
-        os.mkdir(model_dir)
+<pre><code class="python">def train_ML_model(replay_memory_location: Optional[pathlib.Path],
+                   model_location: Optional[pathlib.Path],
+                   model_class: Literal[&#34;NN&#34;, &#34;LR&#34;] = &#34;LR&#34;
+                   ) -&gt; None:
+    &#34;&#34;&#34;
+    Train the ML model for the MLPlayingBot based on replay memory stored byt the MLDataBot.
+    This implementation has the option to train a neural network model or a model based on linear regression.
+    The model classes used in this implemntation are not necesarily optimal.
 
-    # Check if model exists already
-    model_file_path = os.path.join(model_dir, model_name)
-    if os.path.exists(model_file_path):
-        if overwrite:
-            print(
-                &#34;Model with name: &#34; + model_name + &#34;, in directory: &#34; + model_dir + &#34;, exists already and will be overwritten as selected.&#34;)
-            os.remove(model_file_path)
-        else:
-            raise ValueError(
-                &#34;Model with name: &#34; + model_name + &#34;, in directory: &#34; + model_dir + &#34;, exists already and overwrite is set to False.&#34;
-                &#34;\nNo new model will be trained, process terminates&#34;)
-
-    replay_memory_file_path = os.path.join(replay_memories_directory, replay_memory_filename)
+    :param replay_memory_location: Location of the games stored by MLDataBot, default pathlib.Path(&#39;ML_replay_memories&#39;) / &#39;test_replay_memory&#39;
+    :param model_location: Location where the model will be stored, default pathlib.Path(&#34;ML_models&#34;) / &#39;test_model&#39;
+    :param model_class: The machine learning model class to be used, either &#39;NN&#39; for a neural network, or &#39;LR&#39; for a linear regression.
+    :param overwrite: Whether to overwrite a possibly existing model.
+    &#34;&#34;&#34;
+    if replay_memory_location is None:
+        replay_memory_location = pathlib.Path(&#39;ML_replay_memories&#39;) / &#39;test_replay_memory&#39;
+    if model_location is None:
+        model_location = pathlib.Path(&#34;ML_models&#34;) / &#39;test_model&#39;
+    assert model_class == &#39;NN&#39; or model_class == &#39;LR&#39;, &#34;Unknown model class&#34;
 
     # check that the replay memory dataset is found at the specified location
-    if not os.path.exists(replay_memory_file_path):
-        raise ValueError(f&#34;Dataset was not found at: {replay_memory_file_path} !&#34;)
+    if not replay_memory_location.exists():
+        raise ValueError(f&#34;Dataset was not found at: {replay_memory_location} !&#34;)
+
+    # Check if model exists already
+    if model_location.exists():
+        raise ValueError(
+            f&#34;Model at {model_location} exists already and overwrite is set to False. \nNo new model will be trained, process terminates&#34;)
+
+    # check if directory exists, and if not, then create it
+    model_location.parent.mkdir(parents=True, exist_ok=True)
 
     data: list[list[int]] = []
     targets: list[int] = []
-    with open(file=replay_memory_file_path, mode=&#34;r&#34;) as replay_memory_file:
+    with open(file=replay_memory_location, mode=&#34;r&#34;) as replay_memory_file:
         for line in replay_memory_file:
             feature_string, won_label_str = line.split(&#34;||&#34;)
             feature_list_strings: list[str] = feature_string.split(&#34;,&#34;)
@@ -127,41 +140,54 @@ it by from schnapsen.bots import MyBot.</p></div>
     print(&#34;Samples of wins:&#34;, samples_of_wins)
     print(&#34;Samples of losses:&#34;, samples_of_losses)
 
-    # Play around with the model parameters below
+    # What type of model will be used depends on the value of the parameter use_neural_network
+    if model_class == &#39;NN&#39;:
+        #############################################
+        # Neural Network model parameters :
+        # learn more about the model or how to use better use it by checking out its documentation
+        # https://scikit-learn.org/stable/modules/generated/sklearn.neural_network.MLPClassifier.html#sklearn.neural_network.MLPClassifier
+        # Play around with the model parameters below
+        print(&#34;Training a Complex (Neural Network) model.&#34;)
 
-    # HINT: Use tournament fast mode (-f flag) to quickly test your different models.
+        # Feel free to experiment with different number of neural layers or differnt type of neurons per layer
+        # Tips: more neurons or more layers of neurons create a more complicated model that takes more time to train and
+        # needs a bigger dataset, but if you find the correct combination of neurons and neural layers and provide a big enough training dataset can lead to better performance
 
-    # The following tuple specifies the number of hidden layers in the neural
-    # network, as well as the number of layers, implicitly through its length.
-    # You can set any number of hidden layers, even just one. Experiment and see what works.
-    hidden_layer_sizes = (64, 32)
+        # one layer of 30 neurons
+        hidden_layer_sizes = (30)
+        # two layers of 30 and 5 neurons respectively
+        # hidden_layer_sizes = (30, 5)
 
-    # The learning rate determines how fast we move towards the optimal solution.
-    # A low learning rate will converge slowly, but a large one might overshoot.
-    learning_rate = 0.0001
+        # The learning rate determines how fast we move towards the optimal solution.
+        # A low learning rate will converge slowly, but a large one might overshoot.
+        learning_rate = 0.0001
 
-    # The regularization term aims to prevent overfitting, and we can tweak its strength here.
-    regularization_strength = 0.0001
+        # The regularization term aims to prevent over-fitting, and we can tweak its strength here.
+        regularization_strength = 0.0001
 
-    #############################################
+        # Train a neural network
+        learner = MLPClassifier(hidden_layer_sizes=hidden_layer_sizes, learning_rate_init=learning_rate,
+                                alpha=regularization_strength, verbose=True, early_stopping=True, n_iter_no_change=6,
+                                activation=&#39;tanh&#39;)
+    elif model_class == &#39;LR&#39;:
+        # Train a simpler Linear Logistic Regression model
+        # learn more about the model or how to use better use it by checking out its documentation
+        # https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html#sklearn.linear_model.LogisticRegression
+        print(&#34;Training a Simple (Linear Logistic Regression model)&#34;)
+
+        # Usually there is no reason to change the hyperparameters of such a simple model but fill free to experiment:
+        learner = LogisticRegression(max_iter=1000)
+    else:
+        raise AssertionError(&#34;Unknown model class&#34;)
 
     start = time.time()
-
     print(&#34;Starting training phase...&#34;)
 
-    # Train a neural network
-    learner = MLPClassifier(hidden_layer_sizes=hidden_layer_sizes, learning_rate_init=learning_rate,
-                            alpha=regularization_strength, verbose=True, early_stopping=True, n_iter_no_change=6)
-    # learner = sklearn.linear_model.LogisticRegression()
-
     model = learner.fit(data, targets)
-
-    # Store the model
-    joblib.dump(model, model_file_path)
-
+    # Save the model in a file
+    joblib.dump(model, model_location)
     end = time.time()
-
-    print(&#39;Done. Time to train:&#39;, (end - start) / 60, &#39;minutes.&#39;)</code></pre>
+    print(&#39;The model was trained in &#39;, (end - start) / 60, &#39;minutes.&#39;)</code></pre>
 </details>
 </dd>
 </dl>
@@ -171,6 +197,7 @@ it by from schnapsen.bots import MyBot.</p></div>
 <dl>
 <dt id="schnapsen.bots.AlphaBetaBot"><code class="flex name class">
 <span>class <span class="ident">AlphaBetaBot</span></span>
+<span>(</span><span>name: str = 'alphabetabot')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>The Bot baseclass. Derive your own bots from this class and implement the get_move method to use it in games.</p>
@@ -180,10 +207,10 @@ it by from schnapsen.bots import MyBot.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class AlphaBetaBot(Bot):
-    def __init__(self) -&gt; None:
-        super().__init__()
+    def __init__(self, name: str = &#34;alphabetabot&#34;) -&gt; None:
+        super().__init__(name)
 
-    def get_move(self, player_perspective: PlayerPerspective, leader_move: Optional[Move]) -&gt; Move:
+    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -&gt; Move:
         raise NotImplementedError()</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -204,7 +231,7 @@ it by from schnapsen.bots import MyBot.</p></div>
 </dd>
 <dt id="schnapsen.bots.MLDataBot"><code class="flex name class">
 <span>class <span class="ident">MLDataBot</span></span>
-<span>(</span><span>bot: <a title="schnapsen.game.Bot" href="../game.html#schnapsen.game.Bot">Bot</a>, replay_memory_file_path: str)</span>
+<span>(</span><span>bot: <a title="schnapsen.game.Bot" href="../game.html#schnapsen.game.Bot">Bot</a>, replay_memory_location: pathlib.Path)</span>
 </code></dt>
 <dd>
 <div class="desc"><p>This class is defined to allow the creation of a training schnapsen bot dataset, that allows us to train a Machine Learning (ML) Bot
@@ -213,11 +240,9 @@ In more detail, we create one training sample for each decision the bot makes wi
 Then we relate each decision with the outcome of the game, i.e. whether this bot won or not.
 This way we can then train a bot according to the assumption that:
 "decisions in earlier games that ended up in victories should be preferred over decisions that lead to lost games"
-This class only records the decisions and game outcomes of the provided bot, according to its own perspective - incomplete game state knowledge.
-The replay memories are stored under the directory "ML_replay_memories" in a file whose filename
-is passed through the parameter "replay_memory_filename" when creating a MLDataBot object.</p>
-<p>bot: the provided bot that will actually play the game and make decisions
-replay_memory_filename: the filename under which the replay memory records will be stored, under the directory "ML_replay_memories"</p></div>
+This class only records the decisions and game outcomes of the provided bot, according to its own perspective - incomplete game state knowledge.</p>
+<p>:param bot: the provided bot that will actually play the game and make decisions
+:param replay_memory_location: the filename under which the replay memory records will be</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -231,18 +256,16 @@ replay_memory_filename: the filename under which the replay memory records will 
     This way we can then train a bot according to the assumption that:
         &#34;decisions in earlier games that ended up in victories should be preferred over decisions that lead to lost games&#34;
     This class only records the decisions and game outcomes of the provided bot, according to its own perspective - incomplete game state knowledge.
-    The replay memories are stored under the directory &#34;ML_replay_memories&#34; in a file whose filename
-    is passed through the parameter &#34;replay_memory_filename&#34; when creating a MLDataBot object.
     &#34;&#34;&#34;
 
-    def __init__(self, bot: Bot, replay_memory_file_path: str) -&gt; None:
+    def __init__(self, bot: Bot, replay_memory_location: pathlib.Path) -&gt; None:
         &#34;&#34;&#34;
-        bot: the provided bot that will actually play the game and make decisions
-        replay_memory_filename: the filename under which the replay memory records will be stored, under the directory &#34;ML_replay_memories&#34;
+        :param bot: the provided bot that will actually play the game and make decisions
+        :param replay_memory_location: the filename under which the replay memory records will be
         &#34;&#34;&#34;
+
         self.bot: Bot = bot
-        # self.my_history: Optional[list[tuple[PlayerPerspective, Optional[PartialTrick]]]] = None
-        self.replay_memory_file_path: str = replay_memory_file_path
+        self.replay_memory_file_path: pathlib.Path = replay_memory_location
 
     def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -&gt; Move:
         &#34;&#34;&#34;
@@ -250,16 +273,17 @@ replay_memory_filename: the filename under which the replay memory records will 
         &#34;&#34;&#34;
         return self.bot.get_move(state=state, leader_move=leader_move)
 
-    def notify_game_end(self, won: bool, player_perspective: PlayerPerspective) -&gt; None:
+    def notify_game_end(self, won: bool, state: PlayerPerspective) -&gt; None:
         &#34;&#34;&#34;
         When the game ends, this function retrieves the game history and more specifically all the replay memories that can
         be derived from it, and stores them in the form of state-actions vector representations and the corresponding outcome of the game
 
-        param won: Did this bot win the game?
-        param player_perspective: The final state of the game.
+        :param won: Did this bot win the game?
+        :param state: The final state of the game.
         &#34;&#34;&#34;
-        # we retrieve the game history while actually discarding the last useless history record (which is after the game has ended), we know none of the Tricks can be None
-        game_history: list[tuple[PlayerPerspective, Trick]] = cast(list[tuple[PlayerPerspective, Trick]], player_perspective.get_game_history()[:-1])
+        # we retrieve the game history while actually discarding the last useless history record (which is after the game has ended),
+        # we know none of the Tricks can be None because that is only for the last record
+        game_history: list[tuple[PlayerPerspective, Trick]] = cast(list[tuple[PlayerPerspective, Trick]], state.get_game_history()[:-1])
         # we also save the training label &#34;won or lost&#34;
         won_label = won
 
@@ -278,7 +302,7 @@ replay_memory_filename: the filename under which the replay memory records will 
                 follower_move = None
 
             state_actions_representation = create_state_and_actions_vector_representation(
-                player_perspective=round_player_perspective, leader_move=leader_move, follower_move=follower_move)
+                state=round_player_perspective, leader_move=leader_move, follower_move=follower_move)
 
             # append replay memory to file
             with open(file=self.replay_memory_file_path, mode=&#34;a&#34;) as replay_memory_file:
@@ -310,27 +334,28 @@ replay_memory_filename: the filename under which the replay memory records will 
 </details>
 </dd>
 <dt id="schnapsen.bots.MLDataBot.notify_game_end"><code class="name flex">
-<span>def <span class="ident">notify_game_end</span></span>(<span>self, won: bool, player_perspective: <a title="schnapsen.game.PlayerPerspective" href="../game.html#schnapsen.game.PlayerPerspective">PlayerPerspective</a>) ‑> None</span>
+<span>def <span class="ident">notify_game_end</span></span>(<span>self, won: bool, state: <a title="schnapsen.game.PlayerPerspective" href="../game.html#schnapsen.game.PlayerPerspective">PlayerPerspective</a>) ‑> None</span>
 </code></dt>
 <dd>
 <div class="desc"><p>When the game ends, this function retrieves the game history and more specifically all the replay memories that can
 be derived from it, and stores them in the form of state-actions vector representations and the corresponding outcome of the game</p>
-<p>param won: Did this bot win the game?
-param player_perspective: The final state of the game.</p></div>
+<p>:param won: Did this bot win the game?
+:param state: The final state of the game.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def notify_game_end(self, won: bool, player_perspective: PlayerPerspective) -&gt; None:
+<pre><code class="python">def notify_game_end(self, won: bool, state: PlayerPerspective) -&gt; None:
     &#34;&#34;&#34;
     When the game ends, this function retrieves the game history and more specifically all the replay memories that can
     be derived from it, and stores them in the form of state-actions vector representations and the corresponding outcome of the game
 
-    param won: Did this bot win the game?
-    param player_perspective: The final state of the game.
+    :param won: Did this bot win the game?
+    :param state: The final state of the game.
     &#34;&#34;&#34;
-    # we retrieve the game history while actually discarding the last useless history record (which is after the game has ended), we know none of the Tricks can be None
-    game_history: list[tuple[PlayerPerspective, Trick]] = cast(list[tuple[PlayerPerspective, Trick]], player_perspective.get_game_history()[:-1])
+    # we retrieve the game history while actually discarding the last useless history record (which is after the game has ended),
+    # we know none of the Tricks can be None because that is only for the last record
+    game_history: list[tuple[PlayerPerspective, Trick]] = cast(list[tuple[PlayerPerspective, Trick]], state.get_game_history()[:-1])
     # we also save the training label &#34;won or lost&#34;
     won_label = won
 
@@ -349,7 +374,7 @@ param player_perspective: The final state of the game.</p></div>
             follower_move = None
 
         state_actions_representation = create_state_and_actions_vector_representation(
-            player_perspective=round_player_perspective, leader_move=leader_move, follower_move=follower_move)
+            state=round_player_perspective, leader_move=leader_move, follower_move=follower_move)
 
         # append replay memory to file
         with open(file=self.replay_memory_file_path, mode=&#34;a&#34;) as replay_memory_file:
@@ -370,10 +395,12 @@ param player_perspective: The final state of the game.</p></div>
 </dd>
 <dt id="schnapsen.bots.MLPlayingBot"><code class="flex name class">
 <span>class <span class="ident">MLPlayingBot</span></span>
-<span>(</span><span>model_name: str = 'test_model', model_dir: str = 'ML_models')</span>
+<span>(</span><span>model_location: Optional[pathlib.Path], name: str = 'mlplayingbot')</span>
 </code></dt>
 <dd>
-<div class="desc"><p>This class loads a trained ML model and uses it to play</p></div>
+<div class="desc"><p>This class loads a trained ML model and uses it to play</p>
+<p>Create a new MLPlayingBot which uses the model stored in the mofel_location.</p>
+<p>:param model_location: The file containing the model.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
@@ -383,21 +410,26 @@ param player_perspective: The final state of the game.</p></div>
     This class loads a trained ML model and uses it to play
     &#34;&#34;&#34;
 
-    def __init__(self, model_name: str = &#39;test_model&#39;, model_dir: str = &#34;ML_models&#34;) -&gt; None:
-        model_file_path = os.path.join(model_dir, model_name)
-        if not os.path.exists(model_file_path):
-            raise ValueError(&#34;Model could not be found at: &#34; + model_file_path)
-        else:
-            # load model
-            self.__model = joblib.load(model_file_path)
+    def __init__(self, model_location: Optional[pathlib.Path], name: str = &#34;mlplayingbot&#34;) -&gt; None:
+        &#34;&#34;&#34;
+        Create a new MLPlayingBot which uses the model stored in the mofel_location.
 
-    def get_move(self, player_perspective: PlayerPerspective, leader_move: Optional[Move]) -&gt; Move:
+        :param model_location: The file containing the model.
+        &#34;&#34;&#34;
+        super().__init__(name)
+        if model_location is None:
+            model_location = pathlib.Path(&#34;ML_models/&#34;) / &#34;test_model&#34;
+        assert model_location.exists(), f&#34;Model could not be found at: {model_location}&#34;
+        # load model
+        self.__model = joblib.load(model_location)
+
+    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -&gt; Move:
         # get the sate feature representation
-        state_representation = get_state_feature_vector(player_perspective)
+        state_representation = get_state_feature_vector(state)
         # get the leader&#39;s move representation, even if it is None
         leader_move_representation = get_move_feature_vector(leader_move)
         # get all my valid moves
-        my_valid_moves = player_perspective.valid_moves()
+        my_valid_moves = state.valid_moves()
         # get the feature representations for all my valid moves
         my_move_representations: list[list[int]] = []
         for my_move in my_valid_moves:
@@ -406,11 +438,10 @@ param player_perspective: The final state of the game.</p></div>
         # create all model inputs, for all bot&#39;s valid moves
         action_state_representations: list[list[int]] = []
 
-        if player_perspective.am_i_leader():
+        if state.am_i_leader():
             follower_move_representation = get_move_feature_vector(None)
             for my_move_representation in my_move_representations:
                 action_state_representations.append(
-
                     state_representation + my_move_representation + follower_move_representation)
         else:
             for my_move_representation in my_move_representations:
@@ -425,7 +456,7 @@ param player_perspective: The final state of the game.</p></div>
             if value &gt; highest_value:
                 highest_value = value
                 best_move = my_valid_moves[index]
-        assert best_move
+        assert best_move is not None
         return best_move</code></pre>
 </details>
 <h3>Ancestors</h3>
@@ -446,7 +477,7 @@ param player_perspective: The final state of the game.</p></div>
 </dd>
 <dt id="schnapsen.bots.RandBot"><code class="flex name class">
 <span>class <span class="ident">RandBot</span></span>
-<span>(</span><span>seed: int)</span>
+<span>(</span><span>rand: random.Random, name: str = 'randbot')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>The Bot baseclass. Derive your own bots from this class and implement the get_move method to use it in games.</p>
@@ -456,21 +487,21 @@ param player_perspective: The final state of the game.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class RandBot(Bot):
-    def __init__(self, seed: int) -&gt; None:
-        self.seed = seed
-        self.rng = random.Random(self.seed)
+    def __init__(self, rand: random.Random, name: str = &#34;randbot&#34;) -&gt; None:
+        super().__init__(name)
+        self.rng = rand
 
     def get_move(
         self,
-        player_perspective: PlayerPerspective,
+        state: PlayerPerspective,
         leader_move: Optional[Move],
     ) -&gt; Move:
-        moves = player_perspective.valid_moves()
+        moves: list[Move] = state.valid_moves()
         move = self.rng.choice(list(moves))
         return move
 
     def __repr__(self) -&gt; str:
-        return f&#34;RandBot(seed={self.seed})&#34;</code></pre>
+        return f&#34;RandBot(rng={self.rng})&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -490,7 +521,7 @@ param player_perspective: The final state of the game.</p></div>
 </dd>
 <dt id="schnapsen.bots.RdeepBot"><code class="flex name class">
 <span>class <span class="ident">RdeepBot</span></span>
-<span>(</span><span>num_samples: int, depth: int, rand: random.Random)</span>
+<span>(</span><span>num_samples: int, depth: int, rand: random.Random, name: str = 'rdeepbot')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>The Bot baseclass. Derive your own bots from this class and implement the get_move method to use it in games.</p>
@@ -498,20 +529,23 @@ param player_perspective: The final state of the game.</p></div>
 <p>Create a new rdeep bot.</p>
 <p>:param num_samples: how many samples to take per move
 :param depth: how deep to sample
-:param rand: the source of randomness for this Bot</p></div>
+:param rand: the source of randomness for this Bot
+:param name: the name of this Bot</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class RdeepBot(Bot):
-    def __init__(self, num_samples: int, depth: int, rand: Random) -&gt; None:
+    def __init__(self, num_samples: int, depth: int, rand: random.Random, name: str = &#34;rdeepbot&#34;) -&gt; None:
         &#34;&#34;&#34;
         Create a new rdeep bot.
 
         :param num_samples: how many samples to take per move
         :param depth: how deep to sample
         :param rand: the source of randomness for this Bot
+        :param name: the name of this Bot
         &#34;&#34;&#34;
+        super().__init__(name)
         assert num_samples &gt;= 1, f&#34;we cannot work with less than one sample, got {num_samples}&#34;
         assert depth &gt;= 1, f&#34;it does not make sense to use a dept &lt;1. got {depth}&#34;
         self.__num_samples = num_samples
@@ -634,13 +668,14 @@ param player_perspective: The final state of the game.</p></div>
         self.__process.start()
 
     def make_gui_bot(self, name: str) -&gt; Bot:
-        bot = GUIBot(name, self)
+        bot = GUIBot(self, name)
         self.__bots[name] = _StateExchange(bot=bot, browser_game_started=False, is_state_ready=Event(), is_move_ready=Event(), state=None, leader_move=None, browser_move=None)
         return bot
 
-    def _post_final_state(self, botname: str, state: PlayerPerspective) -&gt; None:
+    def _post_final_state(self, botname: str, won: bool, state: PlayerPerspective) -&gt; None:
         state_exchange = self.__bots[botname]
         state_exchange.state = state
+        state_exchange.won = won
         state_exchange.is_game_over = True
         state_exchange.is_state_ready.set()
 
@@ -674,7 +709,7 @@ param player_perspective: The final state of the game.</p></div>
         state = state_exchange.state
         assert state  # cannot be None, because we waited for it.
         leader_move = state_exchange.leader_move
-        json = _Old_GUI_Compatibility.player_game_state_to_json(state=state, leader_move=leader_move, game_over=state_exchange.is_game_over)
+        json = _Old_GUI_Compatibility.player_game_state_to_json(state=state, leader_move=leader_move, game_over=state_exchange.is_game_over, won=state_exchange.won)
         return json
 
     def __setup_routes(self, app: Flask) -&gt; None:
@@ -706,7 +741,7 @@ param player_perspective: The final state of the game.</p></div>
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">def make_gui_bot(self, name: str) -&gt; Bot:
-    bot = GUIBot(name, self)
+    bot = GUIBot(self, name)
     self.__bots[name] = _StateExchange(bot=bot, browser_game_started=False, is_state_ready=Event(), is_move_ready=Event(), state=None, leader_move=None, browser_move=None)
     return bot</code></pre>
 </details>

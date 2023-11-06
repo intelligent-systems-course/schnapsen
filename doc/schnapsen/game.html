@@ -46,6 +46,9 @@ class Bot(ABC):
 
     Besides the get_move method, it is also possible to override notify_trump_exchange and notify_game_end to get notified when these events happen.
     &#34;&#34;&#34;
+    def __init__(self, name: str = &#34;bot&#34;) -&gt; None:
+        self.name = name
+
     @abstractmethod
     def get_move(self, state: &#39;PlayerPerspective&#39;, leader_move: Optional[&#39;Move&#39;]) -&gt; &#39;Move&#39;:
         &#34;&#34;&#34;
@@ -77,6 +80,18 @@ class Move(ABC):
     cards: list[Card]  # implementation detail: The creation of this list is defered to the derived classes in _cards()
     &#34;&#34;&#34;The cards played in this move&#34;&#34;&#34;
 
+    def is_regular_move(self) -&gt; bool:
+        &#34;&#34;&#34;
+        Is this Move a regular move (not a mariage or trump exchange)
+
+        :returns: a bool indicating whether this is a regular move
+        &#34;&#34;&#34;
+        return False
+
+    def as_regular_move(self) -&gt; &#39;RegularMove&#39;:
+        &#34;&#34;&#34;Returns this same move but as a Marriage.&#34;&#34;&#34;
+        raise AssertionError(&#34;as_regular_move called on a Move which is not a regular move. Check with is_regular_move first.&#34;)
+
     def is_marriage(self) -&gt; bool:
         &#34;&#34;&#34;
         Is this Move a marriage?
@@ -85,6 +100,10 @@ class Move(ABC):
         &#34;&#34;&#34;
         return False
 
+    def as_marriage(self) -&gt; &#39;Marriage&#39;:
+        &#34;&#34;&#34;Returns this same move but as a Marriage.&#34;&#34;&#34;
+        raise AssertionError(&#34;as_marriage called on a Move which is not a Marriage. Check with is_marriage first.&#34;)
+
     def is_trump_exchange(self) -&gt; bool:
         &#34;&#34;&#34;
         Is this Move a trump exchange move?
@@ -92,6 +111,10 @@ class Move(ABC):
         :returns: a bool indicating whether this move is a trump exchange
         &#34;&#34;&#34;
         return False
+
+    def as_trump_exchange(self) -&gt; &#39;Trump_Exchange&#39;:
+        &#34;&#34;&#34;Returns this same move but as a Trump_Exchange.&#34;&#34;&#34;
+        raise AssertionError(&#34;as_marriage called on a Move which is not a Trump_Exchange. Check with is_trump_exchange first.&#34;)
 
     def __getattribute__(self, __name: str) -&gt; Any:
         if __name == &#34;cards&#34;:
@@ -119,6 +142,9 @@ class Trump_Exchange(Move):
     def is_trump_exchange(self) -&gt; bool:
         return True
 
+    def as_trump_exchange(self) -&gt; &#39;Trump_Exchange&#39;:
+        return self
+
     def _cards(self) -&gt; list[Card]:
         return [self.jack]
 
@@ -140,6 +166,9 @@ class RegularMove(Move):
     def from_cards(cards: Iterable[Card]) -&gt; list[Move]:
         &#34;&#34;&#34;Create an iterable of Moves from an iterable of cards.&#34;&#34;&#34;
         return [RegularMove(card) for card in cards]
+
+    def is_regular_move(self) -&gt; bool:
+        return True
 
     def as_regular_move(self) -&gt; &#39;RegularMove&#39;:
         return self
@@ -176,7 +205,13 @@ class Marriage(Move):
     def is_marriage(self) -&gt; bool:
         return True
 
-    def as_regular_move(self) -&gt; RegularMove:
+    def as_marriage(self) -&gt; &#39;Marriage&#39;:
+        return self
+
+    def underlying_regular_move(self) -&gt; RegularMove:
+        &#34;&#34;&#34;
+        Get the regular move which was played because of the marriage. In this engine this is always the queen card.
+        &#34;&#34;&#34;
         # this limits you to only have the queen to play after a marriage, while in general you would have a choice.
         # This is not an issue since playing the queen give you the highest score.
         return RegularMove(self.queen_card)
@@ -809,7 +844,6 @@ class PlayerPerspective(ABC):
         opponent_hand = self.__get_opponent_bot_state().hand.copy()
 
         if leader_move is not None:
-            self.__game_state.leader.hand.get_cards()
             assert all(card in opponent_hand for card in leader_move.cards), f&#34;The specified leader_move {leader_move} is not in the hand of the opponent {opponent_hand}&#34;
 
         full_state = self.__game_state.copy_with_other_bots(_DummyBot(), _DummyBot())
@@ -826,7 +860,8 @@ class PlayerPerspective(ABC):
         unseen_talon = list(filter(lambda card: card not in seen_cards, talon))
 
         unseen_cards = list(filter(lambda card: card not in seen_cards, full_deck))
-        rand.shuffle(unseen_cards)
+        if len(unseen_cards) &gt; 1:
+            rand.shuffle(unseen_cards)
 
         assert len(unseen_talon) + len(unseen_opponent_hand) == len(unseen_cards), &#34;Logical error. The number of unseen cards in the opponents hand and in the talon must be equal to the number of unseen cards&#34;
 
@@ -1041,12 +1076,14 @@ class DeckGenerator(ABC):
 
 class SchnapsenDeckGenerator(DeckGenerator):
 
-    def get_initial_deck(self) -&gt; OrderedCardCollection:
-        deck = []
+    def __init__(self) -&gt; None:
+        self.deck = []
         for suit in Suit:
             for rank in [Rank.JACK, Rank.QUEEN, Rank.KING, Rank.TEN, Rank.ACE]:
-                deck.append(Card.get_card(rank, suit))
-        return OrderedCardCollection(deck)
+                self.deck.append(Card.get_card(rank, suit))
+
+    def get_initial_deck(self) -&gt; OrderedCardCollection:
+        return OrderedCardCollection(self.deck)
 
 
 class HandGenerator(ABC):
@@ -1135,7 +1172,7 @@ class SchnapsenTrickImplementer(TrickImplementer):
         if trick.leader_move.is_marriage():
             marriage_move: Marriage = cast(Marriage, trick.leader_move)
             self._play_marriage(game_engine, next_game_state, marriage_move=marriage_move)
-            regular_leader_move: RegularMove = cast(Marriage, trick.leader_move).as_regular_move()
+            regular_leader_move: RegularMove = cast(Marriage, trick.leader_move).underlying_regular_move()
         else:
             regular_leader_move = cast(RegularMove, trick.leader_move)
 
@@ -1341,7 +1378,7 @@ class TrickScorer(ABC):
     @abstractmethod
     def score(self, trick: RegularTrick, leader: BotState, follower: BotState, trump: Suit) -&gt; Tuple[BotState, BotState, bool]:
         &#34;&#34;&#34;
-        Score the trick for the given leader and follower. The returned bots are copies and have the score of the trick applied.
+        Score the trick for the given leader and follower. The returned bots are the same bots provided (not copies) and have the score of the trick applied.
         They are returned in order (new_leader, new_follower). If appropriate, also pending points have been applied.
         The boolean is True if the leading bot remained the same, i.e., the past leader remains the leader
         &#34;&#34;&#34;
@@ -1399,7 +1436,7 @@ class SchnapsenTrickScorer(TrickScorer):
     def score(self, trick: RegularTrick, leader: BotState, follower: BotState, trump: Suit) -&gt; Tuple[BotState, BotState, bool]:
 
         if trick.leader_move.is_marriage():
-            regular_leader_move: RegularMove = cast(Marriage, trick.leader_move).as_regular_move()
+            regular_leader_move: RegularMove = cast(Marriage, trick.leader_move).underlying_regular_move()
         else:
             regular_leader_move = cast(RegularMove, trick.leader_move)
 
@@ -1436,7 +1473,7 @@ class SchnapsenTrickScorer(TrickScorer):
 
     def declare_winner(self, game_state: GameState) -&gt; Optional[Tuple[BotState, int]]:
         &#34;&#34;&#34;
-        Declaring a winner uses the logic from https://www.pagat.com/marriage/schnaps.html#marriages , but simplified, because we do not have closing of the Talon and no need to guess the scores.
+        Declaring a winner uses the logic from https://web.archive.org/web/20230303074822/https://www.pagat.com/marriage/schnaps.html#out , but simplified, because we do not have closing of the Talon and no need to guess the scores.
         The following text adapted accordingly from that website.
 
         If a player has 66 or more points, she scores points toward game as follows:
@@ -1622,6 +1659,7 @@ class SchnapsenGamePlayEngine(GamePlayEngine):
 <dl>
 <dt id="schnapsen.game.Bot"><code class="flex name class">
 <span>class <span class="ident">Bot</span></span>
+<span>(</span><span>name: str = 'bot')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>The Bot baseclass. Derive your own bots from this class and implement the get_move method to use it in games.</p>
@@ -1636,6 +1674,9 @@ class SchnapsenGamePlayEngine(GamePlayEngine):
 
     Besides the get_move method, it is also possible to override notify_trump_exchange and notify_game_end to get notified when these events happen.
     &#34;&#34;&#34;
+    def __init__(self, name: str = &#34;bot&#34;) -&gt; None:
+        self.name = name
+
     @abstractmethod
     def get_move(self, state: &#39;PlayerPerspective&#39;, leader_move: Optional[&#39;Move&#39;]) -&gt; &#39;Move&#39;:
         &#34;&#34;&#34;
@@ -1666,7 +1707,6 @@ class SchnapsenGamePlayEngine(GamePlayEngine):
 <ul class="hlist">
 <li><a title="executables.cli.HistoryBot" href="../executables/cli.html#executables.cli.HistoryBot">HistoryBot</a></li>
 <li><a title="executables.cli.NotificationExampleBot" href="../executables/cli.html#executables.cli.NotificationExampleBot">NotificationExampleBot</a></li>
-<li><a title="executables.cli.RandBot" href="../executables/cli.html#executables.cli.RandBot">RandBot</a></li>
 <li><a title="schnapsen.bots.alphabeta.AlphaBetaBot" href="bots/alphabeta.html#schnapsen.bots.alphabeta.AlphaBetaBot">AlphaBetaBot</a></li>
 <li><a title="schnapsen.bots.example_bot.ExampleBot" href="bots/example_bot.html#schnapsen.bots.example_bot.ExampleBot">ExampleBot</a></li>
 <li><a title="schnapsen.bots.gui.guibot.GUIBot" href="bots/gui/guibot.html#schnapsen.bots.gui.guibot.GUIBot">GUIBot</a></li>
@@ -1674,7 +1714,6 @@ class SchnapsenGamePlayEngine(GamePlayEngine):
 <li><a title="schnapsen.bots.ml_bot.MLPlayingBot" href="bots/ml_bot.html#schnapsen.bots.ml_bot.MLPlayingBot">MLPlayingBot</a></li>
 <li><a title="schnapsen.bots.rand.RandBot" href="bots/rand.html#schnapsen.bots.rand.RandBot">RandBot</a></li>
 <li><a title="schnapsen.bots.rdeep.FirstFixedMoveThenBaseBot" href="bots/rdeep.html#schnapsen.bots.rdeep.FirstFixedMoveThenBaseBot">FirstFixedMoveThenBaseBot</a></li>
-<li><a title="schnapsen.bots.rdeep.RandBot" href="bots/rdeep.html#schnapsen.bots.rdeep.RandBot">RandBot</a></li>
 <li><a title="schnapsen.bots.rdeep.RdeepBot" href="bots/rdeep.html#schnapsen.bots.rdeep.RdeepBot">RdeepBot</a></li>
 <li>schnapsen.game._DummyBot</li>
 </ul>
@@ -1900,8 +1939,8 @@ Does a quick check to make sure that the hand has the cards which are played. Mo
 </ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
+<li><a title="schnapsen.alternative_engines.twenty_four_card_schnapsen.MyDeckGenerator" href="alternative_engines/twenty_four_card_schnapsen.html#schnapsen.alternative_engines.twenty_four_card_schnapsen.MyDeckGenerator">MyDeckGenerator</a></li>
 <li><a title="schnapsen.game.SchnapsenDeckGenerator" href="#schnapsen.game.SchnapsenDeckGenerator">SchnapsenDeckGenerator</a></li>
-<li><a title="schnapsen.twenty_four_card_schnapsen.MyDeckGenerator" href="twenty_four_card_schnapsen.html#schnapsen.twenty_four_card_schnapsen.MyDeckGenerator">MyDeckGenerator</a></li>
 </ul>
 <h3>Static methods</h3>
 <dl>
@@ -2346,8 +2385,10 @@ class GamePlayEngine:
 </details>
 <h3>Subclasses</h3>
 <ul class="hlist">
+<li><a title="schnapsen.alternative_engines.ace_one_engine.AceOneGamePlayEngine" href="alternative_engines/ace_one_engine.html#schnapsen.alternative_engines.ace_one_engine.AceOneGamePlayEngine">AceOneGamePlayEngine</a></li>
+<li><a title="schnapsen.alternative_engines.negative_ace_engine.NegativeAceGamePlayEngine" href="alternative_engines/negative_ace_engine.html#schnapsen.alternative_engines.negative_ace_engine.NegativeAceGamePlayEngine">NegativeAceGamePlayEngine</a></li>
+<li><a title="schnapsen.alternative_engines.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine" href="alternative_engines/twenty_four_card_schnapsen.html#schnapsen.alternative_engines.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine">TwentyFourSchnapsenGamePlayEngine</a></li>
 <li><a title="schnapsen.game.SchnapsenGamePlayEngine" href="#schnapsen.game.SchnapsenGamePlayEngine">SchnapsenGamePlayEngine</a></li>
-<li><a title="schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine" href="twenty_four_card_schnapsen.html#schnapsen.twenty_four_card_schnapsen.TwentyFourSchnapsenGamePlayEngine">TwentyFourSchnapsenGamePlayEngine</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>
@@ -3185,7 +3226,13 @@ class Marriage(Move):
     def is_marriage(self) -&gt; bool:
         return True
 
-    def as_regular_move(self) -&gt; RegularMove:
+    def as_marriage(self) -&gt; &#39;Marriage&#39;:
+        return self
+
+    def underlying_regular_move(self) -&gt; RegularMove:
+        &#34;&#34;&#34;
+        Get the regular move which was played because of the marriage. In this engine this is always the queen card.
+        &#34;&#34;&#34;
         # this limits you to only have the queen to play after a marriage, while in general you would have a choice.
         # This is not an issue since playing the queen give you the highest score.
         return RegularMove(self.queen_card)
@@ -3218,16 +3265,19 @@ class Marriage(Move):
 </dl>
 <h3>Methods</h3>
 <dl>
-<dt id="schnapsen.game.Marriage.as_regular_move"><code class="name flex">
-<span>def <span class="ident">as_regular_move</span></span>(<span>self) ‑> <a title="schnapsen.game.RegularMove" href="#schnapsen.game.RegularMove">RegularMove</a></span>
+<dt id="schnapsen.game.Marriage.underlying_regular_move"><code class="name flex">
+<span>def <span class="ident">underlying_regular_move</span></span>(<span>self) ‑> <a title="schnapsen.game.RegularMove" href="#schnapsen.game.RegularMove">RegularMove</a></span>
 </code></dt>
 <dd>
-<div class="desc"></div>
+<div class="desc"><p>Get the regular move which was played because of the marriage. In this engine this is always the queen card.</p></div>
 <details class="source">
 <summary>
 <span>Expand source code</span>
 </summary>
-<pre><code class="python">def as_regular_move(self) -&gt; RegularMove:
+<pre><code class="python">def underlying_regular_move(self) -&gt; RegularMove:
+    &#34;&#34;&#34;
+    Get the regular move which was played because of the marriage. In this engine this is always the queen card.
+    &#34;&#34;&#34;
     # this limits you to only have the queen to play after a marriage, while in general you would have a choice.
     # This is not an issue since playing the queen give you the highest score.
     return RegularMove(self.queen_card)</code></pre>
@@ -3238,8 +3288,12 @@ class Marriage(Move):
 <ul class="hlist">
 <li><code><b><a title="schnapsen.game.Move" href="#schnapsen.game.Move">Move</a></b></code>:
 <ul class="hlist">
+<li><code><a title="schnapsen.game.Move.as_marriage" href="#schnapsen.game.Move.as_marriage">as_marriage</a></code></li>
+<li><code><a title="schnapsen.game.Move.as_regular_move" href="#schnapsen.game.Move.as_regular_move">as_regular_move</a></code></li>
+<li><code><a title="schnapsen.game.Move.as_trump_exchange" href="#schnapsen.game.Move.as_trump_exchange">as_trump_exchange</a></code></li>
 <li><code><a title="schnapsen.game.Move.cards" href="#schnapsen.game.Move.cards">cards</a></code></li>
 <li><code><a title="schnapsen.game.Move.is_marriage" href="#schnapsen.game.Move.is_marriage">is_marriage</a></code></li>
+<li><code><a title="schnapsen.game.Move.is_regular_move" href="#schnapsen.game.Move.is_regular_move">is_regular_move</a></code></li>
 <li><code><a title="schnapsen.game.Move.is_trump_exchange" href="#schnapsen.game.Move.is_trump_exchange">is_trump_exchange</a></code></li>
 </ul>
 </li>
@@ -3262,6 +3316,18 @@ class Marriage(Move):
     cards: list[Card]  # implementation detail: The creation of this list is defered to the derived classes in _cards()
     &#34;&#34;&#34;The cards played in this move&#34;&#34;&#34;
 
+    def is_regular_move(self) -&gt; bool:
+        &#34;&#34;&#34;
+        Is this Move a regular move (not a mariage or trump exchange)
+
+        :returns: a bool indicating whether this is a regular move
+        &#34;&#34;&#34;
+        return False
+
+    def as_regular_move(self) -&gt; &#39;RegularMove&#39;:
+        &#34;&#34;&#34;Returns this same move but as a Marriage.&#34;&#34;&#34;
+        raise AssertionError(&#34;as_regular_move called on a Move which is not a regular move. Check with is_regular_move first.&#34;)
+
     def is_marriage(self) -&gt; bool:
         &#34;&#34;&#34;
         Is this Move a marriage?
@@ -3270,6 +3336,10 @@ class Marriage(Move):
         &#34;&#34;&#34;
         return False
 
+    def as_marriage(self) -&gt; &#39;Marriage&#39;:
+        &#34;&#34;&#34;Returns this same move but as a Marriage.&#34;&#34;&#34;
+        raise AssertionError(&#34;as_marriage called on a Move which is not a Marriage. Check with is_marriage first.&#34;)
+
     def is_trump_exchange(self) -&gt; bool:
         &#34;&#34;&#34;
         Is this Move a trump exchange move?
@@ -3277,6 +3347,10 @@ class Marriage(Move):
         :returns: a bool indicating whether this move is a trump exchange
         &#34;&#34;&#34;
         return False
+
+    def as_trump_exchange(self) -&gt; &#39;Trump_Exchange&#39;:
+        &#34;&#34;&#34;Returns this same move but as a Trump_Exchange.&#34;&#34;&#34;
+        raise AssertionError(&#34;as_marriage called on a Move which is not a Trump_Exchange. Check with is_trump_exchange first.&#34;)
 
     def __getattribute__(self, __name: str) -&gt; Any:
         if __name == &#34;cards&#34;:
@@ -3309,6 +3383,48 @@ class Marriage(Move):
 </dl>
 <h3>Methods</h3>
 <dl>
+<dt id="schnapsen.game.Move.as_marriage"><code class="name flex">
+<span>def <span class="ident">as_marriage</span></span>(<span>self) ‑> <a title="schnapsen.game.Marriage" href="#schnapsen.game.Marriage">Marriage</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns this same move but as a Marriage.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def as_marriage(self) -&gt; &#39;Marriage&#39;:
+    &#34;&#34;&#34;Returns this same move but as a Marriage.&#34;&#34;&#34;
+    raise AssertionError(&#34;as_marriage called on a Move which is not a Marriage. Check with is_marriage first.&#34;)</code></pre>
+</details>
+</dd>
+<dt id="schnapsen.game.Move.as_regular_move"><code class="name flex">
+<span>def <span class="ident">as_regular_move</span></span>(<span>self) ‑> <a title="schnapsen.game.RegularMove" href="#schnapsen.game.RegularMove">RegularMove</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns this same move but as a Marriage.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def as_regular_move(self) -&gt; &#39;RegularMove&#39;:
+    &#34;&#34;&#34;Returns this same move but as a Marriage.&#34;&#34;&#34;
+    raise AssertionError(&#34;as_regular_move called on a Move which is not a regular move. Check with is_regular_move first.&#34;)</code></pre>
+</details>
+</dd>
+<dt id="schnapsen.game.Move.as_trump_exchange"><code class="name flex">
+<span>def <span class="ident">as_trump_exchange</span></span>(<span>self) ‑> <a title="schnapsen.game.Trump_Exchange" href="#schnapsen.game.Trump_Exchange">Trump_Exchange</a></span>
+</code></dt>
+<dd>
+<div class="desc"><p>Returns this same move but as a Trump_Exchange.</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def as_trump_exchange(self) -&gt; &#39;Trump_Exchange&#39;:
+    &#34;&#34;&#34;Returns this same move but as a Trump_Exchange.&#34;&#34;&#34;
+    raise AssertionError(&#34;as_marriage called on a Move which is not a Trump_Exchange. Check with is_trump_exchange first.&#34;)</code></pre>
+</details>
+</dd>
 <dt id="schnapsen.game.Move.is_marriage"><code class="name flex">
 <span>def <span class="ident">is_marriage</span></span>(<span>self) ‑> bool</span>
 </code></dt>
@@ -3324,6 +3440,25 @@ class Marriage(Move):
     Is this Move a marriage?
 
     :returns: a bool indicating whether this move is a marriage
+    &#34;&#34;&#34;
+    return False</code></pre>
+</details>
+</dd>
+<dt id="schnapsen.game.Move.is_regular_move"><code class="name flex">
+<span>def <span class="ident">is_regular_move</span></span>(<span>self) ‑> bool</span>
+</code></dt>
+<dd>
+<div class="desc"><p>Is this Move a regular move (not a mariage or trump exchange)</p>
+<p>:returns: a bool indicating whether this is a regular move</p></div>
+<details class="source">
+<summary>
+<span>Expand source code</span>
+</summary>
+<pre><code class="python">def is_regular_move(self) -&gt; bool:
+    &#34;&#34;&#34;
+    Is this Move a regular move (not a mariage or trump exchange)
+
+    :returns: a bool indicating whether this is a regular move
     &#34;&#34;&#34;
     return False</code></pre>
 </details>
@@ -3829,7 +3964,6 @@ The Bot gets passed an instance of this class when it gets requested a move by t
         opponent_hand = self.__get_opponent_bot_state().hand.copy()
 
         if leader_move is not None:
-            self.__game_state.leader.hand.get_cards()
             assert all(card in opponent_hand for card in leader_move.cards), f&#34;The specified leader_move {leader_move} is not in the hand of the opponent {opponent_hand}&#34;
 
         full_state = self.__game_state.copy_with_other_bots(_DummyBot(), _DummyBot())
@@ -3846,7 +3980,8 @@ The Bot gets passed an instance of this class when it gets requested a move by t
         unseen_talon = list(filter(lambda card: card not in seen_cards, talon))
 
         unseen_cards = list(filter(lambda card: card not in seen_cards, full_deck))
-        rand.shuffle(unseen_cards)
+        if len(unseen_cards) &gt; 1:
+            rand.shuffle(unseen_cards)
 
         assert len(unseen_talon) + len(unseen_opponent_hand) == len(unseen_cards), &#34;Logical error. The number of unseen cards in the opponents hand and in the talon must be equal to the number of unseen cards&#34;
 
@@ -4191,7 +4326,6 @@ This also takes into account cards seen earlier during marriages played by the o
     opponent_hand = self.__get_opponent_bot_state().hand.copy()
 
     if leader_move is not None:
-        self.__game_state.leader.hand.get_cards()
         assert all(card in opponent_hand for card in leader_move.cards), f&#34;The specified leader_move {leader_move} is not in the hand of the opponent {opponent_hand}&#34;
 
     full_state = self.__game_state.copy_with_other_bots(_DummyBot(), _DummyBot())
@@ -4208,7 +4342,8 @@ This also takes into account cards seen earlier during marriages played by the o
     unseen_talon = list(filter(lambda card: card not in seen_cards, talon))
 
     unseen_cards = list(filter(lambda card: card not in seen_cards, full_deck))
-    rand.shuffle(unseen_cards)
+    if len(unseen_cards) &gt; 1:
+        rand.shuffle(unseen_cards)
 
     assert len(unseen_talon) + len(unseen_opponent_hand) == len(unseen_cards), &#34;Logical error. The number of unseen cards in the opponents hand and in the talon must be equal to the number of unseen cards&#34;
 
@@ -4361,6 +4496,9 @@ class RegularMove(Move):
         &#34;&#34;&#34;Create an iterable of Moves from an iterable of cards.&#34;&#34;&#34;
         return [RegularMove(card) for card in cards]
 
+    def is_regular_move(self) -&gt; bool:
+        return True
+
     def as_regular_move(self) -&gt; &#39;RegularMove&#39;:
         return self
 
@@ -4397,28 +4535,16 @@ def from_cards(cards: Iterable[Card]) -&gt; list[Move]:
 </details>
 </dd>
 </dl>
-<h3>Methods</h3>
-<dl>
-<dt id="schnapsen.game.RegularMove.as_regular_move"><code class="name flex">
-<span>def <span class="ident">as_regular_move</span></span>(<span>self) ‑> <a title="schnapsen.game.RegularMove" href="#schnapsen.game.RegularMove">RegularMove</a></span>
-</code></dt>
-<dd>
-<div class="desc"></div>
-<details class="source">
-<summary>
-<span>Expand source code</span>
-</summary>
-<pre><code class="python">def as_regular_move(self) -&gt; &#39;RegularMove&#39;:
-    return self</code></pre>
-</details>
-</dd>
-</dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
 <li><code><b><a title="schnapsen.game.Move" href="#schnapsen.game.Move">Move</a></b></code>:
 <ul class="hlist">
+<li><code><a title="schnapsen.game.Move.as_marriage" href="#schnapsen.game.Move.as_marriage">as_marriage</a></code></li>
+<li><code><a title="schnapsen.game.Move.as_regular_move" href="#schnapsen.game.Move.as_regular_move">as_regular_move</a></code></li>
+<li><code><a title="schnapsen.game.Move.as_trump_exchange" href="#schnapsen.game.Move.as_trump_exchange">as_trump_exchange</a></code></li>
 <li><code><a title="schnapsen.game.Move.cards" href="#schnapsen.game.Move.cards">cards</a></code></li>
 <li><code><a title="schnapsen.game.Move.is_marriage" href="#schnapsen.game.Move.is_marriage">is_marriage</a></code></li>
+<li><code><a title="schnapsen.game.Move.is_regular_move" href="#schnapsen.game.Move.is_regular_move">is_regular_move</a></code></li>
 <li><code><a title="schnapsen.game.Move.is_trump_exchange" href="#schnapsen.game.Move.is_trump_exchange">is_trump_exchange</a></code></li>
 </ul>
 </li>
@@ -4494,12 +4620,14 @@ class RegularTrick(Trick, PartialTrick):
 </summary>
 <pre><code class="python">class SchnapsenDeckGenerator(DeckGenerator):
 
-    def get_initial_deck(self) -&gt; OrderedCardCollection:
-        deck = []
+    def __init__(self) -&gt; None:
+        self.deck = []
         for suit in Suit:
             for rank in [Rank.JACK, Rank.QUEEN, Rank.KING, Rank.TEN, Rank.ACE]:
-                deck.append(Card.get_card(rank, suit))
-        return OrderedCardCollection(deck)</code></pre>
+                self.deck.append(Card.get_card(rank, suit))
+
+    def get_initial_deck(self) -&gt; OrderedCardCollection:
+        return OrderedCardCollection(self.deck)</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">
@@ -4547,33 +4675,6 @@ class RegularTrick(Trick, PartialTrick):
 <ul class="hlist">
 <li><a title="schnapsen.game.GamePlayEngine" href="#schnapsen.game.GamePlayEngine">GamePlayEngine</a></li>
 </ul>
-<h3>Class variables</h3>
-<dl>
-<dt id="schnapsen.game.SchnapsenGamePlayEngine.deck_generator"><code class="name">var <span class="ident">deck_generator</span> : <a title="schnapsen.game.DeckGenerator" href="#schnapsen.game.DeckGenerator">DeckGenerator</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="schnapsen.game.SchnapsenGamePlayEngine.hand_generator"><code class="name">var <span class="ident">hand_generator</span> : <a title="schnapsen.game.HandGenerator" href="#schnapsen.game.HandGenerator">HandGenerator</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="schnapsen.game.SchnapsenGamePlayEngine.move_requester"><code class="name">var <span class="ident">move_requester</span> : <a title="schnapsen.game.MoveRequester" href="#schnapsen.game.MoveRequester">MoveRequester</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="schnapsen.game.SchnapsenGamePlayEngine.move_validator"><code class="name">var <span class="ident">move_validator</span> : <a title="schnapsen.game.MoveValidator" href="#schnapsen.game.MoveValidator">MoveValidator</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="schnapsen.game.SchnapsenGamePlayEngine.trick_implementer"><code class="name">var <span class="ident">trick_implementer</span> : <a title="schnapsen.game.TrickImplementer" href="#schnapsen.game.TrickImplementer">TrickImplementer</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-<dt id="schnapsen.game.SchnapsenGamePlayEngine.trick_scorer"><code class="name">var <span class="ident">trick_scorer</span> : <a title="schnapsen.game.TrickScorer" href="#schnapsen.game.TrickScorer">TrickScorer</a></code></dt>
-<dd>
-<div class="desc"></div>
-</dd>
-</dl>
 <h3>Inherited members</h3>
 <ul class="hlist">
 <li><code><b><a title="schnapsen.game.GamePlayEngine" href="#schnapsen.game.GamePlayEngine">GamePlayEngine</a></b></code>:
@@ -4767,7 +4868,7 @@ class RegularTrick(Trick, PartialTrick):
         if trick.leader_move.is_marriage():
             marriage_move: Marriage = cast(Marriage, trick.leader_move)
             self._play_marriage(game_engine, next_game_state, marriage_move=marriage_move)
-            regular_leader_move: RegularMove = cast(Marriage, trick.leader_move).as_regular_move()
+            regular_leader_move: RegularMove = cast(Marriage, trick.leader_move).underlying_regular_move()
         else:
             regular_leader_move = cast(RegularMove, trick.leader_move)
 
@@ -4930,7 +5031,7 @@ class RegularTrick(Trick, PartialTrick):
     def score(self, trick: RegularTrick, leader: BotState, follower: BotState, trump: Suit) -&gt; Tuple[BotState, BotState, bool]:
 
         if trick.leader_move.is_marriage():
-            regular_leader_move: RegularMove = cast(Marriage, trick.leader_move).as_regular_move()
+            regular_leader_move: RegularMove = cast(Marriage, trick.leader_move).underlying_regular_move()
         else:
             regular_leader_move = cast(RegularMove, trick.leader_move)
 
@@ -4967,7 +5068,7 @@ class RegularTrick(Trick, PartialTrick):
 
     def declare_winner(self, game_state: GameState) -&gt; Optional[Tuple[BotState, int]]:
         &#34;&#34;&#34;
-        Declaring a winner uses the logic from https://www.pagat.com/marriage/schnaps.html#marriages , but simplified, because we do not have closing of the Talon and no need to guess the scores.
+        Declaring a winner uses the logic from https://web.archive.org/web/20230303074822/https://www.pagat.com/marriage/schnaps.html#out , but simplified, because we do not have closing of the Talon and no need to guess the scores.
         The following text adapted accordingly from that website.
 
         If a player has 66 or more points, she scores points toward game as follows:
@@ -5002,7 +5103,9 @@ class RegularTrick(Trick, PartialTrick):
 </ul>
 <h3>Subclasses</h3>
 <ul class="hlist">
-<li><a title="schnapsen.twenty_four_card_schnapsen.MyTrickScorer" href="twenty_four_card_schnapsen.html#schnapsen.twenty_four_card_schnapsen.MyTrickScorer">MyTrickScorer</a></li>
+<li><a title="schnapsen.alternative_engines.ace_one_engine.MyTrickScorer" href="alternative_engines/ace_one_engine.html#schnapsen.alternative_engines.ace_one_engine.MyTrickScorer">MyTrickScorer</a></li>
+<li><a title="schnapsen.alternative_engines.negative_ace_engine.MyTrickScorer" href="alternative_engines/negative_ace_engine.html#schnapsen.alternative_engines.negative_ace_engine.MyTrickScorer">MyTrickScorer</a></li>
+<li><a title="schnapsen.alternative_engines.twenty_four_card_schnapsen.MyTrickScorer" href="alternative_engines/twenty_four_card_schnapsen.html#schnapsen.alternative_engines.twenty_four_card_schnapsen.MyTrickScorer">MyTrickScorer</a></li>
 </ul>
 <h3>Class variables</h3>
 <dl>
@@ -5017,7 +5120,7 @@ class RegularTrick(Trick, PartialTrick):
 <span>def <span class="ident">declare_winner</span></span>(<span>self, game_state: <a title="schnapsen.game.GameState" href="#schnapsen.game.GameState">GameState</a>) ‑> Optional[Tuple[<a title="schnapsen.game.BotState" href="#schnapsen.game.BotState">BotState</a>, int]]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Declaring a winner uses the logic from <a href="https://www.pagat.com/marriage/schnaps.html#marriages">https://www.pagat.com/marriage/schnaps.html#marriages</a> , but simplified, because we do not have closing of the Talon and no need to guess the scores.
+<div class="desc"><p>Declaring a winner uses the logic from <a href="https://web.archive.org/web/20230303074822/https://www.pagat.com/marriage/schnaps.html#out">https://web.archive.org/web/20230303074822/https://www.pagat.com/marriage/schnaps.html#out</a> , but simplified, because we do not have closing of the Talon and no need to guess the scores.
 The following text adapted accordingly from that website.</p>
 <p>If a player has 66 or more points, she scores points toward game as follows:</p>
 <pre><code>* one game point, if the opponent has made at least 33 points;
@@ -5031,7 +5134,7 @@ The following text adapted accordingly from that website.</p>
 </summary>
 <pre><code class="python">def declare_winner(self, game_state: GameState) -&gt; Optional[Tuple[BotState, int]]:
     &#34;&#34;&#34;
-    Declaring a winner uses the logic from https://www.pagat.com/marriage/schnaps.html#marriages , but simplified, because we do not have closing of the Talon and no need to guess the scores.
+    Declaring a winner uses the logic from https://web.archive.org/web/20230303074822/https://www.pagat.com/marriage/schnaps.html#out , but simplified, because we do not have closing of the Talon and no need to guess the scores.
     The following text adapted accordingly from that website.
 
     If a player has 66 or more points, she scores points toward game as follows:
@@ -5599,7 +5702,7 @@ inheritance.</p></div>
     @abstractmethod
     def score(self, trick: RegularTrick, leader: BotState, follower: BotState, trump: Suit) -&gt; Tuple[BotState, BotState, bool]:
         &#34;&#34;&#34;
-        Score the trick for the given leader and follower. The returned bots are copies and have the score of the trick applied.
+        Score the trick for the given leader and follower. The returned bots are the same bots provided (not copies) and have the score of the trick applied.
         They are returned in order (new_leader, new_follower). If appropriate, also pending points have been applied.
         The boolean is True if the leading bot remained the same, i.e., the past leader remains the leader
         &#34;&#34;&#34;
@@ -5707,7 +5810,7 @@ def rank_to_points(self, rank: Rank) -&gt; int:
 <span>def <span class="ident">score</span></span>(<span>self, trick: <a title="schnapsen.game.RegularTrick" href="#schnapsen.game.RegularTrick">RegularTrick</a>, leader: <a title="schnapsen.game.BotState" href="#schnapsen.game.BotState">BotState</a>, follower: <a title="schnapsen.game.BotState" href="#schnapsen.game.BotState">BotState</a>, trump: <a title="schnapsen.deck.Suit" href="deck.html#schnapsen.deck.Suit">Suit</a>) ‑> Tuple[<a title="schnapsen.game.BotState" href="#schnapsen.game.BotState">BotState</a>, <a title="schnapsen.game.BotState" href="#schnapsen.game.BotState">BotState</a>, bool]</span>
 </code></dt>
 <dd>
-<div class="desc"><p>Score the trick for the given leader and follower. The returned bots are copies and have the score of the trick applied.
+<div class="desc"><p>Score the trick for the given leader and follower. The returned bots are the same bots provided (not copies) and have the score of the trick applied.
 They are returned in order (new_leader, new_follower). If appropriate, also pending points have been applied.
 The boolean is True if the leading bot remained the same, i.e., the past leader remains the leader</p></div>
 <details class="source">
@@ -5717,7 +5820,7 @@ The boolean is True if the leading bot remained the same, i.e., the past leader 
 <pre><code class="python">@abstractmethod
 def score(self, trick: RegularTrick, leader: BotState, follower: BotState, trump: Suit) -&gt; Tuple[BotState, BotState, bool]:
     &#34;&#34;&#34;
-    Score the trick for the given leader and follower. The returned bots are copies and have the score of the trick applied.
+    Score the trick for the given leader and follower. The returned bots are the same bots provided (not copies) and have the score of the trick applied.
     They are returned in order (new_leader, new_follower). If appropriate, also pending points have been applied.
     The boolean is True if the leading bot remained the same, i.e., the past leader remains the leader
     &#34;&#34;&#34;</code></pre>
@@ -5748,6 +5851,9 @@ class Trump_Exchange(Move):
     def is_trump_exchange(self) -&gt; bool:
         return True
 
+    def as_trump_exchange(self) -&gt; &#39;Trump_Exchange&#39;:
+        return self
+
     def _cards(self) -&gt; list[Card]:
         return [self.jack]
 
@@ -5770,8 +5876,12 @@ class Trump_Exchange(Move):
 <ul class="hlist">
 <li><code><b><a title="schnapsen.game.Move" href="#schnapsen.game.Move">Move</a></b></code>:
 <ul class="hlist">
+<li><code><a title="schnapsen.game.Move.as_marriage" href="#schnapsen.game.Move.as_marriage">as_marriage</a></code></li>
+<li><code><a title="schnapsen.game.Move.as_regular_move" href="#schnapsen.game.Move.as_regular_move">as_regular_move</a></code></li>
+<li><code><a title="schnapsen.game.Move.as_trump_exchange" href="#schnapsen.game.Move.as_trump_exchange">as_trump_exchange</a></code></li>
 <li><code><a title="schnapsen.game.Move.cards" href="#schnapsen.game.Move.cards">cards</a></code></li>
 <li><code><a title="schnapsen.game.Move.is_marriage" href="#schnapsen.game.Move.is_marriage">is_marriage</a></code></li>
+<li><code><a title="schnapsen.game.Move.is_regular_move" href="#schnapsen.game.Move.is_regular_move">is_regular_move</a></code></li>
 <li><code><a title="schnapsen.game.Move.is_trump_exchange" href="#schnapsen.game.Move.is_trump_exchange">is_trump_exchange</a></code></li>
 </ul>
 </li>
@@ -5949,17 +6059,21 @@ class Trump_Exchange(Move):
 <li>
 <h4><code><a title="schnapsen.game.Marriage" href="#schnapsen.game.Marriage">Marriage</a></code></h4>
 <ul class="">
-<li><code><a title="schnapsen.game.Marriage.as_regular_move" href="#schnapsen.game.Marriage.as_regular_move">as_regular_move</a></code></li>
 <li><code><a title="schnapsen.game.Marriage.king_card" href="#schnapsen.game.Marriage.king_card">king_card</a></code></li>
 <li><code><a title="schnapsen.game.Marriage.queen_card" href="#schnapsen.game.Marriage.queen_card">queen_card</a></code></li>
 <li><code><a title="schnapsen.game.Marriage.suit" href="#schnapsen.game.Marriage.suit">suit</a></code></li>
+<li><code><a title="schnapsen.game.Marriage.underlying_regular_move" href="#schnapsen.game.Marriage.underlying_regular_move">underlying_regular_move</a></code></li>
 </ul>
 </li>
 <li>
 <h4><code><a title="schnapsen.game.Move" href="#schnapsen.game.Move">Move</a></code></h4>
-<ul class="">
+<ul class="two-column">
+<li><code><a title="schnapsen.game.Move.as_marriage" href="#schnapsen.game.Move.as_marriage">as_marriage</a></code></li>
+<li><code><a title="schnapsen.game.Move.as_regular_move" href="#schnapsen.game.Move.as_regular_move">as_regular_move</a></code></li>
+<li><code><a title="schnapsen.game.Move.as_trump_exchange" href="#schnapsen.game.Move.as_trump_exchange">as_trump_exchange</a></code></li>
 <li><code><a title="schnapsen.game.Move.cards" href="#schnapsen.game.Move.cards">cards</a></code></li>
 <li><code><a title="schnapsen.game.Move.is_marriage" href="#schnapsen.game.Move.is_marriage">is_marriage</a></code></li>
+<li><code><a title="schnapsen.game.Move.is_regular_move" href="#schnapsen.game.Move.is_regular_move">is_regular_move</a></code></li>
 <li><code><a title="schnapsen.game.Move.is_trump_exchange" href="#schnapsen.game.Move.is_trump_exchange">is_trump_exchange</a></code></li>
 </ul>
 </li>
@@ -6019,7 +6133,6 @@ class Trump_Exchange(Move):
 <li>
 <h4><code><a title="schnapsen.game.RegularMove" href="#schnapsen.game.RegularMove">RegularMove</a></code></h4>
 <ul class="">
-<li><code><a title="schnapsen.game.RegularMove.as_regular_move" href="#schnapsen.game.RegularMove.as_regular_move">as_regular_move</a></code></li>
 <li><code><a title="schnapsen.game.RegularMove.card" href="#schnapsen.game.RegularMove.card">card</a></code></li>
 <li><code><a title="schnapsen.game.RegularMove.from_cards" href="#schnapsen.game.RegularMove.from_cards">from_cards</a></code></li>
 </ul>
@@ -6035,14 +6148,6 @@ class Trump_Exchange(Move):
 </li>
 <li>
 <h4><code><a title="schnapsen.game.SchnapsenGamePlayEngine" href="#schnapsen.game.SchnapsenGamePlayEngine">SchnapsenGamePlayEngine</a></code></h4>
-<ul class="two-column">
-<li><code><a title="schnapsen.game.SchnapsenGamePlayEngine.deck_generator" href="#schnapsen.game.SchnapsenGamePlayEngine.deck_generator">deck_generator</a></code></li>
-<li><code><a title="schnapsen.game.SchnapsenGamePlayEngine.hand_generator" href="#schnapsen.game.SchnapsenGamePlayEngine.hand_generator">hand_generator</a></code></li>
-<li><code><a title="schnapsen.game.SchnapsenGamePlayEngine.move_requester" href="#schnapsen.game.SchnapsenGamePlayEngine.move_requester">move_requester</a></code></li>
-<li><code><a title="schnapsen.game.SchnapsenGamePlayEngine.move_validator" href="#schnapsen.game.SchnapsenGamePlayEngine.move_validator">move_validator</a></code></li>
-<li><code><a title="schnapsen.game.SchnapsenGamePlayEngine.trick_implementer" href="#schnapsen.game.SchnapsenGamePlayEngine.trick_implementer">trick_implementer</a></code></li>
-<li><code><a title="schnapsen.game.SchnapsenGamePlayEngine.trick_scorer" href="#schnapsen.game.SchnapsenGamePlayEngine.trick_scorer">trick_scorer</a></code></li>
-</ul>
 </li>
 <li>
 <h4><code><a title="schnapsen.game.SchnapsenHandGenerator" href="#schnapsen.game.SchnapsenHandGenerator">SchnapsenHandGenerator</a></code></h4>

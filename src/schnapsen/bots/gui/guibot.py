@@ -11,19 +11,6 @@ from schnapsen.game import (Bot, GamePhase, Marriage, Move, PlayerPerspective,
                             RegularMove, RegularTrick, Trump_Exchange)
 
 
-class GUIBot(Bot):
-
-    def __init__(self, name: str, server: 'SchnapsenServer') -> None:
-        self.name = name
-        self.server = server
-
-    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
-        return self.server._get_move(self.name, state, leader_move)
-
-    def notify_game_end(self, won: bool, state: PlayerPerspective) -> None:
-        self.server._post_final_state(self.name, won, state)
-
-
 @dataclass
 class _StateExchange:
     bot: Bot
@@ -71,7 +58,7 @@ class SchnapsenServer:
         self.__process.start()
 
     def make_gui_bot(self, name: str) -> Bot:
-        bot = GUIBot(name, self)
+        bot = GUIBot(self, name)
         self.__bots[name] = _StateExchange(bot=bot, browser_game_started=False, is_state_ready=Event(), is_move_ready=Event(), state=None, leader_move=None, browser_move=None)
         return bot
 
@@ -131,6 +118,18 @@ class SchnapsenServer:
 
         self.__bots[botname].browser_game_started = True
         return render_template("index_interactive.html", botname=botname)
+
+
+class GUIBot(Bot):
+    def __init__(self, server: SchnapsenServer, name: str = "guibot") -> None:
+        super().__init__(name)
+        self.server = server
+
+    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+        return self.server._get_move(self.name, state, leader_move)
+
+    def notify_game_end(self, won: bool, state: PlayerPerspective) -> None:
+        self.server._post_final_state(self.name, won, state)
 
 
 class _Old_GUI_Compatibility:

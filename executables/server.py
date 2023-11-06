@@ -15,7 +15,7 @@ def main(bot: str) -> None:
     bot1: Bot
     with SchnapsenServer() as s:
         if bot.lower() == "randbot":
-            bot1 = RandBot(12)
+            bot1 = RandBot(random.Random(12))
         elif bot.lower() in ["alphabeta", "alphabetabot"]:
             bot1 = AlphaBetaBot()
         elif bot.lower() == "rdeepbot":

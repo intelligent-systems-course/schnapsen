@@ -32,21 +32,21 @@ from schnapsen.game import Bot, PlayerPerspective, Move
 
 
 class RandBot(Bot):
-    def __init__(self, seed: int) -&gt; None:
-        self.seed = seed
-        self.rng = random.Random(self.seed)
+    def __init__(self, rand: random.Random, name: str = &#34;randbot&#34;) -&gt; None:
+        super().__init__(name)
+        self.rng = rand
 
     def get_move(
         self,
-        player_perspective: PlayerPerspective,
+        state: PlayerPerspective,
         leader_move: Optional[Move],
     ) -&gt; Move:
-        moves = player_perspective.valid_moves()
+        moves: list[Move] = state.valid_moves()
         move = self.rng.choice(list(moves))
         return move
 
     def __repr__(self) -&gt; str:
-        return f&#34;RandBot(seed={self.seed})&#34;</code></pre>
+        return f&#34;RandBot(rng={self.rng})&#34;</code></pre>
 </details>
 </section>
 <section>
@@ -60,7 +60,7 @@ class RandBot(Bot):
 <dl>
 <dt id="schnapsen.bots.rand.RandBot"><code class="flex name class">
 <span>class <span class="ident">RandBot</span></span>
-<span>(</span><span>seed: int)</span>
+<span>(</span><span>rand: random.Random, name: str = 'randbot')</span>
 </code></dt>
 <dd>
 <div class="desc"><p>The Bot baseclass. Derive your own bots from this class and implement the get_move method to use it in games.</p>
@@ -70,21 +70,21 @@ class RandBot(Bot):
 <span>Expand source code</span>
 </summary>
 <pre><code class="python">class RandBot(Bot):
-    def __init__(self, seed: int) -&gt; None:
-        self.seed = seed
-        self.rng = random.Random(self.seed)
+    def __init__(self, rand: random.Random, name: str = &#34;randbot&#34;) -&gt; None:
+        super().__init__(name)
+        self.rng = rand
 
     def get_move(
         self,
-        player_perspective: PlayerPerspective,
+        state: PlayerPerspective,
         leader_move: Optional[Move],
     ) -&gt; Move:
-        moves = player_perspective.valid_moves()
+        moves: list[Move] = state.valid_moves()
         move = self.rng.choice(list(moves))
         return move
 
     def __repr__(self) -&gt; str:
-        return f&#34;RandBot(seed={self.seed})&#34;</code></pre>
+        return f&#34;RandBot(rng={self.rng})&#34;</code></pre>
 </details>
 <h3>Ancestors</h3>
 <ul class="hlist">

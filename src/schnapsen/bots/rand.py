@@ -4,10 +4,9 @@ from schnapsen.game import Bot, PlayerPerspective, Move
 
 
 class RandBot(Bot):
-    def __init__(self, seed: int, name: str = "randbot") -> None:
+    def __init__(self, rand: random.Random, name: str = "randbot") -> None:
         super().__init__(name)
-        self.seed = seed
-        self.rng = random.Random(self.seed)
+        self.rng = rand
 
     def get_move(
         self,
@@ -19,4 +18,4 @@ class RandBot(Bot):
         return move
 
     def __repr__(self) -> str:
-        return f"RandBot(seed={self.seed})"
+        return f"RandBot(rng={self.rng})"
