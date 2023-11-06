@@ -21,7 +21,7 @@ class MoveTest(TestCase):
     """Tests the different move types"""
 
     def setUp(self) -> None:
-        self.jacks = []
+        self.jacks:list[Card] = []
         for suit in Suit:
             jack = Card.get_card(Rank.JACK, suit)
             self.jacks.append(jack)

@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from json import dumps
 from threading import Event, Thread
 from types import TracebackType
-from typing import Optional, Tuple, Type, cast
+from typing import Optional, Type, cast
 
 from flask import Flask, abort, render_template, request
 
@@ -82,8 +82,8 @@ class SchnapsenServer:
         return move
 
     def __sendmove(self, botname: str) -> str:
-        data = cast(Tuple[Optional[int], Optional[int]], request.get_json(force=True))
-        old_move: Tuple[Optional[int], Optional[int]] = (data[0], data[1])
+        data = cast(tuple[Optional[int], Optional[int]], request.get_json(force=True))
+        old_move: tuple[Optional[int], Optional[int]] = (data[0], data[1])
         move = _Old_GUI_Compatibility.convert_move(old_move)
 
         state_exchange = self.__bots[botname]
@@ -162,7 +162,7 @@ class _Old_GUI_Compatibility:
     ]
 
     @staticmethod
-    def convert_move(old_move: Tuple[Optional[int], Optional[int]]) -> Move:
+    def convert_move(old_move: tuple[Optional[int], Optional[int]]) -> Move:
         if not old_move[1]:
             assert old_move[0] is not None, "In the old engine, all moves with the second part not set must be Regular moves"
             return RegularMove(_Old_GUI_Compatibility.old_engine_order[old_move[0]])
@@ -313,7 +313,7 @@ class _Old_GUI_Compatibility:
         # "p1_pending_points":self.__p1_pending_points, "p2_pending_points":self.__p2_pending_points, "signature":self.__signature, "revoked":self.__revoked})
 
         # TODO implement with legal moves
-        moves: list[Tuple[Optional[int], Optional[int]]] = []
+        moves: list[tuple[Optional[int], Optional[int]]] = []
         if not game_over:
             for move in state.valid_moves():
                 if move.is_trump_exchange():

@@ -6,7 +6,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from enum import Enum
 from random import Random
-from typing import Iterable, Optional, Tuple, Union, cast, Any
+from typing import Iterable, Optional, Union, cast, Any
 from .deck import CardCollection, OrderedCardCollection, Card, Rank, Suit
 import itertools
 
@@ -655,7 +655,7 @@ class PlayerPerspective(ABC):
         """
 
         # We reconstruct the history backwards.
-        game_state_history: list[Tuple[PlayerPerspective, Optional[Trick]]] = []
+        game_state_history: list[tuple[PlayerPerspective, Optional[Trick]]] = []
         # We first push the current state to the end
         game_state_history.insert(0, (self, None))
 
@@ -848,7 +848,7 @@ class PlayerPerspective(ABC):
 
         assert len(unseen_talon) + len(unseen_opponent_hand) == len(unseen_cards), "Logical error. The number of unseen cards in the opponents hand and in the talon must be equal to the number of unseen cards"
 
-        new_talon = []
+        new_talon:list[Card] = []
         for card in talon:
             if card in unseen_talon:
                 # take one of the random cards
@@ -1048,7 +1048,7 @@ class DeckGenerator(ABC):
         """
 
     @classmethod
-    def shuffle_deck(self, deck: OrderedCardCollection, rng: Random) -> OrderedCardCollection:
+    def shuffle_deck(cls, deck: OrderedCardCollection, rng: Random) -> OrderedCardCollection:
         """
         Shuffle the given deck of cards, using the random number generator as a source of randomness.
         """
@@ -1060,7 +1060,7 @@ class DeckGenerator(ABC):
 class SchnapsenDeckGenerator(DeckGenerator):
 
     def __init__(self) -> None:
-        self.deck = []
+        self.deck:list[Card] = []
         for suit in Suit:
             for rank in [Rank.JACK, Rank.QUEEN, Rank.KING, Rank.TEN, Rank.ACE]:
                 self.deck.append(Card.get_card(rank, suit))
@@ -1074,7 +1074,7 @@ class HandGenerator(ABC):
     The HandGenerator specifies how the intial set of cards gets divided over the two player's hands and the talon
     """
     @abstractmethod
-    def generateHands(self, cards: OrderedCardCollection) -> Tuple[Hand, Hand, Talon]:
+    def generateHands(self, cards: OrderedCardCollection) -> tuple[Hand, Hand, Talon]:
         """
         Divide the collection of cards over the two hands and the Talon
 
@@ -1085,7 +1085,7 @@ class HandGenerator(ABC):
 
 class SchnapsenHandGenerator(HandGenerator):
     @classmethod
-    def generateHands(self, cards: OrderedCardCollection) -> Tuple[Hand, Hand, Talon]:
+    def generateHands(self, cards: OrderedCardCollection) -> tuple[Hand, Hand, Talon]:
         the_cards = list(cards.get_cards())
         hand1 = Hand([the_cards[i] for i in range(0, 10, 2)], max_size=5)
         hand2 = Hand([the_cards[i] for i in range(1, 11, 2)], max_size=5)
@@ -1359,7 +1359,7 @@ class SchnapsenMoveValidator(MoveValidator):
 
 class TrickScorer(ABC):
     @abstractmethod
-    def score(self, trick: RegularTrick, leader: BotState, follower: BotState, trump: Suit) -> Tuple[BotState, BotState, bool]:
+    def score(self, trick: RegularTrick, leader: BotState, follower: BotState, trump: Suit) -> tuple[BotState, BotState, bool]:
         """
         Score the trick for the given leader and follower. The returned bots are the same bots provided (not copies) and have the score of the trick applied.
         They are returned in order (new_leader, new_follower). If appropriate, also pending points have been applied.
@@ -1367,7 +1367,7 @@ class TrickScorer(ABC):
         """
 
     @abstractmethod
-    def declare_winner(self, game_state: GameState) -> Optional[Tuple[BotState, int]]:
+    def declare_winner(self, game_state: GameState) -> Optional[tuple[BotState, int]]:
         """return a bot and the number of points if there is a winner of this game already
 
         :param game_state: The current state of the game
@@ -1416,7 +1416,7 @@ class SchnapsenTrickScorer(TrickScorer):
         # any other marriage
         return Score(pending_points=20)
 
-    def score(self, trick: RegularTrick, leader: BotState, follower: BotState, trump: Suit) -> Tuple[BotState, BotState, bool]:
+    def score(self, trick: RegularTrick, leader: BotState, follower: BotState, trump: Suit) -> tuple[BotState, BotState, bool]:
 
         if trick.leader_move.is_marriage():
             regular_leader_move: RegularMove = cast(Marriage, trick.leader_move).underlying_regular_move()
@@ -1454,7 +1454,7 @@ class SchnapsenTrickScorer(TrickScorer):
         winner.score = winner.score.redeem_pending_points()
         return winner, loser, leader_wins
 
-    def declare_winner(self, game_state: GameState) -> Optional[Tuple[BotState, int]]:
+    def declare_winner(self, game_state: GameState) -> Optional[tuple[BotState, int]]:
         """
         Declaring a winner uses the logic from https://web.archive.org/web/20230303074822/https://www.pagat.com/marriage/schnaps.html#out , but simplified, because we do not have closing of the Talon and no need to guess the scores.
         The following text adapted accordingly from that website.
@@ -1497,7 +1497,7 @@ class GamePlayEngine:
     move_validator: MoveValidator
     trick_scorer: TrickScorer
 
-    def play_game(self, bot1: Bot, bot2: Bot, rng: Random) -> Tuple[Bot, int, Score]:
+    def play_game(self, bot1: Bot, bot2: Bot, rng: Random) -> tuple[Bot, int, Score]:
         """
         Play a game between bot1 and bot2, using the rng to create the game.
 
@@ -1523,7 +1523,7 @@ class GamePlayEngine:
         winner, points, score = self.play_game_from_state(game_state=game_state, leader_move=None)
         return winner, points, score
 
-    def play_game_from_state_with_new_bots(self, game_state: GameState, new_leader: Bot, new_follower: Bot, leader_move: Optional[Move]) -> Tuple[Bot, int, Score]:
+    def play_game_from_state_with_new_bots(self, game_state: GameState, new_leader: Bot, new_follower: Bot, leader_move: Optional[Move]) -> tuple[Bot, int, Score]:
         """
         Continue a game  which might have started before with other bots, with new bots.
         The new bots are new_leader and new_follower.
@@ -1540,7 +1540,7 @@ class GamePlayEngine:
         game_state_copy = game_state.copy_with_other_bots(new_leader=new_leader, new_follower=new_follower)
         return self.play_game_from_state(game_state_copy, leader_move=leader_move)
 
-    def play_game_from_state(self, game_state: GameState, leader_move: Optional[Move]) -> Tuple[Bot, int, Score]:
+    def play_game_from_state(self, game_state: GameState, leader_move: Optional[Move]) -> tuple[Bot, int, Score]:
         """
         Continue a game  which might have been started before.
         The leader move is an optional paramter which can be provided to force this first move from the leader.
@@ -1569,7 +1569,7 @@ class GamePlayEngine:
 
         return winner.implementation, points, winner.score
 
-    def play_at_most_n_tricks(self, game_state: GameState, new_leader: Bot, new_follower: Bot, n: int) -> Tuple[GameState, int]:
+    def play_at_most_n_tricks(self, game_state: GameState, new_leader: Bot, new_follower: Bot, n: int) -> tuple[GameState, int]:
         """
         Plays up to n tricks (including the one started by the leader, if provided) on a game which might have started before.
         The number of tricks will be smaller than n in case the game ends before n tricks are played.

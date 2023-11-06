@@ -1,5 +1,5 @@
 from schnapsen.game import Bot, PlayerPerspective, SchnapsenDeckGenerator, Move, Trick, GamePhase
-from typing import List, Optional, cast, Literal
+from typing import Optional, cast, Literal
 from schnapsen.deck import Suit, Rank
 from sklearn.neural_network import MLPClassifier
 from sklearn.linear_model import LogisticRegression
@@ -121,7 +121,7 @@ class MLDataBot(Bot):
 
             # append replay memory to file
             with open(file=self.replay_memory_file_path, mode="a") as replay_memory_file:
-                # replay_memory_line: List[Tuple[list, number]] = [state_actions_representation, won_label]
+                # replay_memory_line: list[tuple[list, number]] = [state_actions_representation, won_label]
                 # writing to replay memory file in the form "[feature list] || int(won_label)]
                 replay_memory_file.write(f"{str(state_actions_representation)[1:-1]} || {int(won_label)}\n")
 
@@ -226,7 +226,7 @@ def train_ML_model(replay_memory_location: Optional[pathlib.Path],
 
 
 def create_state_and_actions_vector_representation(state: PlayerPerspective, leader_move: Optional[Move],
-                                                   follower_move: Optional[Move]) -> List[int]:
+                                                   follower_move: Optional[Move]) -> list[int]:
     """
     This function takes as input a PlayerPerspective variable, and the two moves of leader and follower,
     and returns a list of complete feature representation that contains all information
@@ -238,7 +238,7 @@ def create_state_and_actions_vector_representation(state: PlayerPerspective, lea
     return player_game_state_representation + leader_move_representation + follower_move_representation
 
 
-def get_one_hot_encoding_of_card_suit(card_suit: Suit) -> List[int]:
+def get_one_hot_encoding_of_card_suit(card_suit: Suit) -> list[int]:
     """
     Translating the suit of a card into one hot vector encoding of size 4.
     """
@@ -257,7 +257,7 @@ def get_one_hot_encoding_of_card_suit(card_suit: Suit) -> List[int]:
     return card_suit_one_hot
 
 
-def get_one_hot_encoding_of_card_rank(card_rank: Rank) -> List[int]:
+def get_one_hot_encoding_of_card_rank(card_rank: Rank) -> list[int]:
     """
     Translating the rank of a card into one hot vector encoding of size 13.
     """
@@ -293,7 +293,7 @@ def get_one_hot_encoding_of_card_rank(card_rank: Rank) -> List[int]:
     return card_rank_one_hot
 
 
-def get_move_feature_vector(move: Optional[Move]) -> List[int]:
+def get_move_feature_vector(move: Optional[Move]) -> list[int]:
     """
         In case there isn't any move provided move to encode, we still need to create a "padding"-"meaningless" vector of the same size,
         filled with 0s, since the ML models need to receive input of the same dimensionality always.
@@ -327,7 +327,7 @@ def get_move_feature_vector(move: Optional[Move]) -> List[int]:
     return move_type_one_hot_encoding_numpy_array + card_rank_one_hot_encoding_numpy_array + card_suit_one_hot_encoding_numpy_array
 
 
-def get_state_feature_vector(state: PlayerPerspective) -> List[int]:
+def get_state_feature_vector(state: PlayerPerspective) -> list[int]:
     """
         This function gathers all subjective information that this bot has access to, that can be used to decide its next move, including:
         - points of this player (int)
