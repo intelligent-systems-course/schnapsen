@@ -123,7 +123,7 @@ class SchnapsenServer:
 
 
 class GUIBot(Bot):
-    def __init__(self, server: SchnapsenServer, name: str) -> None:
+    def __init__(self, server: SchnapsenServer, name: Optional[str] = None) -> None:
         super().__init__(name)
         self.name = name
         self.server = server
