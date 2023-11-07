@@ -4,14 +4,15 @@ import pathlib
 from typing import Optional
 
 import click
+from schnapsen.alternative_engines.ace_one_engine import AceOneGamePlayEngine
+
 from schnapsen.bots import MLDataBot, train_ML_model, MLPlayingBot, RandBot
 
 from schnapsen.bots.example_bot import ExampleBot
 
-from schnapsen.game import (Bot, Move, PlayerPerspective,
-                            SchnapsenGamePlayEngine, Trump_Exchange)
-from schnapsen.twenty_four_card_schnapsen import \
-    TwentyFourSchnapsenGamePlayEngine
+from schnapsen.game import (Bot, GamePlayEngine, Move, PlayerPerspective,
+                            SchnapsenGamePlayEngine, TrumpExchange)
+from schnapsen.alternative_engines.twenty_four_card_schnapsen import TwentyFourSchnapsenGamePlayEngine
 
 from schnapsen.bots.rdeep import RdeepBot
 
@@ -21,7 +22,7 @@ def main() -> None:
     """Various Schnapsen Game Examples"""
 
 
-def play_games_and_return_stats(engine: SchnapsenGamePlayEngine, bot1: Bot, bot2: Bot, number_of_games: int) -> int:
+def play_games_and_return_stats(engine: GamePlayEngine, bot1: Bot, bot2: Bot, number_of_games: int) -> int:
     """
     Play number_of_games games between bot1 and bot2, using the SchnapsenGamePlayEngine, and return how often bot1 won.
     Prints progress.
@@ -43,8 +44,8 @@ def play_games_and_return_stats(engine: SchnapsenGamePlayEngine, bot1: Bot, bot2
 @main.command()
 def random_game() -> None:
     engine = SchnapsenGamePlayEngine()
-    bot1 = RandBot(12112121)
-    bot2 = RandBot(464566)
+    bot1 = RandBot(random.Random(12112121))
+    bot2 = RandBot(random.Random(464566))
     for i in range(1000):
         winner_id, game_points, score = engine.play_game(bot1, bot2, random.Random(i))
         print(f"Game ended. Winner is {winner_id} with {game_points} points, score {score}")
@@ -60,7 +61,7 @@ class NotificationExampleBot(Bot):
         print(f'result {"win" if won else "lost"}')
         print(f'I still have {len(state.get_hand())} cards left')
 
-    def notify_trump_exchange(self, move: Trump_Exchange) -> None:
+    def notify_trump_exchange(self, move: TrumpExchange) -> None:
         print(f"That trump exchanged! {move.jack}")
 
 
@@ -68,7 +69,7 @@ class NotificationExampleBot(Bot):
 def notification_game() -> None:
     engine = TwentyFourSchnapsenGamePlayEngine()
     bot1 = NotificationExampleBot()
-    bot2 = RandBot(464566)
+    bot2 = RandBot(random.Random(464566))
     engine.play_game(bot1, bot2, random.Random(94))
 
 
@@ -84,9 +85,9 @@ class HistoryBot(Bot):
 def try_example_bot_game() -> None:
     engine = SchnapsenGamePlayEngine()
     bot1 = ExampleBot()
-    bot2 = RandBot(464566)
+    bot2 = RandBot(random.Random(464566))
     winner, points, score = engine.play_game(bot1, bot2, random.Random(1))
-    print(f"Winner is: {winner}, with {points} points!")
+    print(f"Winner is: {winner}, with {points} points, score {score}!")
 
 
 @main.command()
@@ -95,7 +96,7 @@ def rdeep_game() -> None:
     bot2: Bot
     engine = SchnapsenGamePlayEngine()
     rdeep = bot1 = RdeepBot(num_samples=16, depth=4, rand=random.Random(4564654644))
-    bot2 = RandBot(464566)
+    bot2 = RandBot(random.Random(464566))
     wins = 0
     amount = 100
     for game_number in range(1, amount + 1):
@@ -121,9 +122,9 @@ def create_replay_memory_dataset() -> None:
     replay_memory_filename: str = 'random_random_10k_games.txt'
     replay_memory_location = pathlib.Path(replay_memory_dir) / replay_memory_filename
 
-    bot_1_behaviour: Bot = RandBot(5234243)
+    bot_1_behaviour: Bot = RandBot(random.Random(5234243))
     # bot_1_behaviour: Bot = RdeepBot(num_samples=4, depth=4, rand=random.Random(4564654644))
-    bot_2_behaviour: Bot = RandBot(54354)
+    bot_2_behaviour: Bot = RandBot(random.Random(54354))
     # bot_2_behaviour: Bot = RdeepBot(num_samples=4, depth=4, rand=random.Random(68438))
     delete_existing_older_dataset = False
 
@@ -177,7 +178,7 @@ def try_bot_game() -> None:
     model_name: str = 'simple_model'
     model_location = pathlib.Path(model_dir) / model_name
     bot1: Bot = MLPlayingBot(model_location=model_location)
-    bot2: Bot = RandBot(464566)
+    bot2: Bot = RandBot(random.Random(464566))
     number_of_games: int = 10000
 
     # play games with altering leader position on first rounds
@@ -188,8 +189,18 @@ def try_bot_game() -> None:
 @main.command()
 def game_24() -> None:
     engine = TwentyFourSchnapsenGamePlayEngine()
-    bot1 = RandBot(12112121)
-    bot2 = RandBot(464566)
+    bot1 = RandBot(random.Random(12112121))
+    bot2 = RandBot(random.Random(464566))
+    for i in range(1000):
+        winner_id, game_points, score = engine.play_game(bot1, bot2, random.Random(i))
+        print(f"Game ended. Winner is {winner_id} with {game_points} points, score {score}")
+
+
+@main.command()
+def game_ace_one() -> None:
+    engine = AceOneGamePlayEngine()
+    bot1 = RandBot(random.Random(12112121))
+    bot2 = RdeepBot(num_samples=16, depth=4, rand=random.Random(464566))
     for i in range(1000):
         winner_id, game_points, score = engine.play_game(bot1, bot2, random.Random(i))
         print(f"Game ended. Winner is {winner_id} with {game_points} points, score {score}")
