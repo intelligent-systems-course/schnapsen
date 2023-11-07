@@ -21,7 +21,7 @@ class MoveTest(TestCase):
     """Tests the different move types"""
 
     def setUp(self) -> None:
-        self.jacks:list[Card] = []
+        self.jacks: list[Card] = []
         for suit in Suit:
             jack = Card.get_card(Rank.JACK, suit)
             self.jacks.append(jack)
@@ -233,7 +233,7 @@ class ScoreTest(TestCase):
                             self.assertEqual(together.direct_points, direct1 + direct2)
                             self.assertEqual(together.pending_points, pending1 + pending2)
 
-    def test_redeem_pending_points(self) -> 'None':
+    def test_redeem_pending_points(self) -> None:
         for direct1 in range(-10, 10):
             for pending1 in range(-10, 10):
                 score = Score(direct_points=direct1, pending_points=pending1)

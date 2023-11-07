@@ -1,3 +1,5 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from json import dumps
 from threading import Event, Thread
@@ -27,7 +29,7 @@ class _StateExchange:
 
 class SchnapsenServer:
 
-    def __enter__(self) -> 'SchnapsenServer':
+    def __enter__(self) -> SchnapsenServer:
         return self
 
     def __exit__(self,
