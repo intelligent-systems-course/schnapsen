@@ -1,27 +1,16 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from json import dumps
 from threading import Event, Thread
 from types import TracebackType
-from typing import Optional, Tuple, Type, cast
+from typing import Optional, Type, cast
 
 from flask import Flask, abort, render_template, request
 
 from schnapsen.deck import Card, Rank, Suit
 from schnapsen.game import (Bot, GamePhase, Marriage, Move, PlayerPerspective,
-                            RegularMove, RegularTrick, Trump_Exchange)
-
-
-class GUIBot(Bot):
-
-    def __init__(self, name: str, server: 'SchnapsenServer') -> None:
-        self.name = name
-        self.server = server
-
-    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
-        return self.server._get_move(self.name, state, leader_move)
-
-    def notify_game_end(self, won: bool, state: PlayerPerspective) -> None:
-        self.server._post_final_state(self.name, won, state)
+                            RegularMove, RegularTrick, TrumpExchange)
 
 
 @dataclass
@@ -40,7 +29,7 @@ class _StateExchange:
 
 class SchnapsenServer:
 
-    def __enter__(self) -> 'SchnapsenServer':
+    def __enter__(self) -> SchnapsenServer:
         return self
 
     def __exit__(self,
@@ -71,7 +60,7 @@ class SchnapsenServer:
         self.__process.start()
 
     def make_gui_bot(self, name: str) -> Bot:
-        bot = GUIBot(name, self)
+        bot = GUIBot(self, name)
         self.__bots[name] = _StateExchange(bot=bot, browser_game_started=False, is_state_ready=Event(), is_move_ready=Event(), state=None, leader_move=None, browser_move=None)
         return bot
 
@@ -95,8 +84,8 @@ class SchnapsenServer:
         return move
 
     def __sendmove(self, botname: str) -> str:
-        data = cast(Tuple[Optional[int], Optional[int]], request.get_json(force=True))
-        old_move: Tuple[Optional[int], Optional[int]] = (data[0], data[1])
+        data = cast(tuple[Optional[int], Optional[int]], request.get_json(force=True))
+        old_move: tuple[Optional[int], Optional[int]] = (data[0], data[1])
         move = _Old_GUI_Compatibility.convert_move(old_move)
 
         state_exchange = self.__bots[botname]
@@ -133,6 +122,19 @@ class SchnapsenServer:
         return render_template("index_interactive.html", botname=botname)
 
 
+class GUIBot(Bot):
+    def __init__(self, server: SchnapsenServer, name: str) -> None:
+        super().__init__(name)
+        self.name = name
+        self.server = server
+
+    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+        return self.server._get_move(self.name, state, leader_move)
+
+    def notify_game_end(self, won: bool, state: PlayerPerspective) -> None:
+        self.server._post_final_state(self.name, won, state)
+
+
 class _Old_GUI_Compatibility:
 
     old_engine_order = [
@@ -162,13 +164,13 @@ class _Old_GUI_Compatibility:
     ]
 
     @staticmethod
-    def convert_move(old_move: Tuple[Optional[int], Optional[int]]) -> Move:
+    def convert_move(old_move: tuple[Optional[int], Optional[int]]) -> Move:
         if not old_move[1]:
             assert old_move[0] is not None, "In the old engine, all moves with the second part not set must be Regular moves"
             return RegularMove(_Old_GUI_Compatibility.old_engine_order[old_move[0]])
         if not old_move[0]:
             assert old_move[1] is not None, "In the old endinge, all moves with the first part not set must be Trump exchanges"
-            return Trump_Exchange(_Old_GUI_Compatibility.old_engine_order[old_move[1]])
+            return TrumpExchange(_Old_GUI_Compatibility.old_engine_order[old_move[1]])
         assert old_move[0] and old_move[1]
         if _Old_GUI_Compatibility.old_engine_order[old_move[0]].rank == Rank.KING:
             # swap
@@ -313,11 +315,11 @@ class _Old_GUI_Compatibility:
         # "p1_pending_points":self.__p1_pending_points, "p2_pending_points":self.__p2_pending_points, "signature":self.__signature, "revoked":self.__revoked})
 
         # TODO implement with legal moves
-        moves: list[Tuple[Optional[int], Optional[int]]] = []
+        moves: list[tuple[Optional[int], Optional[int]]] = []
         if not game_over:
             for move in state.valid_moves():
                 if move.is_trump_exchange():
-                    trump_move = cast(Trump_Exchange, move)
+                    trump_move = cast(TrumpExchange, move)
                     moves.append((None, _Old_GUI_Compatibility.old_engine_order.index(trump_move.jack)))
                 elif move.is_marriage():
                     marriage_move = cast(Marriage, move)
