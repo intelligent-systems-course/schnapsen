@@ -24,7 +24,7 @@ class RandMiniMaxBot(Bot):
     """In the phase1, this bot plays random, and in the phase2, it plays minimax.
     The opponent is random."""
 
-    def __init__(self, rand=random.Random, name="rand_minimax_bot") -> None:
+    def __init__(self, rand: random.Random, name: str = "rand_minimax_bot") -> None:
         super().__init__(name)
         self.bot_phase1 = RandBot(rand=rand)
         self.bot_phase2 = MiniMaxBot()
@@ -42,7 +42,7 @@ class RdeepMiniMaxBot(Bot):
     """In the phase1, this bot plays rdeep, and in the phase2, it plays minimax.
     The opponent is random."""
 
-    def __init__(self, rand=random.Random, name: str = "rdeep_minimax_bot") -> None:
+    def __init__(self, rand: random.Random, name: str = "rdeep_minimax_bot") -> None:
         super().__init__(name)
         self.bot_phase1 = RdeepBot(num_samples=16, depth=4, rand=rand)
         self.bot_phase2 = MiniMaxBot()
@@ -60,7 +60,7 @@ class RandAlphaBetaBot(Bot):
     """In the phase1, this bot plays random, and in the phase2, it plays AlphaBeta.
     The opponent is random."""
 
-    def __init__(self, rand=random.Random, name="rand_alphabeta_bot") -> None:
+    def __init__(self, rand: random.Random, name: str = "rand_alphabeta_bot") -> None:
         super().__init__(name)
         self.bot_phase1 = RandBot(rand=rand)
         self.bot_phase2 = AlphaBetaBot()
@@ -78,7 +78,7 @@ class RdeepAlphaBetaBot(Bot):
     """In the phase1, this bot plays rdeep, and in the phase2, it plays alphabeta.
     The opponent is random."""
 
-    def __init__(self, rand=random.Random, name: str = "rdeep_alphabeta_bot") -> None:
+    def __init__(self, rand: random.Random, name: str = "rdeep_alphabeta_bot") -> None:
         super().__init__(name)
         self.bot_phase1 = RdeepBot(num_samples=16, depth=4, rand=rand)
         self.bot_phase2 = AlphaBetaBot()
