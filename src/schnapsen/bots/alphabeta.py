@@ -11,7 +11,7 @@ from schnapsen.game import (
     GamePlayEngine,
     SchnapsenTrickScorer,
 )
-from .minimax import OneFixedMoveBot, NoMoveBot
+from .minimax import OneFixedMoveBot
 
 import random
 

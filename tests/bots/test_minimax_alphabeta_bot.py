@@ -9,10 +9,6 @@ from schnapsen.game import (
     PlayerPerspective,
     GamePhase,
     GameState,
-    FollowerPerspective,
-    LeaderPerspective,
-    GamePlayEngine,
-    SchnapsenTrickScorer,
     SchnapsenGamePlayEngine,
     BotState,
     RegularMove,
@@ -21,7 +17,7 @@ from schnapsen.game import (
     _DummyBot,
     Score,
 )
-from schnapsen.deck import Card, Suit, Rank
+from schnapsen.deck import Card, Suit
 
 
 class RandMiniMaxBot(Bot):
