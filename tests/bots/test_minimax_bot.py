@@ -104,7 +104,7 @@ class MiniMaxBotTest(TestCase):
 
 
 class MiniMaxBotPhaseTwo(TestCase):
-    def test_value_move(self) -> None:
+    def test_value_move_easy(self) -> None:
         engine = SchnapsenGamePlayEngine()
         leader_move = None
         maximizing = True
@@ -158,3 +158,58 @@ class MiniMaxBotPhaseTwo(TestCase):
 
         self.assertEqual(best_value, 2)
         self.assertEqual(best_move, RegularMove(Card.ACE_CLUBS))
+
+    def test_value_move_hard(self) -> None:
+        engine = SchnapsenGamePlayEngine()
+        leader_move = None
+        maximizing = True
+
+        leader = BotState(
+            implementation=_DummyBot(),
+            hand=Hand(
+                cards=[
+                    Card.QUEEN_SPADES,
+                    Card.ACE_DIAMONDS,
+                    Card.QUEEN_CLUBS,
+                    Card.QUEEN_HEARTS,
+                    Card.TEN_SPADES,
+                ]
+            ),
+            score=Score(direct_points=14, pending_points=0),
+            won_cards=[
+                Card.KING_DIAMONDS,
+                Card.KING_SPADES,
+                Card.JACK_CLUBS,
+                Card.KING_CLUBS,
+            ],
+        )
+        follower = BotState(
+            implementation=_DummyBot(),
+            hand=Hand(
+                cards=[
+                    Card.ACE_SPADES,
+                    Card.ACE_CLUBS,
+                    Card.JACK_DIAMONDS,
+                    Card.TEN_CLUBS,
+                    Card.JACK_SPADES,
+                ]
+            ),
+            score=Score(direct_points=40, pending_points=0),
+            won_cards=[
+                Card.QUEEN_DIAMONDS,
+                Card.TEN_DIAMONDS,
+                Card.KING_HEARTS,
+                Card.JACK_HEARTS,
+                Card.TEN_HEARTS,
+                Card.ACE_HEARTS,
+            ],
+        )
+        talon = Talon(cards=[], trump_suit=Suit.SPADES)
+        state = GameState(leader=leader, follower=follower, talon=talon, previous=None)
+
+        bot = MiniMaxBot()
+
+        best_value, best_move = bot.value(state, engine, leader_move, maximizing)
+
+        self.assertEqual(best_value, -2)
+        self.assertEqual(best_move, RegularMove(Card.QUEEN_SPADES))
