@@ -142,8 +142,8 @@ class MiniMaxBotTest(TestCase):
 class MiniMaxBotAlphaBetaPhaseTwoEasy(TestCase):
     def setUp(self) -> None:
         self.num_runs = 100
-        self.minimax_time = 0
-        self.alphabeta_time = 0
+        self.minimax_time = 0.0
+        self.alphabeta_time = 0.0
 
         self.engine = SchnapsenGamePlayEngine()
         self.leader_move = None
@@ -229,8 +229,8 @@ class MiniMaxBotAlphaBetaPhaseTwoEasy(TestCase):
 class MiniMaxBotAlphaBetaPhaseTwoHard(TestCase):
     def setUp(self) -> None:
         self.num_runs = 100
-        self.minimax_time = 0
-        self.alphabeta_time = 0
+        self.minimax_time = 0.0
+        self.alphabeta_time = 0.0
 
         self.engine = SchnapsenGamePlayEngine()
         self.leader_move = None
