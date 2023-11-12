@@ -1,7 +1,8 @@
 from unittest import TestCase
 import random
 from typing import Optional
-from schnapsen.bots import RandBot, MiniMaxBot, RdeepBot
+import time
+from schnapsen.bots import RandBot, MiniMaxBot, AlphaBetaBot, RdeepBot
 from schnapsen.game import (
     Bot,
     Move,
@@ -59,12 +60,51 @@ class RdeepMiniMaxBot(Bot):
             raise ValueError("Phase ain't right.")
 
 
+class RandAlphaBetaBot(Bot):
+    """In the phase1, this bot plays random, and in the phase2, it plays AlphaBeta.
+    The opponent is random."""
+
+    def __init__(self, rand=random.Random, name="rand_alphabeta_bot") -> None:
+        super().__init__(name)
+        self.bot_phase1 = RandBot(rand=rand)
+        self.bot_phase2 = AlphaBetaBot()
+
+    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+        if state.get_phase() == GamePhase.ONE:
+            return self.bot_phase1.get_move(state, leader_move)
+        elif state.get_phase() == GamePhase.TWO:
+            return self.bot_phase2.get_move(state, leader_move)
+        else:
+            raise ValueError("Phase ain't right.")
+
+
+class RdeepAlphaBetaBot(Bot):
+    """In the phase1, this bot plays rdeep, and in the phase2, it plays alphabeta.
+    The opponent is random."""
+
+    def __init__(self, rand=random.Random, name: str = "rdeep_alphabeta_bot") -> None:
+        super().__init__(name)
+        self.bot_phase1 = RdeepBot(num_samples=16, depth=4, rand=rand)
+        self.bot_phase2 = AlphaBetaBot()
+
+    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+        if state.get_phase() == GamePhase.ONE:
+            return self.bot_phase1.get_move(state, leader_move)
+        elif state.get_phase() == GamePhase.TWO:
+            return self.bot_phase2.get_move(state, leader_move)
+        else:
+            raise ValueError("Phase ain't right.")
+
+
 class MiniMaxBotTest(TestCase):
     def setUp(self) -> None:
         self.engine = SchnapsenGamePlayEngine()
         self.bot1 = RandMiniMaxBot(random.Random(42), "rand_minimax_bot")
         self.bot2 = RdeepMiniMaxBot(random.Random(43), "rdeep_minimax_bot")
         self.bot3 = RandBot(random.Random(44), "randbot")
+
+        self.bot4 = RandAlphaBetaBot(random.Random(42), "rand_alphabeta_bot")
+        self.bot5 = RdeepAlphaBetaBot(random.Random(43), "rdeep_alphabeta_bot")
 
     def test_run_1(self) -> None:
         winners = {str(self.bot1): 0, str(self.bot3): 0}
@@ -103,12 +143,15 @@ class MiniMaxBotTest(TestCase):
         self.assertTrue(winners[str(self.bot2)] > num_games // 2)
 
 
-class MiniMaxBotPhaseTwo(TestCase):
-    def test_value_move_easy(self) -> None:
-        engine = SchnapsenGamePlayEngine()
-        leader_move = None
-        maximizing = True
+class MiniMaxBotAlphaBetaPhaseTwoEasy(TestCase):
+    def setUp(self) -> None:
+        self.num_runs = 100
+        self.minimax_time = 0
+        self.alphabeta_time = 0
 
+        self.engine = SchnapsenGamePlayEngine()
+        self.leader_move = None
+        self.maximizing = True
         leader = BotState(
             implementation=_DummyBot(),
             hand=Hand(
@@ -150,20 +193,52 @@ class MiniMaxBotPhaseTwo(TestCase):
             ],
         )
         talon = Talon(cards=[], trump_suit=Suit.SPADES)
-        state = GameState(leader=leader, follower=follower, talon=talon, previous=None)
+        self.state = GameState(
+            leader=leader, follower=follower, talon=talon, previous=None
+        )
 
-        bot = MiniMaxBot()
+        self.minimaxbot = MiniMaxBot()
+        self.alphabetabot = AlphaBetaBot()
 
-        best_value, best_move = bot.value(state, engine, leader_move, maximizing)
+    def test_value_move(self) -> None:
+        for _ in range(self.num_runs):
+            start = time.time()
 
-        self.assertEqual(best_value, 2)
-        self.assertEqual(best_move, RegularMove(Card.ACE_CLUBS))
+            best_value, best_move = self.minimaxbot.value(
+                self.state, self.engine, self.leader_move, self.maximizing
+            )
 
-    def test_value_move_hard(self) -> None:
-        engine = SchnapsenGamePlayEngine()
-        leader_move = None
-        maximizing = True
+            self.assertEqual(best_value, 2)
+            self.assertEqual(best_move, RegularMove(Card.ACE_CLUBS))
+            end = time.time()
+            self.minimax_time += end - start
 
+        for _ in range(self.num_runs):
+            start = time.time()
+
+            best_value, best_move = self.alphabetabot.value(
+                self.state, self.engine, self.leader_move, self.maximizing
+            )
+
+            self.assertEqual(best_value, 2)
+            self.assertEqual(best_move, RegularMove(Card.ACE_CLUBS))
+            end = time.time()
+            self.alphabeta_time += end - start
+
+        # alphabeta should be faster, because it prunes more. Besides that, the result
+        # should be the same
+        self.assertTrue(self.alphabeta_time < self.minimax_time)
+
+
+class MiniMaxBotAlphaBetaPhaseTwoHard(TestCase):
+    def setUp(self) -> None:
+        self.num_runs = 100
+        self.minimax_time = 0
+        self.alphabeta_time = 0
+
+        self.engine = SchnapsenGamePlayEngine()
+        self.leader_move = None
+        self.maximizing = True
         leader = BotState(
             implementation=_DummyBot(),
             hand=Hand(
@@ -205,11 +280,38 @@ class MiniMaxBotPhaseTwo(TestCase):
             ],
         )
         talon = Talon(cards=[], trump_suit=Suit.SPADES)
-        state = GameState(leader=leader, follower=follower, talon=talon, previous=None)
+        self.state = GameState(
+            leader=leader, follower=follower, talon=talon, previous=None
+        )
 
-        bot = MiniMaxBot()
+        self.minimaxbot = MiniMaxBot()
+        self.alphabetabot = AlphaBetaBot()
 
-        best_value, best_move = bot.value(state, engine, leader_move, maximizing)
+    def test_value_move(self) -> None:
+        for _ in range(self.num_runs):
+            start = time.time()
 
-        self.assertEqual(best_value, -2)
-        self.assertEqual(best_move, RegularMove(Card.QUEEN_SPADES))
+            best_value, best_move = self.minimaxbot.value(
+                self.state, self.engine, self.leader_move, self.maximizing
+            )
+
+            self.assertEqual(best_value, -2)
+            self.assertEqual(best_move, RegularMove(Card.QUEEN_SPADES))
+            end = time.time()
+            self.minimax_time += end - start
+
+        for _ in range(self.num_runs):
+            start = time.time()
+
+            best_value, best_move = self.alphabetabot.value(
+                self.state, self.engine, self.leader_move, self.maximizing
+            )
+
+            self.assertEqual(best_value, -2)
+            self.assertEqual(best_move, RegularMove(Card.QUEEN_SPADES))
+            end = time.time()
+            self.alphabeta_time += end - start
+
+        # alphabeta should be faster, because it prunes more. Besides that, the result
+        # should be the same
+        self.assertTrue(self.alphabeta_time < self.minimax_time)

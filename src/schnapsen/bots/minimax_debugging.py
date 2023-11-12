@@ -13,9 +13,10 @@ from schnapsen.game import (
 )
 
 import random
+import pickle
 
 
-class MiniMaxBot(Bot):
+class MiniMaxBotDebug(Bot):
     """
     A bot playing the minimax strategy in the seconf phase of the game.
     It cannot be sued for the first phase. What you can do is delegate from your own bot to this one in the second phase.
@@ -31,11 +32,15 @@ class MiniMaxBot(Bot):
                 # The logic of your bot
     """
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, name: Optional[str] = None) -> None:
+        super().__init__(name)
+        self.name = name
         self.fake_rand = random.Random(0)
+        self.num_value_called = 0
+        self.num_get_move_called = 0
 
     def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+        print(f"GET MOVE CALLED WITH STATE: {self.name}")
         assert (
             state.get_phase() == GamePhase.TWO
         ), "MiniMaxBot can only work in the second phase of the game."
@@ -46,6 +51,7 @@ class MiniMaxBot(Bot):
             maximizing=True,
         )
         assert move
+        self.num_get_move_called += 1
         return move
 
     def value(
@@ -123,6 +129,28 @@ class MiniMaxBot(Bot):
             elif not maximizing and value < best_value:
                 best_move = move
                 best_value = value
+            print(self.name, best_move, best_value, maximizing)
+
+        # Save state, leader_move, maximizing as pickle:
+
+        with open(
+            f"./debug/{self.name}_state_{str(self.num_value_called).zfill(4)}.pickle",
+            "wb",
+        ) as f:
+            pickle.dump(
+                {
+                    "state": state,
+                    "engine": engine,
+                    "leader_move": leader_move,
+                    "maximizing": maximizing,
+                    "best_value": best_value,
+                    "best_move": best_move,
+                    "num_get_move_called": self.num_get_move_called,
+                },
+                f,
+            )
+        self.num_value_called += 1
+
         return best_value, best_move
 
 
