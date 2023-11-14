@@ -12,13 +12,10 @@ from schnapsen.game import (
     SchnapsenTrickScorer,
 )
 
-import random
-
-
 class MiniMaxBot(Bot):
     """
-    A bot playing the minimax strategy in the seconf phase of the game.
-    It cannot be sued for the first phase. What you can do is delegate from your own bot to this one in the second phase.
+    A bot playing the minimax strategy in the second phase of the game.
+    It cannot be used for the first phase. What you can do is delegate from your own bot to this one in the second phase.
     This would look something like:
 
     class YourBot(Bot):
@@ -33,15 +30,12 @@ class MiniMaxBot(Bot):
 
     def __init__(self) -> None:
         super().__init__()
-        self.fake_rand = random.Random(0)
 
-    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
-        assert (
-            state.get_phase() == GamePhase.TWO
-        ), "MiniMaxBot can only work in the second phase of the game."
+    def get_move(self, perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+        assert (perspective.get_phase() == GamePhase.TWO), "MiniMaxBot can only work in the second phase of the game."
         _, move = self.value(
-            state.make_assumption(leader_move=leader_move, rand=self.fake_rand),
-            state.get_engine(),
+            perspective.get_state_in_phase_two(),
+            perspective.get_engine(),
             leader_move=leader_move,
             maximizing=True,
         )
@@ -55,6 +49,17 @@ class MiniMaxBot(Bot):
         leader_move: Optional[Move],
         maximizing: bool,
     ) -> tuple[float, Optional[Move]]:
+        """Get the score and the corresponding move which eithers maxmizes or minimizes the objective.
+
+        Args:
+            state (GameState): The current state of the game
+            engine (GamePlayEngine): _description_
+            leader_move (Optional[Move]): _description_
+            maximizing (bool): _description_
+
+        Returns:
+            tuple[float, Optional[Move]]: _description_
+        """
         my_perspective: PlayerPerspective
         if leader_move is None:
             # we are the leader
@@ -69,15 +74,6 @@ class MiniMaxBot(Bot):
             leader: Bot
             follower: Bot
             if leader_move is None:
-                # we are leader,
-                # The following is a shortcut to not branch for all possible follower moves in the next recursive call (none of them would be actively played)
-                # however, from some limite benchmarking, it appears this is slower than just doing the normal call.
-                # if move.is_trump_exchange():
-                #     leader = OneFixedMoveBot(move)
-                #     follower = NoMoveBot()
-                #     state, rounds = engine.play_at_most_n_tricks(game_state=state, new_leader=leader, new_follower=follower, n=1)
-                #     assert rounds == 1
-
                 # call self to get the follower to play
                 value, _ = self.value(
                     state=state,
@@ -115,7 +111,7 @@ class MiniMaxBot(Bot):
                     else:  # if not leader_stayed
                         # At the next step we will have become the leader, so we will keep doing what we did
                         next_maximizing = maximizing
-                    # implementation note: the previous two case could be written with a xor, but this might be mroe readable
+                    # implementation note: the previous two case could be written with a xor, but this seemed more readable
                     value, _ = self.value(new_game_state, engine, None, next_maximizing)
             if maximizing and value > best_value:
                 best_move = move
@@ -130,17 +126,9 @@ class OneFixedMoveBot(Bot):
     def __init__(self, move: Move) -> None:
         self.first_move: Optional[Move] = move
 
-    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+    def get_move(self, perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         assert self.first_move, "This bot can only play one move, after that it ends"
         move = self.first_move
         self.first_move = None
         return move
 
-
-class NoMoveBot(Bot):
-    def get_move(
-        self, state: "PlayerPerspective", leader_move: Optional["Move"]
-    ) -> "Move":
-        raise AssertionError(
-            "NoMoveBot was requested a move, while this must never be requested"
-        )

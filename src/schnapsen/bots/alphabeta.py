@@ -13,12 +13,9 @@ from schnapsen.game import (
 )
 from .minimax import OneFixedMoveBot
 
-import random
-
-
 class AlphaBetaBot(Bot):
     """
-    A bot playing the alphabetga strategy in the second phase of the game.
+    A bot playing the alphabeta strategy in the second phase of the game.
     It cannot be used for the first phase. What you can do is delegate from your own bot
     to this one in the second phase.
 
@@ -36,14 +33,13 @@ class AlphaBetaBot(Bot):
 
     def __init__(self) -> None:
         super().__init__()
-        self.fake_rand = random.Random(0)
 
     def get_move(self, perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         assert (
             perspective.get_phase() == GamePhase.TWO
         ), "AlphaBetaBot can only work in the second phase of the game."
         _, move = self.value(
-            perspective.make_assumption(leader_move=leader_move, rand=self.fake_rand),
+            perspective.get_state_in_phase_two(),
             perspective.get_engine(),
             leader_move=leader_move,
             maximizing=True,
