@@ -11,7 +11,7 @@ from schnapsen.game import (
     GamePlayEngine,
     SchnapsenTrickScorer,
 )
-from .minimax import OneFixedMoveBot
+
 
 class AlphaBetaBot(Bot):
     """
@@ -35,16 +35,13 @@ class AlphaBetaBot(Bot):
         super().__init__()
 
     def get_move(self, perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
-        assert (
-            perspective.get_phase() == GamePhase.TWO
-        ), "AlphaBetaBot can only work in the second phase of the game."
+        assert (perspective.get_phase() == GamePhase.TWO), "AlphaBetaBot can only work in the second phase of the game."
         _, move = self.value(
             perspective.get_state_in_phase_two(),
             perspective.get_engine(),
             leader_move=leader_move,
             maximizing=True,
         )
-        assert move
         return move
 
     def value(
@@ -55,7 +52,7 @@ class AlphaBetaBot(Bot):
         maximizing: bool,
         alpha: float = float("-inf"),
         beta: float = float("inf"),
-    ) -> tuple[float, Optional[Move]]:
+    ) -> tuple[float, Move]:
         my_perspective: PlayerPerspective
         if leader_move is None:
             # we are the leader
@@ -70,7 +67,7 @@ class AlphaBetaBot(Bot):
             leader: Bot
             follower: Bot
             if leader_move is None:
-                # we are leader,
+                # we are leader, call self to get the follower to play
                 value, _ = self.value(
                     state=state,
                     engine=engine,
@@ -80,20 +77,16 @@ class AlphaBetaBot(Bot):
                     beta=beta,
                 )
             else:
-                # We are the follower.
+                # We are the follower. We need to complete the trick and then call self to play the next trick, with the correct maximizing, depending on who is the new leader
                 leader = OneFixedMoveBot(leader_move)
                 follower = OneFixedMoveBot(move)
-                new_game_state, rounds = engine.play_at_most_n_tricks(
-                    game_state=state, new_leader=leader, new_follower=follower, n=1
-                )
-                assert rounds == 1
+                new_game_state = engine.play_one_trick(game_state=state, new_leader=leader, new_follower=follower)
                 winning_info = SchnapsenTrickScorer().declare_winner(new_game_state)
                 if winning_info:
                     winner = winning_info[0].implementation
                     points = winning_info[1]
                     follower_wins = winner == follower
-                    if not follower_wins:
-                        assert winner == leader
+
                     if not follower_wins:
                         points = -points
                     if not maximizing:
@@ -104,12 +97,13 @@ class AlphaBetaBot(Bot):
                     leader_stayed = leader == new_game_state.leader.implementation
 
                     if leader_stayed:
+                        # At the next step, the leader is our opponent, and it will be doing the opposite of what we do.
                         next_maximizing = not maximizing
                     else:  # if not leader_stayed
+                        # At the next step we will have become the leader, so we will keep doing what we did
                         next_maximizing = maximizing
-                    value, _ = self.value(
-                        new_game_state, engine, None, next_maximizing, alpha, beta
-                    )
+                    # implementation note: the previous two case could be written with a xor, but this seemed more readable
+                    value, _ = self.value(new_game_state, engine, None, next_maximizing, alpha, beta)
             if maximizing:
                 if value > best_value:
                     best_move = move
@@ -124,5 +118,16 @@ class AlphaBetaBot(Bot):
                 beta = min(beta, best_value)  # alphabeta pruning
                 if beta <= alpha:
                     break
+        assert best_move  # We are sure the best_move can no longer be None. We assert to make sure we did not make a logical mistake
         return best_value, best_move
 
+
+class OneFixedMoveBot(Bot):
+    def __init__(self, move: Move) -> None:
+        self.first_move: Optional[Move] = move
+
+    def get_move(self, perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+        assert self.first_move, "This bot can only play one move, after that it ends"
+        move = self.first_move
+        self.first_move = None
+        return move

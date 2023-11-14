@@ -20,76 +20,53 @@ from schnapsen.game import (
 from schnapsen.deck import Card, Suit
 
 
-class RandMiniMaxBot(Bot):
+class TwoStageBot(Bot):
+    """Bot which plays first the one, than the other startegy"""
+
+    def __init__(self, name: str, bot1: Bot, bot2: Bot) -> None:
+        super().__init__(name)
+        self.bot_phase1: Bot = bot1
+        self.bot_phase2: Bot = bot2
+
+    def get_move(self, perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+        if perspective.get_phase() == GamePhase.ONE:
+            return self.bot_phase1.get_move(perspective, leader_move)
+        elif perspective.get_phase() == GamePhase.TWO:
+            return self.bot_phase2.get_move(perspective, leader_move)
+        else:
+            raise AssertionError("Phase ain't right.")
+
+
+class RandMiniMaxBot(TwoStageBot):
     """In the phase1, this bot plays random, and in the phase2, it plays minimax.
     The opponent is random."""
 
     def __init__(self, rand: random.Random, name: str = "rand_minimax_bot") -> None:
-        super().__init__(name)
-        self.bot_phase1 = RandBot(rand=rand)
-        self.bot_phase2 = MiniMaxBot()
-
-    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
-        if state.get_phase() == GamePhase.ONE:
-            return self.bot_phase1.get_move(state, leader_move)
-        elif state.get_phase() == GamePhase.TWO:
-            return self.bot_phase2.get_move(state, leader_move)
-        else:
-            raise ValueError("Phase ain't right.")
+        super().__init__(name, RandBot(rand=rand), MiniMaxBot())
 
 
-class RdeepMiniMaxBot(Bot):
+class RdeepMiniMaxBot(TwoStageBot):
     """In the phase1, this bot plays rdeep, and in the phase2, it plays minimax.
     The opponent is random."""
 
     def __init__(self, rand: random.Random, name: str = "rdeep_minimax_bot") -> None:
-        super().__init__(name)
-        self.bot_phase1 = RdeepBot(num_samples=16, depth=4, rand=rand)
-        self.bot_phase2 = MiniMaxBot()
-
-    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
-        if state.get_phase() == GamePhase.ONE:
-            return self.bot_phase1.get_move(state, leader_move)
-        elif state.get_phase() == GamePhase.TWO:
-            return self.bot_phase2.get_move(state, leader_move)
-        else:
-            raise ValueError("Phase ain't right.")
+        super().__init__(name, RdeepBot(num_samples=16, depth=4, rand=rand), MiniMaxBot())
 
 
-class RandAlphaBetaBot(Bot):
+class RandAlphaBetaBot(TwoStageBot):
     """In the phase1, this bot plays random, and in the phase2, it plays AlphaBeta.
     The opponent is random."""
 
     def __init__(self, rand: random.Random, name: str = "rand_alphabeta_bot") -> None:
-        super().__init__(name)
-        self.bot_phase1 = RandBot(rand=rand)
-        self.bot_phase2 = AlphaBetaBot()
-
-    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
-        if state.get_phase() == GamePhase.ONE:
-            return self.bot_phase1.get_move(state, leader_move)
-        elif state.get_phase() == GamePhase.TWO:
-            return self.bot_phase2.get_move(state, leader_move)
-        else:
-            raise ValueError("Phase ain't right.")
+        super().__init__(name, RandBot(rand=rand), AlphaBetaBot())
 
 
-class RdeepAlphaBetaBot(Bot):
+class RdeepAlphaBetaBot(TwoStageBot):
     """In the phase1, this bot plays rdeep, and in the phase2, it plays alphabeta.
     The opponent is random."""
 
     def __init__(self, rand: random.Random, name: str = "rdeep_alphabeta_bot") -> None:
-        super().__init__(name)
-        self.bot_phase1 = RdeepBot(num_samples=16, depth=4, rand=rand)
-        self.bot_phase2 = AlphaBetaBot()
-
-    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
-        if state.get_phase() == GamePhase.ONE:
-            return self.bot_phase1.get_move(state, leader_move)
-        elif state.get_phase() == GamePhase.TWO:
-            return self.bot_phase2.get_move(state, leader_move)
-        else:
-            raise ValueError("Phase ain't right.")
+        super().__init__(name, RdeepBot(num_samples=16, depth=4, rand=rand), AlphaBetaBot())
 
 
 class MiniMaxBotTest(TestCase):
@@ -106,7 +83,7 @@ class MiniMaxBotTest(TestCase):
         winners = {str(self.bot1): 0, str(self.bot3): 0}
         num_games = 50
         for i in range(num_games):
-            winner, points, score = self.engine.play_game(
+            winner, _, _ = self.engine.play_game(
                 self.bot1, self.bot3, random.Random(i)
             )
 
@@ -115,28 +92,39 @@ class MiniMaxBotTest(TestCase):
         self.assertTrue(winners[str(self.bot1)] > num_games // 2)
 
     def test_run_2(self) -> None:
-        winners = {str(self.bot2): 0, str(self.bot3): 0}
-        num_games = 50
-        for i in range(num_games):
-            winner, points, score = self.engine.play_game(
-                self.bot2, self.bot3, random.Random(i)
-            )
-
-            winners[str(winner)] += 1
-
-        self.assertTrue(winners[str(self.bot2)] > num_games // 2)
-
-    def test_run_3(self) -> None:
         winners = {str(self.bot1): 0, str(self.bot2): 0}
         num_games = 50
         for i in range(num_games):
-            winner, points, score = self.engine.play_game(
+            winner, _, _ = self.engine.play_game(
                 self.bot1, self.bot2, random.Random(i)
             )
 
             winners[str(winner)] += 1
 
         self.assertTrue(winners[str(self.bot2)] > num_games // 2)
+
+    def test_second_phase(self) -> None:
+        num_games = 10
+        engine = SchnapsenGamePlayEngine()
+
+        for i in range(num_games):
+            state = engine.get_random_phase_two_state(random.Random(i))
+            # We play two games from this state, one minimaxA  vs minimaxB.
+            # We let the winning side play against many games against rand. This winning side must never lose
+
+            minimaxA = MiniMaxBot()
+            minimaxB = MiniMaxBot()
+            outcome = engine.play_game_from_state_with_new_bots(state, new_leader=minimaxA, new_follower=minimaxB, leader_move=None)
+
+            for j in range(10):
+                randbot = RandBot(random.Random(j))
+                if outcome[0] == minimaxA:
+                    outcome2 = engine.play_game_from_state_with_new_bots(state, new_leader=minimaxA, new_follower=randbot, leader_move=None)
+                    assert outcome2[0] == minimaxA
+                else:
+                    # minimaxB won
+                    outcome2 = engine.play_game_from_state_with_new_bots(state, new_leader=randbot, new_follower=minimaxB, leader_move=None)
+                    assert outcome2[0] == minimaxB
 
 
 class MiniMaxBotAlphaBetaPhaseTwoEasy(TestCase):

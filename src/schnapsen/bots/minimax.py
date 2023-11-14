@@ -12,6 +12,7 @@ from schnapsen.game import (
     SchnapsenTrickScorer,
 )
 
+
 class MiniMaxBot(Bot):
     """
     A bot playing the minimax strategy in the second phase of the game.
@@ -39,7 +40,6 @@ class MiniMaxBot(Bot):
             leader_move=leader_move,
             maximizing=True,
         )
-        assert move
         return move
 
     def value(
@@ -48,7 +48,7 @@ class MiniMaxBot(Bot):
         engine: GamePlayEngine,
         leader_move: Optional[Move],
         maximizing: bool,
-    ) -> tuple[float, Optional[Move]]:
+    ) -> tuple[float, Move]:
         """Get the score and the corresponding move which eithers maxmizes or minimizes the objective.
 
         Args:
@@ -74,7 +74,7 @@ class MiniMaxBot(Bot):
             leader: Bot
             follower: Bot
             if leader_move is None:
-                # call self to get the follower to play
+                # we are leader, call self to get the follower to play
                 value, _ = self.value(
                     state=state,
                     engine=engine,
@@ -85,17 +85,13 @@ class MiniMaxBot(Bot):
                 # We are the follower. We need to complete the trick and then call self to play the next trick, with the correct maximizing, depending on who is the new leader
                 leader = OneFixedMoveBot(leader_move)
                 follower = OneFixedMoveBot(move)
-                new_game_state, rounds = engine.play_at_most_n_tricks(
-                    game_state=state, new_leader=leader, new_follower=follower, n=1
-                )
-                assert rounds == 1
+                new_game_state = engine.play_one_trick(game_state=state, new_leader=leader, new_follower=follower)
                 winning_info = SchnapsenTrickScorer().declare_winner(new_game_state)
                 if winning_info:
                     winner = winning_info[0].implementation
                     points = winning_info[1]
                     follower_wins = winner == follower
-                    if not follower_wins:
-                        assert winner == leader
+
                     if not follower_wins:
                         points = -points
                     if not maximizing:
@@ -119,6 +115,7 @@ class MiniMaxBot(Bot):
             elif not maximizing and value < best_value:
                 best_move = move
                 best_value = value
+        assert best_move  # We are sure the best_move can no longer be None. We assert to make sure we did not make a logical mistake
         return best_value, best_move
 
 
@@ -131,4 +128,3 @@ class OneFixedMoveBot(Bot):
         move = self.first_move
         self.first_move = None
         return move
-
