@@ -1525,6 +1525,40 @@ class GamePlayEngine:
         winner, points, score = self.play_game_from_state(game_state=game_state, leader_move=None)
         return winner, points, score
 
+    def get_random_phase_two_state(self, rng: Random) -> GameState:
+        class RandBot(Bot):
+            def __init__(self, rand: Random, name: Optional[str] = None) -> None:
+                super().__init__(name)
+                self.rng = rand
+
+            def get_move(
+                self,
+                perspective: PlayerPerspective,
+                leader_move: Optional[Move],
+            ) -> Move:
+                moves: list[Move] = perspective.valid_moves()
+                move = self.rng.choice(moves)
+                return move
+
+        while True:
+            cards = self.deck_generator.get_initial_deck()
+            shuffled = self.deck_generator.shuffle_deck(cards, rng)
+            hand1, hand2, talon = self.hand_generator.generateHands(shuffled)
+            leader_state = BotState(implementation=RandBot(rand=rng), hand=hand1)
+            follower_state = BotState(implementation=RandBot(rand=rng), hand=hand2)
+            game_state = GameState(
+                leader=leader_state,
+                follower=follower_state,
+                talon=talon,
+                previous=None
+            )
+            second_phase_state, _ = self.play_at_most_n_tricks(game_state, RandBot(rand=rng), RandBot(rand=rng), 5)
+            winner = self.trick_scorer.declare_winner(second_phase_state)
+            if winner:
+                continue
+            if second_phase_state.game_phase() == GamePhase.TWO:
+                return second_phase_state
+
     def play_game_from_state_with_new_bots(self, game_state: GameState, new_leader: Bot, new_follower: Bot, leader_move: Optional[Move]) -> tuple[Bot, int, Score]:
         """
         Continue a game  which might have started before with other bots, with new bots.
@@ -1571,6 +1605,23 @@ class GamePlayEngine:
 
         return winner.implementation, points, winner.score
 
+    def play_one_trick(self, game_state: GameState, new_leader: Bot, new_follower: Bot) -> GameState:
+        """
+        Plays one tricks (including the one started by the leader, if provided) on a game which might have started before.
+        The new bots are new_leader and new_follower.
+
+        This method does not make changes to the provided game_state.
+
+        :param game_state: The state of the game to start from
+        :param new_leader: The bot which will take the leader role in the game.
+        :param new_follower: The bot which will take the follower in the game.
+
+        :returns: The GameState reached and the number of steps actually taken.
+        """
+        state, rounds = self.play_at_most_n_tricks(game_state, new_leader, new_follower, 1)
+        assert rounds == 1
+        return state
+
     def play_at_most_n_tricks(self, game_state: GameState, new_leader: Bot, new_follower: Bot, n: int) -> tuple[GameState, int]:
         """
         Plays up to n tricks (including the one started by the leader, if provided) on a game which might have started before.
@@ -1582,6 +1633,7 @@ class GamePlayEngine:
         :param game_state: The state of the game to start from
         :param new_leader: The bot which will take the leader role in the game.
         :param new_follower: The bot which will take the follower in the game.
+        :param n: the maximum number of tricks to play
 
         :returns: The GameState reached and the number of steps actually taken.
         """
