@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional
 
 from schnapsen.game import (
     Bot,
@@ -54,7 +54,7 @@ class MiniMaxBot(Bot):
         engine: GamePlayEngine,
         leader_move: Optional[Move],
         maximizing: bool,
-    ) -> Tuple[float, Optional[Move]]:
+    ) -> tuple[float, Optional[Move]]:
         my_perspective: PlayerPerspective
         if leader_move is None:
             # we are the leader

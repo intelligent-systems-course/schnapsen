@@ -1,4 +1,4 @@
-from typing import Optional, Tuple
+from typing import Optional
 
 from schnapsen.game import (
     Bot,
@@ -59,7 +59,7 @@ class AlphaBetaBot(Bot):
         maximizing: bool,
         alpha: float = float("-inf"),
         beta: float = float("inf"),
-    ) -> Tuple[float, Optional[Move]]:
+    ) -> tuple[float, Optional[Move]]:
         my_perspective: PlayerPerspective
         if leader_move is None:
             # we are the leader
