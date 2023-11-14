@@ -53,13 +53,13 @@ def random_game() -> None:
 
 class NotificationExampleBot(Bot):
 
-    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
-        moves = state.valid_moves()
+    def get_move(self, perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+        moves = perspective.valid_moves()
         return moves[0]
 
-    def notify_game_end(self, won: bool, state: PlayerPerspective) -> None:
+    def notify_game_end(self, won: bool, perspective: PlayerPerspective) -> None:
         print(f'result {"win" if won else "lost"}')
-        print(f'I still have {len(state.get_hand())} cards left')
+        print(f'I still have {len(perspective.get_hand())} cards left')
 
     def notify_trump_exchange(self, move: TrumpExchange) -> None:
         print(f"That trump exchanged! {move.jack}")
@@ -74,10 +74,10 @@ def notification_game() -> None:
 
 
 class HistoryBot(Bot):
-    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
-        history = state.get_game_history()
+    def get_move(self, perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+        history = perspective.get_game_history()
         print(f'the initial state of this game was {history[0][0]}')
-        moves = state.valid_moves()
+        moves = perspective.valid_moves()
         return moves[0]
 
 
