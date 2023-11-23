@@ -11,9 +11,7 @@ from schnapsen.game import (
 class TwoStageBot(Bot):
     """Bot which plays first the one, than the other startegy"""
 
-    def __init__(
-        self, bot1: Bot, bot2: Bot, name: Optional[str] = "ProbabilityBot"
-    ) -> None:
+    def __init__(self, bot1: Bot, bot2: Bot, name: Optional[str] = None) -> None:
         super().__init__(name)
         self.bot_phase1: Bot = bot1
         self.bot_phase2: Bot = bot2
