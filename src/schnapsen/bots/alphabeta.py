@@ -31,8 +31,8 @@ class AlphaBetaBot(Bot):
                 # The logic of your bot
     """
 
-    def __init__(self) -> None:
-        super().__init__()
+    def __init__(self, name: Optional[str] = "ProbabilityBot") -> None:
+        super().__init__(name)
 
     def get_move(self, perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         assert (perspective.get_phase() == GamePhase.TWO), "AlphaBetaBot can only work in the second phase of the game."
