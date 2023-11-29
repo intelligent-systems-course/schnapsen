@@ -134,3 +134,7 @@ dmypy.json
 ######################
 .DS_Store
 .DS_Store?
+
+# ML models
+ML_models/
+ML_replay_memories/
