@@ -141,7 +141,7 @@ class TrumpExchange(Move):
         return f"TrumpExchange(jack={self.jack})"
 
     def __eq__(self, __o: object) -> bool:
-        if not isinstance(__o, Trump_Exchange):
+        if not isinstance(__o, TrumpExchange):
             return False
         return self.jack == __o.jack
 
