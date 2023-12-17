@@ -1,27 +1,16 @@
+from __future__ import annotations
+
 from dataclasses import dataclass
 from json import dumps
 from threading import Event, Thread
 from types import TracebackType
-from typing import Optional, Tuple, Type, cast
+from typing import Optional, Type, cast
 
 from flask import Flask, abort, render_template, request
 
 from schnapsen.deck import Card, Rank, Suit
 from schnapsen.game import (Bot, GamePhase, Marriage, Move, PlayerPerspective,
-                            RegularMove, RegularTrick, Trump_Exchange)
-
-
-class GUIBot(Bot):
-
-    def __init__(self, name: str, server: 'SchnapsenServer') -> None:
-        self.name = name
-        self.server = server
-
-    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
-        return self.server._get_move(self.name, state, leader_move)
-
-    def notify_game_end(self, won: bool, state: PlayerPerspective) -> None:
-        self.server._post_final_state(self.name, state)
+                            RegularMove, RegularTrick, TrumpExchange)
 
 
 @dataclass
@@ -34,11 +23,13 @@ class _StateExchange:
     leader_move: Optional[Move]
     browser_move: Optional[Move]
     is_game_over: bool = False
+    won: bool = False
+    """The value of this variable is only valid once is_game_over has been set to True."""
 
 
 class SchnapsenServer:
 
-    def __enter__(self) -> 'SchnapsenServer':
+    def __enter__(self) -> SchnapsenServer:
         return self
 
     def __exit__(self,
@@ -69,20 +60,21 @@ class SchnapsenServer:
         self.__process.start()
 
     def make_gui_bot(self, name: str) -> Bot:
-        bot = GUIBot(name, self)
+        bot = GUIBot(self, name)
         self.__bots[name] = _StateExchange(bot=bot, browser_game_started=False, is_state_ready=Event(), is_move_ready=Event(), state=None, leader_move=None, browser_move=None)
         return bot
 
-    def _post_final_state(self, botname: str, state: PlayerPerspective) -> None:
+    def _post_final_state(self, botname: str, won: bool, perspective: PlayerPerspective) -> None:
         state_exchange = self.__bots[botname]
-        state_exchange.state = state
+        state_exchange.state = perspective
+        state_exchange.won = won
         state_exchange.is_game_over = True
         state_exchange.is_state_ready.set()
 
-    def _get_move(self, botname: str, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+    def _get_move(self, botname: str, perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         state_exchange = self.__bots[botname]
         state_exchange.is_move_ready.clear()
-        state_exchange.state = state
+        state_exchange.state = perspective
         state_exchange.leader_move = leader_move
         state_exchange.is_state_ready.set()
         # we now wait for the browser to make the move
@@ -92,8 +84,8 @@ class SchnapsenServer:
         return move
 
     def __sendmove(self, botname: str) -> str:
-        data = cast(Tuple[Optional[int], Optional[int]], request.get_json(force=True))
-        old_move: Tuple[Optional[int], Optional[int]] = (data[0], data[1])
+        data = cast(tuple[Optional[int], Optional[int]], request.get_json(force=True))
+        old_move: tuple[Optional[int], Optional[int]] = (data[0], data[1])
         move = _Old_GUI_Compatibility.convert_move(old_move)
 
         state_exchange = self.__bots[botname]
@@ -109,7 +101,7 @@ class SchnapsenServer:
         state = state_exchange.state
         assert state  # cannot be None, because we waited for it.
         leader_move = state_exchange.leader_move
-        json = _Old_GUI_Compatibility.player_game_state_to_json(state=state, leader_move=leader_move, game_over=state_exchange.is_game_over)
+        json = _Old_GUI_Compatibility.player_game_state_to_json(perspective=state, leader_move=leader_move, game_over=state_exchange.is_game_over, won=state_exchange.won)
         return json
 
     def __setup_routes(self, app: Flask) -> None:
@@ -128,6 +120,19 @@ class SchnapsenServer:
 
         self.__bots[botname].browser_game_started = True
         return render_template("index_interactive.html", botname=botname)
+
+
+class GUIBot(Bot):
+    def __init__(self, server: SchnapsenServer, name: str) -> None:
+        super().__init__(name)
+        self.name = name
+        self.server = server
+
+    def get_move(self, perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+        return self.server._get_move(self.name, perspective, leader_move)
+
+    def notify_game_end(self, won: bool, perspective: PlayerPerspective) -> None:
+        self.server._post_final_state(self.name, won, perspective)
 
 
 class _Old_GUI_Compatibility:
@@ -159,13 +164,13 @@ class _Old_GUI_Compatibility:
     ]
 
     @staticmethod
-    def convert_move(old_move: Tuple[Optional[int], Optional[int]]) -> Move:
+    def convert_move(old_move: tuple[Optional[int], Optional[int]]) -> Move:
         if not old_move[1]:
             assert old_move[0] is not None, "In the old engine, all moves with the second part not set must be Regular moves"
             return RegularMove(_Old_GUI_Compatibility.old_engine_order[old_move[0]])
         if not old_move[0]:
             assert old_move[1] is not None, "In the old endinge, all moves with the first part not set must be Trump exchanges"
-            return Trump_Exchange(_Old_GUI_Compatibility.old_engine_order[old_move[1]])
+            return TrumpExchange(_Old_GUI_Compatibility.old_engine_order[old_move[1]])
         assert old_move[0] and old_move[1]
         if _Old_GUI_Compatibility.old_engine_order[old_move[0]].rank == Rank.KING:
             # swap
@@ -174,7 +179,7 @@ class _Old_GUI_Compatibility:
         return Marriage(queen_card=_Old_GUI_Compatibility.old_engine_order[old_move[0]], king_card=_Old_GUI_Compatibility.old_engine_order[old_move[1]])
 
     @staticmethod
-    def player_game_state_to_json(state: PlayerPerspective, leader_move: Optional[Move], game_over: bool) -> str:
+    def player_game_state_to_json(perspective: PlayerPerspective, leader_move: Optional[Move], game_over: bool, won: bool) -> str:
 
         # Deck.convert_to_json
         # return {"card_state":self.__card_state, "p1_perspective":self.__p1_perspective,
@@ -187,14 +192,14 @@ class _Old_GUI_Compatibility:
         # We leave out stock, because it can be derived from card_state
         #
 
-        hand = state.get_hand()
-        talon_size = state.get_talon_size()
-        trump_card = state.get_trump_card()
-        trump_suit = state.get_trump_suit()
-        won_cards = state.get_won_cards()
-        opponent_won_cards = state.get_opponent_won_cards()
+        hand = perspective.get_hand()
+        talon_size = perspective.get_talon_size()
+        trump_card = perspective.get_trump_card()
+        trump_suit = perspective.get_trump_suit()
+        won_cards = perspective.get_won_cards()
+        opponent_won_cards = perspective.get_opponent_won_cards()
 
-        opponent_known_cards = state.get_known_cards_of_opponent_hand()
+        opponent_known_cards = perspective.get_known_cards_of_opponent_hand()
 
         partial_move_cards = leader_move.cards if leader_move else []
         if leader_move:
@@ -255,7 +260,7 @@ class _Old_GUI_Compatibility:
 
         # previous trick
         old_shape_previous_trick: list[int] = [-1, -1]
-        history = state.get_game_history()
+        history = perspective.get_game_history()
         if len(history) > 1:
             previous_trick = history[-2][1]
             assert previous_trick  # The history has at least length 2, so this trick cannot be None
@@ -310,11 +315,11 @@ class _Old_GUI_Compatibility:
         # "p1_pending_points":self.__p1_pending_points, "p2_pending_points":self.__p2_pending_points, "signature":self.__signature, "revoked":self.__revoked})
 
         # TODO implement with legal moves
-        moves: list[Tuple[Optional[int], Optional[int]]] = []
+        moves: list[tuple[Optional[int], Optional[int]]] = []
         if not game_over:
-            for move in state.valid_moves():
+            for move in perspective.valid_moves():
                 if move.is_trump_exchange():
-                    trump_move = cast(Trump_Exchange, move)
+                    trump_move = cast(TrumpExchange, move)
                     moves.append((None, _Old_GUI_Compatibility.old_engine_order.index(trump_move.jack)))
                 elif move.is_marriage():
                     marriage_move = cast(Marriage, move)
@@ -325,18 +330,18 @@ class _Old_GUI_Compatibility:
                     moves.append((_Old_GUI_Compatibility.old_engine_order.index(regular_move.card), None))
 
         finished = game_over
-        phase = 1 if state.get_phase() == GamePhase.ONE else 2
-        leads_turn = state.am_i_leader()
+        phase = 1 if perspective.get_phase() == GamePhase.ONE else 2
+        leads_turn = perspective.am_i_leader()
         # it is always the turn of the browser player!
         player1s_turn = True
-        p1_points = state.get_my_score().direct_points
-        p2_points = state.get_opponent_score().direct_points
-        p1_pending = state.get_my_score().pending_points
-        p2_pending = state.get_opponent_score().pending_points
+        p1_points = perspective.get_my_score().direct_points
+        p2_points = perspective.get_opponent_score().direct_points
+        p1_pending = perspective.get_my_score().pending_points
+        p2_pending = perspective.get_opponent_score().pending_points
 
         # TODO We removed the revoked indication. There is no comparable thing on the new platform.
 
-        old_state = {"deck": deck, "moves": moves, "finished": finished, "phase": phase,
+        old_state = {"deck": deck, "moves": moves, "finished": finished, "won": won, "phase": phase,
                      "leads_turn": leads_turn, "player1s_turn": player1s_turn, "p1_points": p1_points, "p2_points": p2_points,
                      "p1_pending_points": p1_pending, "p2_pending_points": p2_pending}
 

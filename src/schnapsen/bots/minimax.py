@@ -13,12 +13,10 @@ from schnapsen.game import (
 )
 
 
-class AlphaBetaBot(Bot):
+class MiniMaxBot(Bot):
     """
-    A bot playing the alphabeta strategy in the second phase of the game.
-    It cannot be used for the first phase. What you can do is delegate from your own bot
-    to this one in the second phase.
-
+    A bot playing the minimax strategy in the second phase of the game.
+    It cannot be used for the first phase. What you can do is delegate from your own bot to this one in the second phase.
     This would look something like:
 
     class YourBot(Bot):
@@ -35,7 +33,7 @@ class AlphaBetaBot(Bot):
         super().__init__(name)
 
     def get_move(self, perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
-        assert (perspective.get_phase() == GamePhase.TWO), "AlphaBetaBot can only work in the second phase of the game."
+        assert (perspective.get_phase() == GamePhase.TWO), "MiniMaxBot can only work in the second phase of the game."
         _, move = self.value(
             perspective.get_state_in_phase_two(),
             perspective.get_engine(),
@@ -50,9 +48,18 @@ class AlphaBetaBot(Bot):
         engine: GamePlayEngine,
         leader_move: Optional[Move],
         maximizing: bool,
-        alpha: float = float("-inf"),
-        beta: float = float("inf"),
     ) -> tuple[float, Move]:
+        """Get the score and the corresponding move which eithers maxmizes or minimizes the objective.
+
+        Args:
+            state (GameState): The current state of the game
+            engine (GamePlayEngine): _description_
+            leader_move (Optional[Move]): _description_
+            maximizing (bool): _description_
+
+        Returns:
+            tuple[float, Optional[Move]]: _description_
+        """
         my_perspective: PlayerPerspective
         if leader_move is None:
             # we are the leader
@@ -73,8 +80,6 @@ class AlphaBetaBot(Bot):
                     engine=engine,
                     leader_move=move,
                     maximizing=not maximizing,
-                    alpha=alpha,
-                    beta=beta,
                 )
             else:
                 # We are the follower. We need to complete the trick and then call self to play the next trick, with the correct maximizing, depending on who is the new leader
@@ -103,21 +108,13 @@ class AlphaBetaBot(Bot):
                         # At the next step we will have become the leader, so we will keep doing what we did
                         next_maximizing = maximizing
                     # implementation note: the previous two case could be written with a xor, but this seemed more readable
-                    value, _ = self.value(new_game_state, engine, None, next_maximizing, alpha, beta)
-            if maximizing:
-                if value > best_value:
-                    best_move = move
-                    best_value = value
-                alpha = max(alpha, best_value)  # alphabeta pruning
-                if beta <= alpha:
-                    break
-            else:
-                if value < best_value:
-                    best_move = move
-                    best_value = value
-                beta = min(beta, best_value)  # alphabeta pruning
-                if beta <= alpha:
-                    break
+                    value, _ = self.value(new_game_state, engine, None, next_maximizing)
+            if maximizing and value > best_value:
+                best_move = move
+                best_value = value
+            elif not maximizing and value < best_value:
+                best_move = move
+                best_value = value
         assert best_move  # We are sure the best_move can no longer be None. We assert to make sure we did not make a logical mistake
         return best_value, best_move
 

@@ -1,5 +1,5 @@
 from schnapsen.game import Bot, PlayerPerspective, SchnapsenDeckGenerator, Move, Trick, GamePhase
-from typing import List, Optional, cast, Literal
+from typing import Optional, cast, Literal
 from schnapsen.deck import Suit, Rank
 from sklearn.neural_network import MLPClassifier
 from sklearn.linear_model import LogisticRegression
@@ -13,25 +13,25 @@ class MLPlayingBot(Bot):
     This class loads a trained ML model and uses it to play
     """
 
-    def __init__(self, model_location: Optional[pathlib.Path]) -> None:
+    def __init__(self, model_location: pathlib.Path, name: Optional[str] = None) -> None:
         """
         Create a new MLPlayingBot which uses the model stored in the mofel_location.
 
         :param model_location: The file containing the model.
         """
-        if model_location is None:
-            model_location = pathlib.Path("ML_models/") / "test_model"
+        super().__init__(name)
+        model_location = model_location
         assert model_location.exists(), f"Model could not be found at: {model_location}"
         # load model
         self.__model = joblib.load(model_location)
 
-    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+    def get_move(self, perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         # get the sate feature representation
-        state_representation = get_state_feature_vector(state)
+        state_representation = get_state_feature_vector(perspective)
         # get the leader's move representation, even if it is None
         leader_move_representation = get_move_feature_vector(leader_move)
         # get all my valid moves
-        my_valid_moves = state.valid_moves()
+        my_valid_moves = perspective.valid_moves()
         # get the feature representations for all my valid moves
         my_move_representations: list[list[int]] = []
         for my_move in my_valid_moves:
@@ -40,7 +40,7 @@ class MLPlayingBot(Bot):
         # create all model inputs, for all bot's valid moves
         action_state_representations: list[list[int]] = []
 
-        if state.am_i_leader():
+        if perspective.am_i_leader():
             follower_move_representation = get_move_feature_vector(None)
             for my_move_representation in my_move_representations:
                 action_state_representations.append(
@@ -82,13 +82,13 @@ class MLDataBot(Bot):
         self.bot: Bot = bot
         self.replay_memory_file_path: pathlib.Path = replay_memory_location
 
-    def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+    def get_move(self, perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         """
             This function simply calls the get_move of the provided bot
         """
-        return self.bot.get_move(state=state, leader_move=leader_move)
+        return self.bot.get_move(perspective=perspective, leader_move=leader_move)
 
-    def notify_game_end(self, won: bool, state: PlayerPerspective) -> None:
+    def notify_game_end(self, won: bool, perspective: PlayerPerspective) -> None:
         """
         When the game ends, this function retrieves the game history and more specifically all the replay memories that can
         be derived from it, and stores them in the form of state-actions vector representations and the corresponding outcome of the game
@@ -98,7 +98,7 @@ class MLDataBot(Bot):
         """
         # we retrieve the game history while actually discarding the last useless history record (which is after the game has ended),
         # we know none of the Tricks can be None because that is only for the last record
-        game_history: list[tuple[PlayerPerspective, Trick]] = cast(list[tuple[PlayerPerspective, Trick]], state.get_game_history()[:-1])
+        game_history: list[tuple[PlayerPerspective, Trick]] = cast(list[tuple[PlayerPerspective, Trick]], perspective.get_game_history()[:-1])
         # we also save the training label "won or lost"
         won_label = won
 
@@ -117,11 +117,11 @@ class MLDataBot(Bot):
                 follower_move = None
 
             state_actions_representation = create_state_and_actions_vector_representation(
-                state=round_player_perspective, leader_move=leader_move, follower_move=follower_move)
+                perspective=round_player_perspective, leader_move=leader_move, follower_move=follower_move)
 
             # append replay memory to file
             with open(file=self.replay_memory_file_path, mode="a") as replay_memory_file:
-                # replay_memory_line: List[Tuple[list, number]] = [state_actions_representation, won_label]
+                # replay_memory_line: list[tuple[list, number]] = [state_actions_representation, won_label]
                 # writing to replay memory file in the form "[feature list] || int(won_label)]
                 replay_memory_file.write(f"{str(state_actions_representation)[1:-1]} || {int(won_label)}\n")
 
@@ -225,20 +225,20 @@ def train_ML_model(replay_memory_location: Optional[pathlib.Path],
     print('The model was trained in ', (end - start) / 60, 'minutes.')
 
 
-def create_state_and_actions_vector_representation(state: PlayerPerspective, leader_move: Optional[Move],
-                                                   follower_move: Optional[Move]) -> List[int]:
+def create_state_and_actions_vector_representation(perspective: PlayerPerspective, leader_move: Optional[Move],
+                                                   follower_move: Optional[Move]) -> list[int]:
     """
     This function takes as input a PlayerPerspective variable, and the two moves of leader and follower,
     and returns a list of complete feature representation that contains all information
     """
-    player_game_state_representation = get_state_feature_vector(state)
+    player_game_state_representation = get_state_feature_vector(perspective)
     leader_move_representation = get_move_feature_vector(leader_move)
     follower_move_representation = get_move_feature_vector(follower_move)
 
     return player_game_state_representation + leader_move_representation + follower_move_representation
 
 
-def get_one_hot_encoding_of_card_suit(card_suit: Suit) -> List[int]:
+def get_one_hot_encoding_of_card_suit(card_suit: Suit) -> list[int]:
     """
     Translating the suit of a card into one hot vector encoding of size 4.
     """
@@ -257,7 +257,7 @@ def get_one_hot_encoding_of_card_suit(card_suit: Suit) -> List[int]:
     return card_suit_one_hot
 
 
-def get_one_hot_encoding_of_card_rank(card_rank: Rank) -> List[int]:
+def get_one_hot_encoding_of_card_rank(card_rank: Rank) -> list[int]:
     """
     Translating the rank of a card into one hot vector encoding of size 13.
     """
@@ -293,7 +293,7 @@ def get_one_hot_encoding_of_card_rank(card_rank: Rank) -> List[int]:
     return card_rank_one_hot
 
 
-def get_move_feature_vector(move: Optional[Move]) -> List[int]:
+def get_move_feature_vector(move: Optional[Move]) -> list[int]:
     """
         In case there isn't any move provided move to encode, we still need to create a "padding"-"meaningless" vector of the same size,
         filled with 0s, since the ML models need to receive input of the same dimensionality always.
@@ -327,7 +327,7 @@ def get_move_feature_vector(move: Optional[Move]) -> List[int]:
     return move_type_one_hot_encoding_numpy_array + card_rank_one_hot_encoding_numpy_array + card_suit_one_hot_encoding_numpy_array
 
 
-def get_state_feature_vector(state: PlayerPerspective) -> List[int]:
+def get_state_feature_vector(perspective: PlayerPerspective) -> list[int]:
     """
         This function gathers all subjective information that this bot has access to, that can be used to decide its next move, including:
         - points of this player (int)
@@ -346,7 +346,7 @@ def get_state_feature_vector(state: PlayerPerspective) -> List[int]:
     # a list of all the features that consist the state feature set, of type np.ndarray
     state_feature_list: list[int] = []
 
-    player_score = state.get_my_score()
+    player_score = perspective.get_my_score()
     # - points of this player (int)
     player_points = player_score.direct_points
     # - pending points of this player (int)
@@ -356,7 +356,7 @@ def get_state_feature_vector(state: PlayerPerspective) -> List[int]:
     state_feature_list += [player_points]
     state_feature_list += [player_pending_points]
 
-    opponents_score = state.get_opponent_score()
+    opponents_score = perspective.get_opponent_score()
     # - points of the opponent (int)
     opponents_points = opponents_score.direct_points
     # - pending points of opponent (int)
@@ -367,32 +367,32 @@ def get_state_feature_vector(state: PlayerPerspective) -> List[int]:
     state_feature_list += [opponents_pending_points]
 
     # - the trump suit (1-hot encoding)
-    trump_suit = state.get_trump_suit()
+    trump_suit = perspective.get_trump_suit()
     trump_suit_one_hot = get_one_hot_encoding_of_card_suit(trump_suit)
     # add this features to the feature set
     state_feature_list += trump_suit_one_hot
 
     # - phase of game (1-hot encoding)
-    game_phase_encoded = [1, 0] if state.get_phase() == GamePhase.TWO else [0, 1]
+    game_phase_encoded = [1, 0] if perspective.get_phase() == GamePhase.TWO else [0, 1]
     # add this features to the feature set
     state_feature_list += game_phase_encoded
 
     # - talon size (int)
-    talon_size = state.get_talon_size()
+    talon_size = perspective.get_talon_size()
     # add this features to the feature set
     state_feature_list += [talon_size]
 
     # - if this player is leader (1-hot encoding)
-    i_am_leader = [0, 1] if state.am_i_leader() else [1, 0]
+    i_am_leader = [0, 1] if perspective.am_i_leader() else [1, 0]
     # add this features to the feature set
     state_feature_list += i_am_leader
 
     # gather all known deck information
-    hand_cards = state.get_hand().cards
-    trump_card = state.get_trump_card()
-    won_cards = state.get_won_cards().get_cards()
-    opponent_won_cards = state.get_opponent_won_cards().get_cards()
-    opponent_known_cards = state.get_known_cards_of_opponent_hand().get_cards()
+    hand_cards = perspective.get_hand().cards
+    trump_card = perspective.get_trump_card()
+    won_cards = perspective.get_won_cards().get_cards()
+    opponent_won_cards = perspective.get_opponent_won_cards().get_cards()
+    opponent_known_cards = perspective.get_known_cards_of_opponent_hand().get_cards()
     # each card can either be i) on player's hand, ii) on player's won cards, iii) on opponent's hand, iv) on opponent's won cards
     # v) be the trump card or vi) in an unknown position -> either on the talon or on the opponent's hand
     # There are all different cases regarding card's knowledge, and we represent these 6 cases using one hot encoding vectors as seen bellow.

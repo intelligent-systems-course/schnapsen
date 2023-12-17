@@ -1,7 +1,8 @@
+import random
 from unittest import TestCase
 from schnapsen.deck import Card, Rank, Suit
 from schnapsen.game import (
-    Trump_Exchange,
+    TrumpExchange,
     Marriage,
     Hand,
     Talon,
@@ -20,14 +21,14 @@ class MoveTest(TestCase):
     """Tests the different move types"""
 
     def setUp(self) -> None:
-        self.jacks = []
+        self.jacks: list[Card] = []
         for suit in Suit:
             jack = Card.get_card(Rank.JACK, suit)
             self.jacks.append(jack)
 
     def test_trump_exchange_creation(self) -> None:
         for jack in self.jacks:
-            exchange = Trump_Exchange(jack=jack)
+            exchange = TrumpExchange(jack=jack)
             self.assertTrue(exchange.is_trump_exchange())
             self.assertFalse(exchange.is_marriage())
             self.assertEqual(len(exchange.cards), 1)
@@ -37,7 +38,7 @@ class MoveTest(TestCase):
         for card in Card:
             if card not in self.jacks:
                 with self.assertRaises(AssertionError):
-                    Trump_Exchange(jack=card)
+                    TrumpExchange(jack=card)
 
     def test_marriage_creation_fails(self) -> None:
         for card1 in Card:
@@ -232,7 +233,7 @@ class ScoreTest(TestCase):
                             self.assertEqual(together.direct_points, direct1 + direct2)
                             self.assertEqual(together.pending_points, pending1 + pending2)
 
-    def test_redeem_pending_points(self) -> 'None':
+    def test_redeem_pending_points(self) -> None:
         for direct1 in range(-10, 10):
             for pending1 in range(-10, 10):
                 score = Score(direct_points=direct1, pending_points=pending1)
@@ -244,7 +245,7 @@ class ScoreTest(TestCase):
 class GameTest(TestCase):
 
     def test_BotState(self) -> None:
-        bot = RandBot(seed=42)
+        bot = RandBot(random.Random(42))
         hand = Hand(
             cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS]
         )
@@ -263,7 +264,7 @@ class GameTest(TestCase):
         self.assertEqual(bar.won_cards, won_cards)
 
     def test_GameState(self) -> None:
-        bot0 = RandBot(seed=42)
+        bot0 = RandBot(random.Random(42))
         hand0 = Hand(
             cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS]
         )
@@ -276,7 +277,7 @@ class GameTest(TestCase):
             won_cards=won_cards0,
         )
 
-        bot1 = RandBot(seed=43)
+        bot1 = RandBot(random.Random(43))
         hand1 = Hand(
             cards=[
                 Card.ACE_SPADES,
@@ -301,7 +302,7 @@ class GameTest(TestCase):
         self.assertFalse(gs.are_all_cards_played())
 
     def test_LeaderGameState(self) -> None:
-        bot0 = RandBot(seed=42)
+        bot0 = RandBot(random.Random(42))
         hand0 = Hand(
             cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS]
         )
@@ -314,7 +315,7 @@ class GameTest(TestCase):
             won_cards=won_cards0,
         )
 
-        bot1 = RandBot(seed=43)
+        bot1 = RandBot(random.Random(43))
         hand1 = Hand(
             cards=[
                 Card.ACE_SPADES,
@@ -358,7 +359,7 @@ class GameTest(TestCase):
         )
 
     def test_FollowerGameState(self) -> None:
-        bot0 = RandBot(seed=42)
+        bot0 = RandBot(random.Random(42))
         hand0 = Hand(
             cards=[Card.ACE_CLUBS, Card.FIVE_CLUBS, Card.NINE_HEARTS, Card.SEVEN_CLUBS]
         )
@@ -371,7 +372,7 @@ class GameTest(TestCase):
             won_cards=won_cards0,
         )
 
-        bot1 = RandBot(seed=43)
+        bot1 = RandBot(random.Random(43))
         hand1 = Hand(
             cards=[
                 Card.ACE_SPADES,
@@ -399,7 +400,7 @@ class GameTest(TestCase):
 
         # TODO lgs should be tested as well
         # lgs = LeaderGameState(state=gs, engine=sgpe)
-        fgs = FollowerPerspective(state=gs, engine=sgpe, partial_trick=mv)
+        fgs = FollowerPerspective(state=gs, engine=sgpe, leader_move=mv)
         self.assertEqual(
             fgs.valid_moves(),
             [
