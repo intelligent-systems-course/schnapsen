@@ -5,10 +5,13 @@ In this module you will find all parts related to playing a game of Schnapsen.
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
+import contextlib
 from dataclasses import dataclass, field
 from enum import Enum
+from io import StringIO
 from random import Random
-from typing import Iterable, Optional, Union, cast, Any
+import sys
+from typing import Generator, Iterable, Optional, Union, cast, Any
 from .deck import CardCollection, OrderedCardCollection, Card, Rank, Suit
 import itertools
 
@@ -19,6 +22,7 @@ class Bot(ABC):
 
     Besides the get_move method, it is also possible to override notify_trump_exchange and notify_game_end to get notified when these events happen.
     """
+
     def __init__(self, name: Optional[str] = None) -> None:
         """
         Args:
@@ -1226,10 +1230,39 @@ class MoveRequester:
 
 
 class SimpleMoveRequester(MoveRequester):
-    """The SimplemoveRquester just asks the move, and does nto time out"""
+    """The SimplemoveRquester just asks the move, and does not time out"""
 
     def get_move(self, bot: BotState, perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         return bot.get_move(perspective, leader_move=leader_move)
+
+
+class __DummyFile(StringIO):
+    def write(self, _: str) -> int:
+        return 0
+
+    def flush(self) -> None:
+        pass
+
+
+class SilencingMoveRequester(MoveRequester):
+    """
+    This MoveRequester just asks the move, but before doing so it routes stdout to a dummy file
+    """
+
+    def __init__(self, requester: MoveRequester) -> None:
+        self.requester = requester
+
+    @contextlib.contextmanager
+    @staticmethod
+    def __nostdout() -> Generator[None, Any, None]:
+        save_stdout = sys.stdout
+        sys.stdout = __DummyFile()
+        yield
+        sys.stdout = save_stdout
+
+    def get_move(self, bot: BotState, perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
+        with self.__nostdout():
+            return self.requester.get_move(bot, perspective, leader_move)
 
 
 class MoveValidator(ABC):
