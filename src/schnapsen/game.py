@@ -1236,7 +1236,7 @@ class SimpleMoveRequester(MoveRequester):
         return bot.get_move(perspective, leader_move=leader_move)
 
 
-class __DummyFile(StringIO):
+class _DummyFile(StringIO):
     def write(self, _: str) -> int:
         return 0
 
@@ -1256,12 +1256,12 @@ class SilencingMoveRequester(MoveRequester):
     @staticmethod
     def __nostdout() -> Generator[None, Any, None]:
         save_stdout = sys.stdout
-        sys.stdout = __DummyFile()
+        sys.stdout = _DummyFile()
         yield
         sys.stdout = save_stdout
 
     def get_move(self, bot: BotState, perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
-        with self.__nostdout():
+        with SilencingMoveRequester.__nostdout():
             return self.requester.get_move(bot, perspective, leader_move)
 
 
