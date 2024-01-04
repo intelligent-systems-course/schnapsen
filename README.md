@@ -6,9 +6,10 @@ This is the improved platform for the schnapsen card game. To get to know the co
 [this web page](https://www.pagat.com/marriage/schnaps.html).
 
 
-To use the platform, your python version must be at least 3.10, we suggest installing conda an using an environment.
+To use the platform, your python version must be at least 3.10, we suggest installing conda and using an environment (see below).
+At this point, the code is not tested with python 3.13, yet.
 
-To get started, install the schnapsen package and its dependencies in editable mode by running:
+To get started, clone the repository, go into the folder and install the schnapsen package and its dependencies in editable mode by running:
 
 ```sh
 pip install -e .
@@ -19,6 +20,7 @@ To run the tests, run:
 ```sh
 pip install -e '.[test]'  # on Linux / MacOS
 pip install -e ".[test]"  # on Windows
+
 pytest ./tests
 ```
 
@@ -52,17 +54,14 @@ python executables/server.py
 ```
 
 Now, open your webbrowser and type in the server address (i.e., http://127.0.0.1:8080). 
-By default, you are playing against RandBot. You can also play against other bots. Run 
-
-```sh
-python executables/server.py --help
-```
-for more details.
+By default, you are playing against RandBot. You can modify the code in executables/server.py to play against other bots.
 
 ## Implementing more bots
 
 You will find bot examples in the [`src/schnapsen/bots`](./src/schnapsen/bots) folder.
 You can look at the example_bot.py file for various methods provided to your bot.
+
+The documentation for the platform is hosted at https://intelligent-systems-course.github.io/schnapsen/
 
 
 ## Troubleshooting
@@ -109,6 +108,7 @@ Most of the time, when you read Github python repo READMEs, they won't tell you 
 
 Things can be messy if you have multiple python3.9 versions (e.g., `python3.9.1`, `python3.9.10`, etc.). Things can get even more messy when your python binary can't be run as `python3.9` but more like `py3.9` or something. Good luck!
 -->
+<!--
 
 ## Documentation ##
 
@@ -121,4 +121,4 @@ pdoc --html src/schnapsen executables/ -o doc/
 ```
 
 if above doesn't work, try pdoc3, instead of pdoc
-
+>
