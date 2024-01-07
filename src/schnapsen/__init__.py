@@ -1,1 +1,1 @@
-"""A package for implementing bots playing the Schnapsen card game"""
+"""This package provides a platform  supporting the implementation of bots playing the Schnapsen card game"""

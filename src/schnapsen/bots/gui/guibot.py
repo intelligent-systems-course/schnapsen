@@ -60,9 +60,22 @@ class SchnapsenServer:
         self.__process.start()
 
     def make_gui_bot(self, name: str) -> Bot:
+        """Create a GUIBot to be used in a game.
+        You have to make sure that the names are unique!!
+
+        Args:
+            name (str): the name of this GUIBot
+
+        Returns:
+            Bot: The newly created Bot, ready for playing a single game.
+        """
+        assert not self._has_bot(name), "A GUI bot with this name has been created before. The names must be unique."
         bot = GUIBot(self, name)
         self.__bots[name] = _StateExchange(bot=bot, browser_game_started=False, is_state_ready=Event(), is_move_ready=Event(), state=None, leader_move=None, browser_move=None)
         return bot
+
+    def _has_bot(self, name: str) -> bool:
+        return name in self.__bots
 
     def _post_final_state(self, botname: str, won: bool, perspective: PlayerPerspective) -> None:
         state_exchange = self.__bots[botname]
@@ -123,7 +136,18 @@ class SchnapsenServer:
 
 
 class GUIBot(Bot):
+    """The GUIBot is the interface between the server and the schnapsen platform.
+    When asked for a move, it makes sure the perspective gets shown in the browser and captures the move played.
+    """
+
     def __init__(self, server: SchnapsenServer, name: str) -> None:
+        """Create a GUIBot. It is not normal to do this yourself. The normal way to do this is by creating a schnapsen server and then call its
+        make_gui_bot method. Otherwise the server won't be properly aware of this GUIBot.
+
+        Args:
+            server (SchnapsenServer): The schnapsen server to which this bot has already been registered
+            name (str): The name of this GUI bot
+        """
         super().__init__(name)
         self.name = name
         self.server = server
