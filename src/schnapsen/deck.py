@@ -24,7 +24,7 @@ class Suit(Enum):
     def __str__(self) -> str:
         """
         __str__ method, returns the name of the suit as a string (eg. str(Suit.HEARTS) -> "HEARTS")
-        
+
         :return: (str): The name of the suit as a string.
         """
         return self.name
@@ -32,7 +32,7 @@ class Suit(Enum):
 
 class Rank(Enum):
     """
-    Class used for classification of card ranks.
+    Class defining the card ranks.
     """
 
     ACE = auto()
@@ -52,7 +52,7 @@ class Rank(Enum):
     def __str__(self) -> str:
         """
         __str__ method, returns the name of the rank as a string (eg. str(Rank.ACE) -> "ACE")
-        
+
         :return: (str): The name of the rank as a string.
         """
         return self.name
@@ -61,7 +61,7 @@ class Rank(Enum):
 @enum.unique
 class Card(Enum):
     """
-     Class for defining individual cards.
+     Class defining individual cards.
 
     :param rank (Rank): The rank of the card.
     :param suit (Suit): The suit of the card.
@@ -132,7 +132,7 @@ class Card(Enum):
         self.rank = rank
         self.suit = suit
         self.character = character
-    
+
     @staticmethod
     def _get_card(rank: Rank, suit: Suit) -> Card:
         """
@@ -142,7 +142,7 @@ class Card(Enum):
         :param suit: (Suit): The suit of the card.
         :return: (Card): A card object.
         """
-        
+
         for card in Card:
             (card_rank, card_suit, _) = card.value
             if rank == card_rank and suit == card_suit:
@@ -152,11 +152,13 @@ class Card(Enum):
     @staticmethod
     def get_card(rank: Rank, suit: Suit) -> Card:
         """
-        Get a card from the card cache based on the given rank and suit. The cache is used for effieciency and to prevent duplicate card objects.
+        Get a Card for the provided Rank and Suit.
+
+        Internally, this uses a cache for effieciency and to prevent duplicate card objects.
 
         :param rank: (Rank): The rank of the card.
         :param suit: (Suit): The suit of the card.
-        :return: (Card): The desired card object from the card cache.
+        :return: (Card): The desired Card
         """
 
         # _CardCache._CARD_CACHE is a dict with tuples of (rank, suit) as keys and card objects as values.
@@ -175,6 +177,8 @@ class Card(Enum):
 class _CardCache:
     """
     Card cache class. This class is used to cache all possible cards in the game as a dict.
+
+    This class is private to this module. It is supposed to be only used internally and might change.
     """
 
     _CARD_CACHE: dict[tuple[Rank, Suit]: Card] = {(card_rank, card_suit): Card._get_card(card_rank, card_suit) for (card_rank, card_suit) in itertools.product(Rank, Suit)}
@@ -193,36 +197,36 @@ class CardCollection(ABC):
     def filter_suit(self, suit: Suit) -> list[Card]:
         """
         Returns a list with in it all cards which have the provided suit
-        
+
         :param suit: (Suit): The suit to filter on.
         :return: (list[Card]): A list of cards with the provided suit.
         """
-        
+
         results: list[Card] = list(filter(lambda x: x.suit is suit, self.get_cards()))
         return results
 
     def filter_rank(self, rank: Rank) -> list[Card]:
         """
         Returns a list with in it all cards which have the provided rank
-        
+
         :param rank: (Rank): The rank to filter on.
         :return: (list[Card]): A list of cards with the provided rank.
         """
-        
+
         results: list[Card] = list(filter(lambda x: x.rank is rank, self.get_cards()))
         return results
 
     @abstractmethod
     def is_empty(self) -> bool:
         """
-        Placeholder for the is_empty method in subsequent children classes.
+        True in case this CardCollection does not contain any Cards. False otherwise.
         """
         pass
 
     def __len__(self) -> int:
         """
         Returns the number of cards in this collection.
-        
+
         :return: (int): The number of cards in this collection.
         """
 
@@ -239,7 +243,7 @@ class CardCollection(ABC):
 
     def __contains__(self, item: Any) -> bool:
         """
-        Returns whether the provided item is in this collection.    
+        Returns whether the provided item is in this collection.
 
         :param item: (Any): The item to check.
         :return: (bool): Whether the item is in this collection.
@@ -252,9 +256,8 @@ class CardCollection(ABC):
 class OrderedCardCollection(CardCollection):
     """
     A collection of cards for which the order is significant and guaranteed
-    
+
     :param cards: (Optional[Iterable[Card]]): An Iterable of cards to initialize the collection with. Defaults to None.
-    :attr _cards: (list[Card]): Defensive copy of param cards.
     """
 
     def __init__(self, cards: Optional[Iterable[Card]] = None) -> None:
@@ -289,7 +292,7 @@ class OrderedCardCollection(CardCollection):
     def __iter__(self) -> Iterator[Card]:
         """
         Returns an iterator over the cards in this collection.
-        
+
         :return: (Iterator[Card]): An iterator over the cards in this collection.
         """
         return self._cards.__iter__()
@@ -308,7 +311,7 @@ class OrderedCardCollection(CardCollection):
     def filter_suit(self, suit: Suit) -> list[Card]:
         """
         Returns an Iterable with in it all cards which have the provided suit
-        
+
         :param suit: (Suit): The suit to filter on.
         :return: (list[Card]): An Iterable of cards with the provided suit.
         """
@@ -320,7 +323,7 @@ class OrderedCardCollection(CardCollection):
     def filter_rank(self, rank: Rank) -> list[Card]:
         """
         Returns an Iterable with in it all cards which have the provided rank
-        
+
         :param rank: (Rank): The rank to filter on.
         :return: (list[Card]): An Iterable of cards with the provided rank.
         """

@@ -20,9 +20,8 @@ class Bot(ABC):
     """
     The Bot baseclass. Derive your own bots from this class and implement the get_move method to use it in games.
     Besides the get_move method, it is also possible to override notify_trump_exchange and notify_game_end to get notified when these events happen.
-    
+
     :param name: (str): Optionally, specify a name for the bot. Defaults to None.
-    :attr __name: (str): The name of the bot. Only defined if name is specified.
     """
 
     def __init__(self, name: Optional[str] = None) -> None:
@@ -34,9 +33,9 @@ class Bot(ABC):
         """
         Get the move this Bot wants to play. This is the method that gets called by the engine to get the bot's next move.
         If this Bot is leading, the leader_move will be None. If this both is following, the leader_move will contain the move the opponent just played
-        
+
         :param perspective: (PlayerPerspective): The PlayerPerspective which contains the information on the current state of the game from the perspective of this player
-        :param leader_move: (Optional[Move]): The move made by the leader of the trick. This is None if the bot is the leader.
+        :param leader_move: (Optional[Move]): The move made by the leader of the trick. This is None if this bot is the leader.
         """
 
     def notify_trump_exchange(self, move: TrumpExchange) -> None:
@@ -68,12 +67,12 @@ class Bot(ABC):
 
 class Move(ABC):
     """
-    A single move during a game. There are several types of move possible: normal moves, trump exchanges, and marriages. 
+    A single move during a game. There are several types of move possible: normal moves, trump exchanges, and marriages.
     They are implmented in classes inheriting from this class.
     """
-    
+
     cards: list[Card]  # implementation detail: The creation of this list is defered to the derived classes in _cards()
-    """represents the cards played on this move"""
+    """The cards played in this move"""
 
     def is_regular_move(self) -> bool:
         """
@@ -112,11 +111,6 @@ class Move(ABC):
         raise AssertionError("as_trump_exchange called on a Move which is not a TrumpExchange. Check with is_trump_exchange first.")
 
     def __getattribute__(self, __name: str) -> Any:
-        """
-        Returns the card list for this move.
-
-        :returns: The list of cards in this move.
-        """
         if __name == "cards":
             # We call the method to compute the card list
             return object.__getattribute__(self, "_cards")()
@@ -126,14 +120,14 @@ class Move(ABC):
     def _cards(self) -> list[Card]:
         """
         Get the list of cards in this move. This method should not be called direcly, use the cards property instead.
-        Placeholder method for other classes to inherit and/or override.
+        Private abstract method for other classes to inherit and/or override.
         """
 
     @abstractmethod
     def __eq__(self, __o: object) -> bool:
         """
         Compares two moves with each other. Two moves are equal in case they are of the same type and if they contain the same cards.
-        Placeholder method for other classes to inherit and/or override.
+        Abstract method for derived classes to override.
         """
 
 
@@ -152,7 +146,7 @@ class TrumpExchange(Move):
 
     def is_trump_exchange(self) -> bool:
         """
-        Returns True to indicate that this is a trump exchange.
+        Returns True if this is a trump exchange.
         """
         return True
 
@@ -177,7 +171,7 @@ class TrumpExchange(Move):
 
 @dataclass(frozen=True)
 class RegularMove(Move):
-    """Represents a regular move in the game"""
+    """A regular move in the game"""
 
     card: Card
     """The card which is played"""
@@ -213,13 +207,13 @@ class Marriage(Move):
     Because it can only be beneficial to play the queen, it is chosen automatically.
     This Regular move is part of this Move already and does not have to be played separatly.
     """
-    
+
     queen_card: Card
     """The queen card of this marriage"""
 
     king_card: Card
     """The king card of this marriage"""
-    
+
     suit: Suit = field(init=False, repr=False, hash=False)
     """The suit of this marriage, gets derived from the suit of the queen and king."""
 
@@ -263,8 +257,8 @@ class Marriage(Move):
 
 class Hand(CardCollection):
     """
-    Representing the cards in the hand of a player. These are the cards which the player can see and which he can play with in the turn.
-    
+    The cards in the hand of a player. These are the cards which the player can see and which he can play with in the turn.
+
     :param cards: (Iterable[Card]): The cards to be added to the hand
     :param max_size: (int): The maximum number of cards the hand can contain. If the number of cards goes beyond, an Exception is raised. Defaults to 5.
 
@@ -281,7 +275,7 @@ class Hand(CardCollection):
     def remove(self, card: Card) -> None:
         """
         Remove one occurence of the card from this hand
-        
+
         :param card: (Card): The card to be removed from the hand.
         """
         try:
@@ -324,12 +318,12 @@ class Hand(CardCollection):
         return len(self.cards) == 0
 
     def get_cards(self) -> list[Card]:
-            """
-            Returns The cards in the hand
+        """
+        Returns the cards in the hand
 
-            :returns: (list[Card]): A list of Card objects representing the cards in the game.
-            """
-            return list(self.cards)
+        :returns: (list[Card]): A defensive copy of the list of Cards in this Hand.
+        """
+        return list(self.cards)
 
     def filter_suit(self, suit: Suit) -> list[Card]:
         """
@@ -413,7 +407,7 @@ class Talon(OrderedCardCollection):
     def draw_cards(self, amount: int) -> Iterable[Card]:
         """
         Draw a card from this Talon. This does not change the talon, btu rather returns a talon with the change applied and the card drawn
-        
+
         param amount: (int): The number of cards to be drawn
         :returns: (Talon): A new Talon with the cards drawn and the trump_suit set to the same value as this Talon.
         """
@@ -427,7 +421,7 @@ class Talon(OrderedCardCollection):
         """
         Return the suit of the trump card, i.e., the bottommost card.
         This still works, even when the Talon has become empty.
-        
+
         :returns: (Suit): the trump suit of the Talon
         """
         return self.__trump_suit
@@ -446,7 +440,7 @@ class Talon(OrderedCardCollection):
     def __repr__(self) -> str:
         """
         A string representation of the Talon.
-        
+
         :returns: (str): A string representation of the Talon.
         """
         return f"Talon(cards={self._cards}, trump_suit={self.__trump_suit})"
@@ -914,7 +908,7 @@ class PlayerPerspective(ABC):
     def get_known_cards_of_opponent_hand(self) -> CardCollection:
         """Get all cards which are in the opponents hand, but known to your Bot. This includes cards earlier used in marriages, or a trump exchange.
         All cards in the second pahse of the game.
-        
+
         :returns: (CardCollection): A list of all cards which are in the opponents hand, which are known to the bot.
         """
         opponent_hand = self.__get_opponent_bot_state().hand
@@ -1025,7 +1019,7 @@ class _DummyBot(Bot):
 class LeaderPerspective(PlayerPerspective):
     """
     The playerperspective of the Leader.
-    
+
     :param state: (GameState): The current state of the game
     :param engine: (GamePlayEngine): The engine which is used to play the game
     :attr __game_state: (GameState): The current state of the game - initialized from the state parameter.
@@ -1288,7 +1282,7 @@ class ExchangeFollowerPerspective(PlayerPerspective):
 class WinnerPerspective(LeaderPerspective):
     """
     The gamestate given to the winner of the game at the very end
-    
+
     :param state: (GameState): The current state of the game
     :param engine: (GamePlayEngine): The engine which is used to play the game
     :attr __game_state: (GameState): The current state of the game - initialized from the state parameter.
@@ -1440,7 +1434,7 @@ class TrickImplementer(ABC):
 
 class SchnapsenTrickImplementer(TrickImplementer):
     """
-    Child of TrickImplementer, SchnapsenTrickImplementer specifies how tricks are palyed in the game.
+    Child of TrickImplementer, SchnapsenTrickImplementer specifies how tricks are played in the game.
     """
 
     def play_trick(self, game_engine: GamePlayEngine, game_state: GameState) -> GameState:
@@ -1449,7 +1443,7 @@ class SchnapsenTrickImplementer(TrickImplementer):
         Plays a single Trick the game by asking the bots in the game_state for their Moves,
         first asks the leader for their move, and then depending on the resulting gamestate
         in self.play_trick_with_fixed_leader_move, will ask (or not ask) the follower for a move.
-        
+
         :param game_engine: (GamePlayEngine): The engine used to preform the underlying actions of the Trick.
         :param game_state: (GameState): The state of the game before the trick is played. This state will not be modified.
         :returns: (GameState): The GameState after the trick is completed.
@@ -1488,7 +1482,7 @@ class SchnapsenTrickImplementer(TrickImplementer):
     def _apply_regular_trick(self, game_engine: GamePlayEngine, game_state: GameState, trick: RegularTrick) -> GameState:
         """
         Applies the given regular trick to the given game state, returning the resulting game state.
-        
+
         :param game_engine: (GamePlayEngine): The engine used to preform the underlying actions of the Trick.
         :param game_state: (GameState): The state of the game before the trick is played. This state will not be modified.
         :param trick: (RegularTrick): The trick to be applied to the game state.
@@ -1642,7 +1636,7 @@ class SilencingMoveRequester(MoveRequester):
     def __nostdout() -> Generator[None, Any, None]:
         """
         A context manager that silences stdout
-        
+
         :returns: (Generator[None, Any, None]): A context manager that silences stdout
         """
 
@@ -1654,7 +1648,7 @@ class SilencingMoveRequester(MoveRequester):
     def get_move(self, bot: BotState, perspective: PlayerPerspective, leader_move: Optional[Move]) -> Move:
         """
         Get a move from the bot, potentially applying timeout logic.
-        
+
         :param bot: (BotState): The bot to request the move from
         :param perspective: (PlayerPerspective): The perspective of the bot
         :param leader_move: (Optional[Move]): The move made by the leader of the trick. This is None if the bot is the leader.
@@ -1748,7 +1742,7 @@ class SchnapsenMoveValidator(MoveValidator):
         :param game_engine: (GamePlayEngine): The engine which is playing the game
         :param game_state: (GameState): The current state of the game
         :param move: (Move): The move to check
-        
+
         :returns: (bool): Whether the move is legal
         """
         cards_in_hand = game_state.leader.hand
@@ -1775,7 +1769,7 @@ class SchnapsenMoveValidator(MoveValidator):
 
         :returns: (Iterable[Move]): An iterable containing the current legal moves.
         """
-        
+
         hand = game_state.follower.hand
         if leader_move.is_marriage():
             leader_card = cast(Marriage, leader_move).queen_card
@@ -1954,7 +1948,7 @@ class SchnapsenTrickScorer(TrickScorer):
             * three game points, if the opponent has won no tricks (opponent is said to be Schwarz).
 
         If play continued to the very last trick with the talon exhausted, the player who takes the last trick wins the hand, scoring one game point, irrespective of the number of card points the players have taken.
-        
+
         :param game_state: (GameState): The current gamestate
         :returns: (Optional[tuple[BotState, int]]): The botstate of the winner and the number of game points, in case there is a winner already. Otherwise None.
         """
@@ -2019,10 +2013,10 @@ class GamePlayEngine:
         Get a random GameState in the second phase of the game.
 
         :param rng: The random number generator used to shuffle the deck.
-        
+
         :returns: A GameState in the second phase of the game.
         """
-        
+
         class RandBot(Bot):
             def __init__(self, rand: Random, name: Optional[str] = None) -> None:
                 super().__init__(name)
