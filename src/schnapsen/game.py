@@ -41,7 +41,7 @@ class Bot(ABC):
     def notify_trump_exchange(self, move: TrumpExchange) -> None:
         """
         The engine will call this method when a trump exchange is made.
-        Overide this method to get notified about trump exchanges. Note that this only notifies about the other bots exchanges.
+        Overide this method to get notified about trump exchanges. Note that this notification is sent to both bots.
 
         :param move: (TrumpExchange): the Trump Exchange move that was played.
         """
@@ -1548,7 +1548,8 @@ class SchnapsenTrickImplementer(TrickImplementer):
         game_state.leader.hand.remove(trump_exchange.jack)
         old_trump = game_state.talon.trump_exchange(trump_exchange.jack)
         game_state.leader.hand.add(old_trump)
-        # We notify the other bot that an exchange happened
+        # We notify the both bots that an exchange happened
+        game_state.leader.implementation.notify_trump_exchange(trump_exchange)
         game_state.follower.implementation.notify_trump_exchange(trump_exchange)
 
     def _play_marriage(self, game_engine: GamePlayEngine, game_state: GameState, marriage_move: Marriage) -> None:
