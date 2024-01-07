@@ -204,7 +204,7 @@ class Marriage(Move):
     """
     A Move representing a marriage in the game. This move has two cards, a king and a queen of the same suit.
     Right after the marriage is played, the player must play either the queen or the king.
-    Because it can only be beneficial to play the queen, it is chosen automatically.
+    Because it can only be beneficial to play the king, it is chosen automatically.
     This Regular move is part of this Move already and does not have to be played separatly.
     """
 
@@ -240,8 +240,8 @@ class Marriage(Move):
         :returns: (RegularMove): The regular move which was played because of the marriage.
         """
         # this limits you to only have the queen to play after a marriage, while in general you would have a choice.
-        # This is not an issue since playing the queen give you the highest score.
-        return RegularMove(self.queen_card)
+        # This is not an issue since playing the king give you the highest score.
+        return RegularMove(self.king_card)
 
     def _cards(self) -> list[Card]:
         return [self.queen_card, self.king_card]
