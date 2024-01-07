@@ -181,7 +181,7 @@ class _CardCache:
     This class is private to this module. It is supposed to be only used internally and might change.
     """
 
-    _CARD_CACHE: dict[tuple[Rank, Suit]: Card] = {(card_rank, card_suit): Card._get_card(card_rank, card_suit) for (card_rank, card_suit) in itertools.product(Rank, Suit)}
+    _CARD_CACHE: dict[tuple[Rank, Suit], Card] = {(card_rank, card_suit): Card._get_card(card_rank, card_suit) for (card_rank, card_suit) in itertools.product(Rank, Suit)}
 
 
 class CardCollection(ABC):
