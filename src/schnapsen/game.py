@@ -132,6 +132,36 @@ class Move(ABC):
 
 
 @dataclass(frozen=True)
+class RegularMove(Move):
+    """A regular move in the game"""
+
+    card: Card
+    """The card which is played"""
+
+    def _cards(self) -> list[Card]:
+        return [self.card]
+
+    @staticmethod
+    def from_cards(cards: Iterable[Card]) -> list[Move]:
+        """Create an iterable of Moves from an iterable of cards."""
+        return [RegularMove(card) for card in cards]
+
+    def is_regular_move(self) -> bool:
+        return True
+
+    def as_regular_move(self) -> RegularMove:
+        return self
+
+    def __repr__(self) -> str:
+        return f"RegularMove(card={self.card})"
+
+    def __eq__(self, __o: object) -> bool:
+        if not isinstance(__o, RegularMove):
+            return False
+        return self.card == __o.card
+
+
+@dataclass(frozen=True)
 class TrumpExchange(Move):
     """A move that implements the exchange of the trump card for a Jack of the same suit."""
 
@@ -167,36 +197,6 @@ class TrumpExchange(Move):
         if not isinstance(__o, TrumpExchange):
             return False
         return self.jack == __o.jack
-
-
-@dataclass(frozen=True)
-class RegularMove(Move):
-    """A regular move in the game"""
-
-    card: Card
-    """The card which is played"""
-
-    def _cards(self) -> list[Card]:
-        return [self.card]
-
-    @staticmethod
-    def from_cards(cards: Iterable[Card]) -> list[Move]:
-        """Create an iterable of Moves from an iterable of cards."""
-        return [RegularMove(card) for card in cards]
-
-    def is_regular_move(self) -> bool:
-        return True
-
-    def as_regular_move(self) -> RegularMove:
-        return self
-
-    def __repr__(self) -> str:
-        return f"RegularMove(card={self.card})"
-
-    def __eq__(self, __o: object) -> bool:
-        if not isinstance(__o, RegularMove):
-            return False
-        return self.card == __o.card
 
 
 @dataclass(frozen=True)

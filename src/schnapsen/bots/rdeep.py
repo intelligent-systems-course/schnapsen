@@ -6,6 +6,9 @@ from .rand import RandBot
 
 
 class RdeepBot(Bot):
+    """
+    Rdeep bot is a bot which performs many random rollouts of the game to decide which move to play.
+    """
     def __init__(self, num_samples: int, depth: int, rand: random.Random, name: Optional[str] = None) -> None:
         """
         Create a new rdeep bot.
