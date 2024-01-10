@@ -172,7 +172,7 @@ class TrumpExchange(Move):
         """
         Asserts that the card is a Jack
         """
-        assert self.jack.rank is Rank.JACK
+        assert self.jack.rank is Rank.JACK, f"The rank card {self.jack} used to initialize the {TrumpExchange.__name__} was not Rank.JACK"
 
     def is_trump_exchange(self) -> bool:
         """
@@ -222,9 +222,9 @@ class Marriage(Move):
         Ensures that the suits of the fields all have the same suit and are a king and a queen.
         Finally, sets the suit field.
         """
-        assert self.queen_card.rank is Rank.QUEEN
-        assert self.king_card.rank is Rank.KING
-        assert self.queen_card.suit == self.king_card.suit
+        assert self.queen_card.rank is Rank.QUEEN, f"The rank card {self.queen_card} used to initialize the {Marriage.__name__} was not Rank.QUEEN"
+        assert self.king_card.rank is Rank.KING, f"The rank card {self.king_card} used to initialize the {Marriage.__name__} was not Rank.KING"
+        assert self.queen_card.suit == self.king_card.suit, f"The cards used to inialize the Marriage {self.queen_card} and {self.king_card} so not have the same suit."
         object.__setattr__(self, "suit", self.queen_card.suit)
 
     def is_marriage(self) -> bool:
@@ -372,7 +372,7 @@ class Talon(OrderedCardCollection):
             assert not trump_suit or trump_card_suit == trump_suit, "If the trump suit is specified, and there are cards on the talon, the suit must be the same!"
             self.__trump_suit = trump_card_suit
         else:
-            assert trump_suit
+            assert trump_suit, f"If an empty {Talon.__name__} is created, the trump_suit must be specified"
             self.__trump_suit = trump_suit
 
         super().__init__(cards)
@@ -397,9 +397,9 @@ class Talon(OrderedCardCollection):
         :returns: (Card): The card which was at the bottom of the Talon before the exchange.
 
         """
-        assert new_trump.rank is Rank.JACK
-        assert len(self._cards) >= 2
-        assert new_trump.suit is self._cards[-1].suit
+        assert new_trump.rank is Rank.JACK, f"the rank of the card used for the exchange {new_trump} is not a Rank.JACK"
+        assert len(self._cards) >= 2, f"There must be at least two cards on the talon to do an exchange len = {len(self._cards)}"
+        assert new_trump.suit is self._cards[-1].suit, f"The suit of the new card {new_trump} is not equal to the current bottom {self._cards[-1].suit}"
         old_trump = self._cards.pop(len(self._cards) - 1)
         self._cards.append(new_trump)
         return old_trump
@@ -1068,7 +1068,7 @@ class LeaderPerspective(PlayerPerspective):
 
         :returns: (Hand): The cards in the hand of the follower
         """
-        assert self.get_phase() == GamePhase.TWO
+        assert self.get_phase() == GamePhase.TWO, "Cannot get the hand of the opponent in pahse one"
         return self.__game_state.follower.hand.copy()
 
     def am_i_leader(self) -> bool:
@@ -1158,7 +1158,7 @@ class FollowerPerspective(PlayerPerspective):
         :returns: (Hand): The cards in the hand of the leader
         """
 
-        assert self.get_phase() == GamePhase.TWO
+        assert self.get_phase() == GamePhase.TWO, "Cannot get the hand of the opponent in pahse one"
         return self.__game_state.leader.hand.copy()
 
     def am_i_leader(self) -> bool:
@@ -1254,7 +1254,7 @@ class ExchangeFollowerPerspective(PlayerPerspective):
 
         :returns: (Hand): The cards in the hand of the leader
         """
-        assert self.get_phase() == GamePhase.TWO
+        assert self.get_phase() == GamePhase.TWO, "Cannot get the hand of the opponent in pahse one"
         return self.__game_state.leader.hand.copy()
 
     def get_opponent_won_cards(self) -> CardCollection:
@@ -1465,7 +1465,7 @@ class SchnapsenTrickImplementer(TrickImplementer):
             next_game_state = game_state.copy_for_next()
             exchange = cast(TrumpExchange, leader_move)
             old_trump_card = game_state.talon.trump_card()
-            assert old_trump_card
+            assert old_trump_card, "There is no card at the bottom of the talon"
             self.play_trump_exchange(next_game_state, exchange)
             # remember the previous state
             next_game_state.previous = Previous(game_state, ExchangeTrick(exchange, old_trump_card), True)
@@ -1908,7 +1908,7 @@ class SchnapsenTrickScorer(TrickScorer):
 
         leader_card = regular_leader_move.card
         follower_card = trick.follower_move.card
-        assert leader_card != follower_card
+        assert leader_card != follower_card, f"The leader card {leader_card} and follower_card {follower_card} cannot be the same."
         leader_card_points = self.rank_to_points(leader_card.rank)
         follower_card_points = self.rank_to_points(follower_card.rank)
 
@@ -1961,7 +1961,7 @@ class SchnapsenTrickScorer(TrickScorer):
                 return game_state.leader, 1
             else:
                 # second case in explaination above, 0 < score < 33
-                assert follower_score < 66
+                assert follower_score < 66, "Found a follower score of more than 66, while the leader also had more than 66. This must never happen."
                 return game_state.leader, 2
         elif game_state.follower.score.direct_points >= 66:
             raise AssertionError("Would declare the follower winner, but this should never happen in the current implementation")
@@ -2111,7 +2111,7 @@ class GamePlayEngine:
         :returns: The GameState reached and the number of steps actually taken.
         """
         state, rounds = self.play_at_most_n_tricks(game_state, new_leader, new_follower, 1)
-        assert rounds == 1
+        assert rounds == 1, f"We called play_at_most_n_tricks with rounds=1, but it returned not excactly 1 round, got {rounds} rounds."
         return state
 
     def play_at_most_n_tricks(self, game_state: GameState, new_leader: Bot, new_follower: Bot, n: int) -> tuple[GameState, int]:
