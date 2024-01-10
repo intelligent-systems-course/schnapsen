@@ -18,7 +18,7 @@ class MiniMaxBot(Bot):
     A bot playing the minimax strategy in the second phase of the game.
     It cannot be used for the first phase. What you can do is delegate from your own bot to this one in the second phase.
     This would look something like:
-
+    <pre>
     class YourBot(Bot):
         def __init__(self):
             self.delegate_phase2 = MiniMaxBot()
@@ -27,6 +27,7 @@ class MiniMaxBot(Bot):
                 return self.delegate_phase2.get_move(state, leader_move)
             else:
                 # The logic of your bot
+    </pre>
     """
 
     def __init__(self, name: Optional[str] = None) -> None:
