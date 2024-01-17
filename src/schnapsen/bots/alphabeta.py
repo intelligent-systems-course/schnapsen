@@ -23,7 +23,7 @@ class AlphaBetaBot(Bot):
 
     class YourBot(Bot):
         def __init__(self):
-            self.delegate_phase2 = MiniMaxBot()
+            self.delegate_phase2 = AlphaBetaBot()
         def get_move(self, state: PlayerPerspective, leader_move: Optional[Move]) -> Move:
             if state.get_phase() == GamePhase.TWO:
                 return self.delegate_phase2.get_move(state, leader_move)
