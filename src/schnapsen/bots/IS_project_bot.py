@@ -1,5 +1,5 @@
 from schnapsen.game import Bot, Move, PlayerPerspective
-from schnapsen.game import SchnapsenTrickScorer
+from schnapsen.game import SchnapsenTrickScorer, GamePhase, TrumpExchange
 from schnapsen.deck import Card, Suit, Rank
 
 class IS_project_bot(Bot):
@@ -39,13 +39,27 @@ class IS_project_bot(Bot):
         """
         Checks if there is a trump jack in our hand, that can be swapped for more powerful trump card
         """
-        raise NotImplementedError("Not yet implemented")
+
+        my_valid_moves = perspective.valid_moves()
+
+        for move in my_valid_moves:
+            if move.is_trump_exchange() and perspective.get_phase == GamePhase.ONE and leader_move is None:
+                return True
+        
+        return False
+    
+        # raise NotImplementedError("Not yet implemented")
 
     def action1(perspective: PlayerPerspective, leader_move: Move | None) -> Move:
         """
         Swaps the trump card
         """
-        raise NotImplementedError("Not yet implemented")
+
+        trump_suit = perspective.get_trump_suit()
+
+        return TrumpExchange(Card.get_card(Rank.JACK, trump_suit))
+    
+        # raise NotImplementedError("Not yet implemented")
 
     def condition2(perspective: PlayerPerspective, leader_move: Move | None) -> bool:
         """
