@@ -404,12 +404,12 @@ class Talon(OrderedCardCollection):
         self._cards.append(new_trump)
         return old_trump
 
-    def draw_cards(self, amount: int) -> Iterable[Card]:
+    def draw_cards(self, amount: int) -> list[Card]:
         """
-        Draw a card from this Talon. This does not change the talon, btu rather returns a talon with the change applied and the card drawn
+        Draw a card from this Talon. This changes the talon.
 
         param amount: (int): The number of cards to be drawn
-        :returns: (Talon): A new Talon with the cards drawn and the trump_suit set to the same value as this Talon.
+        :returns: (Iterable[Card]): The cards drawn from this Talon.
         """
 
         assert len(self._cards) >= amount, f"There are only {len(self._cards)} on the Talon, but {amount} cards are requested"
@@ -1510,9 +1510,9 @@ class SchnapsenTrickImplementer(TrickImplementer):
         # important: the winner takes the first card of the talon, the loser the second one.
         # this also ensures that the loser of the last trick of the first phase gets the face up trump
         if not next_game_state.talon.is_empty():
-            drawn = iter(next_game_state.talon.draw_cards(2))
-            next_game_state.leader.hand.add(next(drawn))
-            next_game_state.follower.hand.add(next(drawn))
+            drawn = next_game_state.talon.draw_cards(2)
+            next_game_state.leader.hand.add(drawn[0])
+            next_game_state.follower.hand.add(drawn[1])
 
         next_game_state.previous = Previous(game_state, trick=trick, leader_remained_leader=leader_remained_leader)
 
