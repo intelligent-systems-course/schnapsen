@@ -53,12 +53,12 @@ class MLPlayingBot(Bot):
         model_output = self.__model.predict_proba(action_state_representations)
         winning_probabilities_of_moves = [outcome_prob[1] for outcome_prob in model_output]
         highest_value: float = -1
-        best_move: Move
+        best_move = None
         for index, value in enumerate(winning_probabilities_of_moves):
             if value > highest_value:
                 highest_value = value
                 best_move = my_valid_moves[index]
-        assert best_move is not None
+        assert best_move is not None, "We went over all the moves, selecting the one we expect to lead to the highest average score. Simce there must have been at least one move at the start, this can never be None"
         return best_move
 
 
