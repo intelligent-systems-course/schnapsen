@@ -9,6 +9,7 @@ from schnapsen.alternative_engines.ace_one_engine import AceOneGamePlayEngine
 from schnapsen.bots import MLDataBot, train_ML_model, MLPlayingBot, RandBot
 
 from schnapsen.bots.example_bot import ExampleBot
+from schnapsen.bots.rdeep_cheater import RdeepCheaterBot
 
 from schnapsen.game import (Bot, GamePlayEngine, Move, PlayerPerspective,
                             SchnapsenGamePlayEngine, TrumpExchange)
@@ -33,10 +34,10 @@ def play_games_and_return_stats(engine: GamePlayEngine, bot1: Bot, bot2: Bot, nu
         if i % 2 == 0:
             # swap bots so both start the same number of times
             lead, follower = follower, lead
-        winner, _, _ = engine.play_game(lead, follower, random.Random(i))
+        winner, _, _ = engine.play_game(lead, follower, random.Random(i + 100))
         if winner == bot1:
             bot1_wins += 1
-        if i % 500 == 0:
+        if i % 10 == 0:
             print(f"Progress: {i}/{number_of_games}")
     return bot1_wins
 
@@ -107,6 +108,18 @@ def rdeep_game() -> None:
             wins += 1
         if game_number % 10 == 0:
             print(f"won {wins} out of {game_number}")
+
+
+@main.command()
+def rdeep_cheater() -> None:
+    engine = SchnapsenGamePlayEngine()
+    #bot1: Bot = RdeepBot(10, 5, random.Random(4535), "fairplay")
+    bot1: Bot = RdeepCheaterBot(10, 5, random.Random(4556), "cheater")
+    bot2 = RandBot(random.Random(678473), "rand")
+    number_of_games: int = 1000
+
+    bot1_wins = play_games_and_return_stats(engine=engine, bot1=bot1, bot2=bot2, number_of_games=number_of_games)
+    print(f"{bot1} wins {bot1_wins} times out of {number_of_games} games played.")
 
 
 @main.group()

@@ -1003,6 +1003,22 @@ class PlayerPerspective(ABC):
         return full_state
 
 
+    def make_cheating_assumption(self, leader_move: Optional[Move], rand: Random) -> GameState:
+        full_state = self.__game_state.copy_with_other_bots(_DummyBot(), _DummyBot())
+        if self.get_phase() == GamePhase.TWO:
+            return full_state
+
+        new_talon: list[Card] = full_state.talon.get_cards()
+        # keep the trump in place:
+        old_trump = new_talon.pop(len(new_talon) - 1)
+        rand.shuffle(new_talon)
+        new_talon.append(old_trump)
+        full_state.talon = Talon(new_talon)
+
+        return full_state
+
+
+
 class _DummyBot(Bot):
     """A bot used by PlayerPerspective.make_assumption to replace the real bots. This bot cannot play and will throw an Exception for everything"""
 
