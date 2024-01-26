@@ -316,7 +316,7 @@ class OrderedCardCollection(CardCollection):
         :return: (list[Card]): An Iterable of cards with the provided suit.
         """
 
-        assert suit in Suit
+        assert suit in Suit, f"The provided suit {suit} is not a valid {Suit} "
         results: list[Card] = [card for card in self._cards if card.suit is suit]
         return results
 
@@ -327,7 +327,7 @@ class OrderedCardCollection(CardCollection):
         :param rank: (Rank): The rank to filter on.
         :return: (list[Card]): An Iterable of cards with the provided rank.
         """
-        assert rank in Rank
+        assert rank in Rank, f"The provided rank {rank} is not a valid {Rank} "
         results: list[Card] = [card for card in self._cards if card.rank is rank]
         return results
 

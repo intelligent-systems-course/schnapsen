@@ -118,7 +118,7 @@ class AlphaBetaBot(Bot):
                 beta = min(beta, best_value)  # alphabeta pruning
                 if beta <= alpha:
                     break
-        assert best_move  # We are sure the best_move can no longer be None. We assert to make sure we did not make a logical mistake
+        assert best_move, "We are sure the best_move can no longer be None"  # We assert to make sure we did not make a logical mistake
         return best_value, best_move
 
 

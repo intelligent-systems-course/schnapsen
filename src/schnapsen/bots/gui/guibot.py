@@ -93,7 +93,7 @@ class SchnapsenServer:
         # we now wait for the browser to make the move
         state_exchange.is_move_ready.wait()
         move = state_exchange.browser_move
-        assert move is not None
+        assert move is not None, "Browser move must not be None if a move has been exchanged"
         return move
 
     def __sendmove(self, botname: str) -> str:
@@ -195,11 +195,11 @@ class _Old_GUI_Compatibility:
         if not old_move[0]:
             assert old_move[1] is not None, "In the old endinge, all moves with the first part not set must be Trump exchanges"
             return TrumpExchange(_Old_GUI_Compatibility.old_engine_order[old_move[1]])
-        assert old_move[0] and old_move[1]
+        assert old_move[0] and old_move[1], "If it is not a regular move, and not an exchange, it must be a marriage, so expect both cards to be set"
         if _Old_GUI_Compatibility.old_engine_order[old_move[0]].rank == Rank.KING:
             # swap
             old_move = (old_move[1], old_move[0])
-        assert old_move[0] is not None and old_move[1] is not None
+        assert old_move[0] is not None and old_move[1] is not None, "After potential swap, if it is not a regular move, and not an exchange, it must be a marriage, so expect both cards to be set"
         return Marriage(queen_card=_Old_GUI_Compatibility.old_engine_order[old_move[0]], king_card=_Old_GUI_Compatibility.old_engine_order[old_move[1]])
 
     @staticmethod
@@ -230,7 +230,7 @@ class _Old_GUI_Compatibility:
             if leader_move.is_regular_move():
                 partial_move_down = leader_move.as_regular_move().card
             else:
-                assert leader_move.is_marriage()
+                assert leader_move.is_marriage(), "Expected the move to be a marriage at this point."
                 partial_move_down = leader_move.as_marriage().underlying_regular_move().card
         else:
             partial_move_down = None
@@ -271,8 +271,8 @@ class _Old_GUI_Compatibility:
                 else:
                     this_card_state = 'P2H'
 
-            assert this_card_state
-            assert this_p1_perspective
+            assert this_card_state, "Whatever happened, the state for this card must be set in one of the branches."
+            assert this_p1_perspective, "Whatever happened, the perspective information for this card must be set in one of the branches."
 
             card_state[index] = this_card_state
             p1_perspective[index] = this_p1_perspective
