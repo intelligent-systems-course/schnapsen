@@ -100,7 +100,7 @@ jobs:
 
     environment:
       name: testpypi
-      url: https://test.pypi.org/p/schnapsen
+      url: https://test.pypi.org/p/schnapsen-test
 
     permissions:
       id-token: write  # IMPORTANT: mandatory for trusted publishing
