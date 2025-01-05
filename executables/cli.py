@@ -22,22 +22,20 @@ def main() -> None:
     """Various Schnapsen Game Examples"""
 
 
-def play_games_and_return_stats(engine: GamePlayEngine, bot1: Bot, bot2: Bot, number_of_games: int) -> int:
+def play_games_and_return_stats(engine: GamePlayEngine, bot1: Bot, bot2: Bot, pairs_of_games: int) -> int:
     """
-    Play number_of_games games between bot1 and bot2, using the SchnapsenGamePlayEngine, and return how often bot1 won.
-    Prints progress.
+    Play 2 * pairs_of_games games between bot1 and bot2, using the SchnapsenGamePlayEngine, and return how often bot1 won.
+    Prints progress. Each pair of games is the same original dealing of cards, but the roles of the bots are swapped.
     """
     bot1_wins: int = 0
     lead, follower = bot1, bot2
-    for i in range(1, number_of_games + 1):
-        if i % 2 == 0:
-            # swap bots so both start the same number of times
-            lead, follower = follower, lead
-        winner, _, _ = engine.play_game(lead, follower, random.Random(i))
-        if winner == bot1:
-            bot1_wins += 1
-        if i % 500 == 0:
-            print(f"Progress: {i}/{number_of_games}")
+    for game_pair in range(pairs_of_games):
+        for lead, follower in [(bot1, bot2), (bot2, bot1)]:
+            winner, _, _ = engine.play_game(lead, follower, random.Random(game_pair))
+            if winner == bot1:
+                bot1_wins += 1
+        if game_pair > 0 and (game_pair + 1) % 500 == 0:
+            print(f"Progress: {game_pair + 1}/{pairs_of_games} game pairs played")
     return bot1_wins
 
 
@@ -180,9 +178,10 @@ def try_bot_game() -> None:
     bot1: Bot = MLPlayingBot(model_location=model_location)
     bot2: Bot = RandBot(random.Random(464566))
     number_of_games: int = 10000
+    pairs_of_games = number_of_games // 2
 
     # play games with altering leader position on first rounds
-    ml_bot_wins_against_random = play_games_and_return_stats(engine=engine, bot1=bot1, bot2=bot2, number_of_games=number_of_games)
+    ml_bot_wins_against_random = play_games_and_return_stats(engine=engine, bot1=bot1, bot2=bot2, pairs_of_games=pairs_of_games)
     print(f"The ML bot with name {model_name}, won {ml_bot_wins_against_random} times out of {number_of_games} games played.")
 
 
