@@ -28,7 +28,7 @@ class DealingTest (TestCase):
         self.assertEqual(len(rest), 10, "There must be 10 cards left after dealing")
         for i in [0, 2, 4, 6, 8]:
             assert cards[i] in hand1, f"card {cards[i]} expected to be in hand 1 {hand1} after dealing from {shuffled_deck}"
-            assert cards[i + 1] in hand2, f"card {cards[i+1]} expected to be in hand 2 {hand2} after dealing from {shuffled_deck}"
+            assert cards[i + 1] in hand2, f"card {cards[i + 1]} expected to be in hand 2 {hand2} after dealing from {shuffled_deck}"
             assert cards[i] not in rest, f"card {cards[i]} not expected to be in the rest {rest} after dealing from {shuffled_deck}"
             assert cards[i + 1] not in rest, f"card {cards[i]} not expected to be in the rest {rest} after dealing from {shuffled_deck}"
         for i in range(10, 20):
