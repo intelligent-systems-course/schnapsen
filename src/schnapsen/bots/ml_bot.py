@@ -208,7 +208,7 @@ def train_ML_model(replay_memory_location: Optional[pathlib.Path],
         # Train a simpler Linear Logistic Regression model
         # learn more about the model or how to use better use it by checking out its documentation
         # https://scikit-learn.org/stable/modules/generated/sklearn.linear_model.LogisticRegression.html#sklearn.linear_model.LogisticRegression
-        print("Training a Simple (Linear Logistic Regression model)")
+        print("Training a Simple (Linear Logistic Regression) model")
 
         # Usually there is no reason to change the hyperparameters of such a simple model but fill free to experiment:
         learner = LogisticRegression(max_iter=1000)
