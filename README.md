@@ -1,15 +1,33 @@
-# Schnapsen platform - Project Intelligent Systems 2022-2023
+# Schnapsen platform - Project Intelligent Systems 2024-2025
 
 ## Getting started
 
-This is the improved platform for the schnapsen card game. To get to know the concept of the game, please visit
+This is a platform for the schnapsen card game. To get to know the concept of the game, please visit
 [this web page](https://www.pagat.com/marriage/schnaps.html).
 
 
-To use the platform, your python version must be at least 3.10, we suggest installing conda and using an environment (see below).
-At this point, the code is not tested with python 3.13, yet.
+To use the platform, your python version must be at least 3.10.
+The code has been tested with python 3.13, let us know if you encounter issues.
 
-To get started, clone the repository, go into the folder and install the schnapsen package and its dependencies in editable mode by running:
+We strongly suggest installing conda (or pip) and using an environment.
+
+### Getting an environment ###
+
+An easy way to get that is using virtual environments. We suggest you install [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html) to manage them.
+Then, you can use conda to create a new environment by running
+```sh
+conda create --name project_is python=3.10
+```
+With this environment created, you can start it
+```
+conda activate project_is
+```
+Inside this environment you can install the dependencies as instructed below. Some IDEs also support the use of environments, and can help you install dependencies. 
+
+### getting the platform ###
+
+After you have created the environment, make sure it is enabled.
+Then, clone the repository, go into the folder and install the schnapsen package and its dependencies in editable mode by running:
 
 ```sh
 pip install -e .
@@ -66,19 +84,7 @@ The documentation for the platform is hosted at https://intelligent-systems-cour
 
 ## Troubleshooting
 
-### Getting the right python ###
 
-The first hurdle in getting the platform to run is getting the right python version on your system.
-An easy way to get that is using virtual environments. We suggest you install [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html) to manage them.
-Then, you can use conda to create a new environment by running
-```sh
-conda create --name project_is python=3.10
-```
-With this environment created, you can start it
-```
-conda activate project_is
-```
-Inside this environment you can install the dependencies as instructed above.
 
 ### Run the right python ###
 
