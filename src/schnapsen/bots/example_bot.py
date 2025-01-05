@@ -49,7 +49,7 @@ class ExampleBot(Bot):
         elif one_move.is_trump_exchange():
             exchange = one_move
             jack: Card = exchange.cards[0]
-            assert jack.rank == Rank.JACK
+            assert jack.rank == Rank.JACK, f"The rank of the card in a trump exchange must always be a {Rank.JACK}"
         else:
             normal_move = one_move
             card: Card = normal_move.cards[0]

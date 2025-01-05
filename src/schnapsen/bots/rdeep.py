@@ -44,7 +44,7 @@ class RdeepBot(Bot):
             if average_score > best_score:
                 best_score = average_score
                 best_move = move
-        assert best_move is not None
+        assert best_move is not None, "We went over all the moves, selecting the one we expect to lead to the highest average score. Simce there must have been at least one move at the start, this can never be None"
         return best_move
 
     def __evaluate(self, gamestate: GameState, engine: GamePlayEngine, leader_move: Optional[Move], my_move: Move) -> float:

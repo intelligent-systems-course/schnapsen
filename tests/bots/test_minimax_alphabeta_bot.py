@@ -120,11 +120,11 @@ class MiniMaxBotTest(TestCase):
                 randbot = RandBot(random.Random(j))
                 if outcome[0] == minimaxA:
                     outcome2 = engine.play_game_from_state_with_new_bots(state, new_leader=minimaxA, new_follower=randbot, leader_move=None)
-                    assert outcome2[0] == minimaxA
+                    assert outcome2[0] == minimaxA, "expected minimax to win from random in a sitatuon that is winnable"
                 else:
                     # minimaxB won
                     outcome2 = engine.play_game_from_state_with_new_bots(state, new_leader=randbot, new_follower=minimaxB, leader_move=None)
-                    assert outcome2[0] == minimaxB
+                    assert outcome2[0] == minimaxB, "expected minimax to win from random in a sitatuon that is winnable"
 
 
 class MiniMaxBotAlphaBetaPhaseTwoEasy(TestCase):
