@@ -209,7 +209,7 @@ class TalonTest(TestCase):
 
     def test_draw_cards(self) -> None:
         t = Talon(self.ten_cards)
-        drawn = list(t.draw_cards(4))
+        drawn = t.draw_cards(4)
         self.assertEqual(drawn, self.ten_cards[0:4])
         rest = list(t.get_cards())
         self.assertEqual(rest, self.ten_cards[4:10])
