@@ -83,7 +83,7 @@ class Move(ABC):
         return False
 
     def as_regular_move(self) -> RegularMove:
-        """Returns this same move but as a Marriage."""
+        """Returns this same move but as a RegularMove."""
         raise AssertionError("as_regular_move called on a Move which is not a regular move. Check with is_regular_move first.")
 
     def is_marriage(self) -> bool:
