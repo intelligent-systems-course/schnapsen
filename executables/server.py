@@ -8,6 +8,6 @@ if __name__ == "__main__":
     engine = SchnapsenGamePlayEngine()
     with SchnapsenServer() as s:
         bot1 = RandBot(random.Random(12))
-        bot1 = s.make_gui_bot(name="mybot1")
+        # bot1 = s.make_gui_bot(name="mybot1")
         bot2 = s.make_gui_bot(name="mybot2")
         engine.play_game(bot1, bot2, random.Random(100))
