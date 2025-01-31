@@ -303,8 +303,8 @@ def get_move_feature_vector(move: Optional[Move]) -> list[int]:
 
     if move is None:
         move_type_one_hot_encoding_numpy_array = [0, 0, 0]
-        card_rank_one_hot_encoding_numpy_array = [0, 0, 0, 0]
-        card_suit_one_hot_encoding_numpy_array = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        card_rank_one_hot_encoding_numpy_array = [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+        card_suit_one_hot_encoding_numpy_array = [0, 0, 0, 0]
 
     else:
         move_type_one_hot_encoding: list[int]

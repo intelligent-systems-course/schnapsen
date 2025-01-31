@@ -154,7 +154,7 @@ class Card(Enum):
         """
         Get a Card for the provided Rank and Suit.
 
-        Internally, this uses a cache for effieciency and to prevent duplicate card objects.
+        Internally, this uses a cache for efficiency and to prevent duplicate card objects.
 
         :param rank: (Rank): The rank of the card.
         :param suit: (Suit): The suit of the card.
